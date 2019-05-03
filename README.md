@@ -30,6 +30,10 @@ The Original version of these environments were created by **Edouard Leurent** a
     cd urban_AD_env
     python setup.py install
 ```
+4) NOTE: You might have some libraries missing when you run "baselines_run.py". Please add them as needed. 
+
+
+
 ## Arguments and Config Files
 **baselines_run.py** script uses **2** clear defined sections to setup all the main OpenAI Baselines arguments.
 ```python
