@@ -61,7 +61,7 @@ grpcio==1.19.0
 -e git+https://github.com/openai/gym@b1d645caa983c80591c942821e23875ccc483073#egg=gym
 h5py==2.8.0
 heapdict==1.0.0
-highway-env==1.0.dev0
+urban-env==1.0.dev0
 html5lib==1.0.1
 idna==2.8
 imageio==2.5.0

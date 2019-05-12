@@ -14,7 +14,7 @@ from urban_env.road.lane import LineType, StraightLane, CircularLane, SineLane
 from urban_env.road.road import Road, RoadNetwork
 from urban_env.vehicle.control import MDPVehicle
 
-
+ROUND_ABOUT_MAX_VELOCITY = 10.0
 class RoundaboutEnv(AbstractEnv):
 
     COLLISION_REWARD = -1
@@ -22,7 +22,7 @@ class RoundaboutEnv(AbstractEnv):
     RIGHT_LANE_REWARD = 0
     LANE_CHANGE_REWARD = -0.05
 
-    DURATION = 11
+    DURATION = 16
 
     DEFAULT_CONFIG = {
         "observation": {
@@ -30,14 +30,18 @@ class RoundaboutEnv(AbstractEnv):
         },
         "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
         "incoming_vehicle_destination": None,
-        "centering_position": [0.5, 0.6]
+        "centering_position": [0.5, 0.6],
+        "screen_width": 600 * 2,
+        "screen_height": 300 * 2 
     }
 
     def __init__(self):
         super(RoundaboutEnv, self).__init__()
         self.steps = 0
         self.reset()
-        EnvViewer.SCREEN_HEIGHT = 600
+        EnvViewer.SCREEN_HEIGHT = self.config['screen_height']
+        EnvViewer.SCREEN_WIDTH = self.config['screen_width']     
+        self.enable_auto_render = True
 
     def _reward(self, action):
         reward = self.COLLISION_REWARD * self.vehicle.crashed \
@@ -109,7 +113,7 @@ class RoundaboutEnv(AbstractEnv):
 
     def _make_vehicles(self):
         """
-            Populate a road with several vehicles on the highway and on the merging lane, as well as an ego-vehicle.
+            Populate a road with several vehicles on the urban and on the merging lane, as well as an ego-vehicle.
         :return: the ego-vehicle
         """
         position_deviation = 2
@@ -119,7 +123,7 @@ class RoundaboutEnv(AbstractEnv):
         ego_lane = self.road.network.get_lane(("ser", "ses", 0))
         ego_vehicle = MDPVehicle(self.road,
                                  ego_lane.position(140, 0),
-                                 velocity=5,
+                                 velocity= 5 + np.random.random()* ROUND_ABOUT_MAX_VELOCITY,
                                  heading=ego_lane.heading_at(140)).plan_route_to("nxs")
         MDPVehicle.SPEED_MIN = 0
         MDPVehicle.SPEED_MAX = 15

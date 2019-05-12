@@ -17,7 +17,7 @@ from urban_env.vehicle.graphics import VehicleGraphics
 
 class EnvViewer(object):
     """
-        A viewer to render a highway driving environment.
+        A viewer to render a urban driving environment.
     """
     SCREEN_WIDTH = 600
     SCREEN_HEIGHT = 150
@@ -27,7 +27,7 @@ class EnvViewer(object):
         self.env = env
 
         pygame.init()
-        pygame.display.set_caption("Highway-env")
+        pygame.display.set_caption("Urban-AD (Munir Jojo-Verge)")
         panel_size = (self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
         self.screen = pygame.display.set_mode([self.SCREEN_WIDTH, self.SCREEN_HEIGHT])
         self.sim_surface = WorldSurface(panel_size, 0, pygame.Surface(panel_size))
@@ -107,7 +107,7 @@ class EnvViewer(object):
         pygame.display.flip()
 
         if self.SAVE_IMAGES:
-            pygame.image.save(self.screen, "highway-env_{}.png".format(self.frame))
+            pygame.image.save(self.screen, "urban-env_{}.png".format(self.frame))
             self.frame += 1
 
     def get_image(self):

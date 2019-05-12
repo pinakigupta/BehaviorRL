@@ -16,9 +16,9 @@ from urban_env.vehicle.control import MDPVehicle
 
 class MultilaneEnv(AbstractEnv):
     """
-        A highway driving environment.
+        A urban driving environment.
 
-        The vehicle is driving on a straight highway with several lanes, and is rewarded for reaching a high velocity,
+        The vehicle is driving on a straight urban with several lanes, and is rewarded for reaching a high velocity,
         staying on the rightmost lanes and avoiding collisions.
     """
 
@@ -62,7 +62,7 @@ class MultilaneEnv(AbstractEnv):
     def __init__(self):
         config = self.DEFAULT_CONFIG.copy()
         config.update(self.DIFFICULTY_LEVELS["HARD"])
-        super(HighwayEnv, self).__init__(config)
+        super(MultilaneEnv, self).__init__(config)
         self.steps = 0
         self.reset()
 
@@ -70,11 +70,11 @@ class MultilaneEnv(AbstractEnv):
         self._create_road()
         self._create_vehicles()
         self.steps = 0
-        return super(HighwayEnv, self).reset()
+        return super(MultilaneEnv, self).reset()
 
     def step(self, action):
         self.steps += 1
-        return super(HighwayEnv, self).step(action)
+        return super(MultilaneEnv, self).step(action)
 
     def _create_road(self):
         """

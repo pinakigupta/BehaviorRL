@@ -36,11 +36,19 @@ from settings import req_dirs, models_folder
 ###############################################################
 #        DEFINE YOUR "BASELINE" (AGENT) PARAMETERS HERE 
 ###############################################################
-train_env_id =  'parking_2outs-v0' 
-play_env_id = 'parking_2outs-v0'
+#train_env_id =  'merge-v0'
+#train_env_id =  'roundabout-v0'
+#train_env_id =  'two-way-v0'
+train_env_id =  'parking_2outs-v0'
+
+play_env_id = ''
 alg = 'her'
 network = 'mlp'
-num_timesteps = '1e4'
+num_timesteps = '1e0'
+#load_file_name = '20190511-121635' # 'merge-v0'
+#load_file_name = '20190510-100005' # 'roundabout-v0'
+#load_file_name = '20190509-211658' # 'two-way-v0'
+load_file_name = '20190506-082121' # 'parking_2outs-v0'
 #################################################################
 
 def create_dirs(req_dirs):
@@ -55,15 +63,11 @@ def create_dirs(req_dirs):
 def default_args():    
     create_dirs(req_dirs)
 
-    currentDT = time.strftime("%Y%m%d-%H%M%S")
-    ####################################################################
-    # DEFINE YOUR SAVE FILE, LOAD FILE AND LOGGING FILE PARAMETERS HERE 
-    ####################################################################        
+    currentDT = time.strftime("%Y%m%d-%H%M%S")           
     save_folder = models_folder + '/' + train_env_id +'/'+ alg + '/' + network 
     save_file = save_folder + '/' + str(currentDT)
     logger_path = save_file + '_log'
-    load_path = save_folder +'/'+ '20190501-205202' #her_default_20190212-141935' # Good with just Ego    
-    ###############################################################
+    load_path = save_folder +'/'+ load_file_name #her_default_20190212-141935' # Good with just Ego        
         
     try:  
         os.mkdir(save_folder)
@@ -78,9 +82,9 @@ def default_args():
     #    '--network=' + network,
         '--num_timesteps=' + num_timesteps,    
     #    '--num_env=0',
-        '--save_path=' + save_file,
-    #    '--load_path=' + load_path,
-        '--logger_path=' + logger_path,
+    #    '--save_path=' + save_file,
+        '--load_path=' + load_path,
+    #    '--logger_path=' + logger_path,
         '--play'
     ]
 

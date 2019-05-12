@@ -11,36 +11,42 @@ from urban_env import utils
 from urban_env.envs.abstract import AbstractEnv
 from urban_env.road.lane import LineType, StraightLane, SineLane
 from urban_env.road.road import Road, RoadNetwork
+from urban_env.envs.graphics import EnvViewer
 from urban_env.vehicle.control import ControlledVehicle, MDPVehicle
 from urban_env.vehicle.dynamics import Obstacle
 
 
 class MergeEnv(AbstractEnv):
     """
-        A highway merge negotiation environment.
+        A urban merge negotiation environment.
 
-        The ego-vehicle is driving on a highway and approached a merge, with some vehicles incoming on the access ramp.
+        The ego-vehicle is driving on a urban and approached a merge, with some vehicles incoming on the access ramp.
         It is rewarded for maintaining a high velocity and avoiding collisions, but also making room for merging
         vehicles.
     """
 
     COLLISION_REWARD = -1
-    RIGHT_LANE_REWARD = 0.1
-    HIGH_VELOCITY_REWARD = 0.2
-    MERGING_VELOCITY_REWARD = -0.5
-    LANE_CHANGE_REWARD = -0.05
+    RIGHT_LANE_REWARD = 0.0
+    HIGH_VELOCITY_REWARD = 0.02
+    #MERGING_VELOCITY_REWARD = -0.5
+    LANE_CHANGE_REWARD = 0.0
 
     DEFAULT_CONFIG = {
         "observation": {
             "type": "Kinematics"
         },
         "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
-        "centering_position": [0.3, 0.5]
+        "centering_position": [0.3, 0.5],
+        "screen_width": 600 * 2,
+        "screen_height": 300 * 2 
     }
 
     def __init__(self):
         super(MergeEnv, self).__init__()
         self.reset()
+        EnvViewer.SCREEN_HEIGHT = self.config['screen_height']
+        EnvViewer.SCREEN_WIDTH = self.config['screen_width']     
+        self.enable_auto_render = True
 
     def _reward(self, action):
         """
@@ -55,14 +61,14 @@ class MergeEnv(AbstractEnv):
                          3: 0,
                          4: 0}
         reward = self.COLLISION_REWARD * self.vehicle.crashed \
-                 + self.RIGHT_LANE_REWARD * self.vehicle.lane_index[2] / 1 \
-                 + self.HIGH_VELOCITY_REWARD * self.vehicle.velocity_index / (self.vehicle.SPEED_COUNT - 1)
+            + self.HIGH_VELOCITY_REWARD * self.vehicle.velocity_index / (self.vehicle.SPEED_COUNT - 1)
+                 # + self.RIGHT_LANE_REWARD * self.vehicle.lane_index[2] / 1
 
-        # Altruistic penalty
-        for vehicle in self.road.vehicles:
-            if vehicle.lane_index == ("b", "c", 2) and isinstance(vehicle, ControlledVehicle):
-                reward += self.MERGING_VELOCITY_REWARD * \
-                          (vehicle.target_velocity - vehicle.velocity) / vehicle.target_velocity
+        # # Altruistic penalty
+        # for vehicle in self.road.vehicles:
+        #     if vehicle.lane_index == ("b", "c", 2) and isinstance(vehicle, ControlledVehicle):
+        #         reward += self.MERGING_VELOCITY_REWARD * \
+        #                   (vehicle.target_velocity - vehicle.velocity) / vehicle.target_velocity
 
         return utils.remap(action_reward[action] + reward,
                            [self.COLLISION_REWARD, self.HIGH_VELOCITY_REWARD + self.RIGHT_LANE_REWARD],
@@ -81,12 +87,12 @@ class MergeEnv(AbstractEnv):
 
     def _make_road(self):
         """
-            Make a road composed of a straight highway and a merging lane.
+            Make a road composed of a straight urban and a merging lane.
         :return: the road
         """
         net = RoadNetwork()
 
-        # Highway lanes
+        # urban lanes
         ends = [150, 80, 80, 150]  # Before, converging, merge, after
         c, s, n = LineType.CONTINUOUS_LINE, LineType.STRIPED, LineType.NONE
         y = [0, StraightLane.DEFAULT_WIDTH]
@@ -113,11 +119,12 @@ class MergeEnv(AbstractEnv):
 
     def _make_vehicles(self):
         """
-            Populate a road with several vehicles on the highway and on the merging lane, as well as an ego-vehicle.
+            Populate a road with several vehicles on the urban and on the merging lane, as well as an ego-vehicle.
         :return: the ego-vehicle
         """
         road = self.road
-        ego_vehicle = MDPVehicle(road, road.network.get_lane(("a", "b", 1)).position(30, 0), velocity=30)
+        #ego_vehicle = MDPVehicle(road, road.network.get_lane(("a", "b", 1)).position(30, 0), velocity=30)
+        ego_vehicle = MDPVehicle(road, road.network.get_lane(("j", "k", 0)).position(110, 0), velocity=31.5)
         road.vehicles.append(ego_vehicle)
 
         other_vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
@@ -125,7 +132,7 @@ class MergeEnv(AbstractEnv):
         road.vehicles.append(other_vehicles_type(road, road.network.get_lane(("a", "b", 1)).position(70, 0), velocity=31))
         road.vehicles.append(other_vehicles_type(road, road.network.get_lane(("a", "b", 0)).position(5, 0), velocity=31.5))
 
-        merging_v = other_vehicles_type(road, road.network.get_lane(("j", "k", 0)).position(110, 0), velocity=20)
-        merging_v.target_velocity = 30
-        road.vehicles.append(merging_v)
+        # merging_v = other_vehicles_type(road, road.network.get_lane(("j", "k", 0)).position(110, 0), velocity=20)
+        # merging_v.target_velocity = 30
+        # road.vehicles.append(merging_v)
         self.vehicle = ego_vehicle

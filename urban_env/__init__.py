@@ -12,7 +12,7 @@ register(
 
 register(
     id='roundabout-v0',
-    entry_point='urban_env.envs:RoundaboutEnv',
+    entry_point='urban_env.envs:RoundaboutEnv',    
 )
 
 register(
