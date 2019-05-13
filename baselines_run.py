@@ -10,6 +10,10 @@ import time
 import gym
 import numpy as np
 import glob
+import warnings
+
+from baselines.common.vec_env import  VecEnv
+
 ####################
 pathname = os.getcwd()
 print("current directory is : " + pathname)
@@ -59,11 +63,10 @@ def default_args():
     ####################################################################
     # DEFINE YOUR SAVE FILE, LOAD FILE AND LOGGING FILE PARAMETERS HERE 
     ####################################################################        
-    save_folder = models_folder + '/' + train_env_id +'/'+ alg + '/' + network 
+    save_folder = pathname + '/' + models_folder + '/' + train_env_id +'/'+ alg + '/' + network 
     save_file = save_folder + '/' + str(currentDT)
     logger_path = save_file + '_log'
-    list_of_file = glob.glob('save_folder/*')
-    print("list_of_file",list_of_file)
+    list_of_file = glob.glob(save_folder+'/*')
   
     ###############################################################
         
@@ -82,20 +85,24 @@ def default_args():
     #    '--num_env=0',
         '--save_path=' + save_file,        
     #    '--logger_path=' + logger_path,
-        '--play'
+    #    '--play'
     ]
 
     if list_of_file:
         latest_file = max( list_of_file, key=os.path.getctime)
-        load_path = save_folder +'/'+ latest_file #her_default_20190212-141935' # Good with just Ego  
+        load_path = latest_file #her_default_20190212-141935' # Good with just Ego  
+        print("load_path",load_path)
         DEFAULT_ARGUMENTS.append('--load_path=' + load_path) 
+    else :
+        print(" list_of_file empty in load path ", save_folder)
+        exit
 
     return DEFAULT_ARGUMENTS
 
 
-def play(env_id, policy):
+def play(env, policy):
     
-    env = gym.make(env_id)
+    # env = gym.make(env_id)
     
     logger.configure()
     logger.log("Running trained model")
@@ -111,7 +118,7 @@ def play(env_id, policy):
         else:
             actions, _, _, _ = policy.step(obs)
 
-        obs, rew, done, _ = env.step(actions)
+        obs, rew, done, _ = env.step(actions[0])
         episode_rew += rew
         env.render()
         done = done.any() if isinstance(done, np.ndarray) else done
@@ -119,11 +126,18 @@ def play(env_id, policy):
             print('episode_rew={}'.format(episode_rew))
             episode_rew = 0
             obs = env.reset()
+            break
+
 
 if __name__ == "__main__":
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+    warnings.filterwarnings("ignore", category=DeprecationWarning) 
+
     args = sys.argv
     if len(args) <= 1:
         args = default_args()
-    policy = run.main(args)
-    #play(play_env_id,policy)          
+
+    while True:
+        policy, play_env = run.main(args)
+        play(play_env,policy)          
 

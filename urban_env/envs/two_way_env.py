@@ -57,7 +57,6 @@ class TwoWayEnv(AbstractEnv):
         """
         neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
 
-        print(self.vehicle.velocity_index)
         reward = self.COLLISION_REWARD * self.vehicle.crashed  + \
         self.HIGH_VELOCITY_REWARD * self.vehicle.velocity_index / (self.vehicle.SPEED_COUNT - 1) \
             + self.LEFT_LANE_REWARD * (len(neighbours) - 1 - self.vehicle.target_lane_index[2]) / (len(neighbours) - 1)
