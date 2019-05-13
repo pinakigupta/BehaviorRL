@@ -13,6 +13,8 @@ import glob
 import warnings
 
 from baselines.common.vec_env import  VecEnv
+from baselines.common import tf_util
+import tensorflow as tf
 
 ####################
 pathname = os.getcwd()
@@ -85,7 +87,7 @@ def default_args():
     #    '--num_env=0',
         '--save_path=' + save_file,        
     #    '--logger_path=' + logger_path,
-    #    '--play'
+        '--play'
     ]
 
     if list_of_file:
@@ -125,7 +127,7 @@ def play(env, policy):
         if done:
             print('episode_rew={}'.format(episode_rew))
             episode_rew = 0
-            obs = env.reset()
+            env.close()
             break
 
 
@@ -133,11 +135,18 @@ if __name__ == "__main__":
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
     warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
-    args = sys.argv
-    if len(args) <= 1:
-        args = default_args()
+
+    itr = 1
+    
 
     while True:
+        args = sys.argv
+        if len(args) <= 1:
+            args = default_args()
         policy, play_env = run.main(args)
-        play(play_env,policy)          
-
+        print(" Batch iteration ", itr)
+        #itr += 1
+        #play(play_env,policy)
+        sess = tf_util.get_session()
+        sess.close()
+        tf.reset_default_graph()
