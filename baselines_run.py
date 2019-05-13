@@ -9,7 +9,7 @@ from os.path import dirname, abspath
 import time
 import gym
 import numpy as np
-
+import glob
 ####################
 pathname = os.getcwd()
 print("current directory is : " + pathname)
@@ -36,11 +36,11 @@ from settings import req_dirs, models_folder
 ###############################################################
 #        DEFINE YOUR "BASELINE" (AGENT) PARAMETERS HERE 
 ###############################################################
-train_env_id =  'parking_2outs-v0' 
-play_env_id = 'parking_2outs-v0'
-alg = 'her'
+train_env_id =  'two-way-v0' 
+play_env_id = 'two-way-v0'
+alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e4'
+num_timesteps = '1e1'
 #################################################################
 
 def create_dirs(req_dirs):
@@ -62,7 +62,9 @@ def default_args():
     save_folder = models_folder + '/' + train_env_id +'/'+ alg + '/' + network 
     save_file = save_folder + '/' + str(currentDT)
     logger_path = save_file + '_log'
-    load_path = save_folder +'/'+ '20190501-205202' #her_default_20190212-141935' # Good with just Ego    
+    list_of_file = glob.glob('save_folder/*')
+    print("list_of_file",list_of_file)
+  
     ###############################################################
         
     try:  
@@ -78,11 +80,15 @@ def default_args():
     #    '--network=' + network,
         '--num_timesteps=' + num_timesteps,    
     #    '--num_env=0',
-        '--save_path=' + save_file,
-    #    '--load_path=' + load_path,
-        '--logger_path=' + logger_path,
+        '--save_path=' + save_file,        
+    #    '--logger_path=' + logger_path,
         '--play'
     ]
+
+    if list_of_file:
+        latest_file = max( list_of_file, key=os.path.getctime)
+        load_path = save_folder +'/'+ latest_file #her_default_20190212-141935' # Good with just Ego  
+        DEFAULT_ARGUMENTS.append('--load_path=' + load_path) 
 
     return DEFAULT_ARGUMENTS
 

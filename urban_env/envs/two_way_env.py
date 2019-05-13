@@ -7,6 +7,7 @@
 from __future__ import division, print_function, absolute_import
 import numpy as np
 
+
 from urban_env import utils
 from urban_env.envs.abstract import AbstractEnv
 from urban_env.road.lane import LineType, StraightLane, SineLane
@@ -24,10 +25,10 @@ class TwoWayEnv(AbstractEnv):
         in the CMDP/BMDP framework.
     """
 
-    COLLISION_REWARD = 0
-    LEFT_LANE_CONSTRAINT = 1
-    LEFT_LANE_REWARD = 0.2
-    HIGH_VELOCITY_REWARD = 0.8
+    COLLISION_REWARD = -1
+    #LEFT_LANE_CONSTRAINT = 1
+    LEFT_LANE_REWARD = -0.1
+    HIGH_VELOCITY_REWARD = 0.1
 
     DEFAULT_CONFIG = {
         "observation": {
@@ -56,7 +57,9 @@ class TwoWayEnv(AbstractEnv):
         """
         neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
 
-        reward = self.HIGH_VELOCITY_REWARD * self.vehicle.velocity_index / (self.vehicle.SPEED_COUNT - 1) \
+        print(self.vehicle.velocity_index)
+        reward = self.COLLISION_REWARD * self.vehicle.crashed  + \
+        self.HIGH_VELOCITY_REWARD * self.vehicle.velocity_index / (self.vehicle.SPEED_COUNT - 1) \
             + self.LEFT_LANE_REWARD * (len(neighbours) - 1 - self.vehicle.target_lane_index[2]) / (len(neighbours) - 1)
         return reward
 
