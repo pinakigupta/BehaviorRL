@@ -87,7 +87,7 @@ def default_args():
     #    '--num_env=0',
         '--save_path=' + save_file,        
     #    '--logger_path=' + logger_path,
-        '--play'
+    #    '--play'
     ]
 
     if list_of_file:
@@ -143,10 +143,12 @@ if __name__ == "__main__":
         args = sys.argv
         if len(args) <= 1:
             args = default_args()
-        policy, play_env = run.main(args)
+        #args.num_env = 1
+        play_env = gym.make(play_env_id)
+        policy = run.main(args)
         print(" Batch iteration ", itr)
         #itr += 1
-        #play(play_env,policy)
+        play(play_env,policy)
         sess = tf_util.get_session()
         sess.close()
         tf.reset_default_graph()
