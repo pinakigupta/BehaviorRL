@@ -18,16 +18,16 @@ import tensorflow as tf
 
 ####################
 pathname = os.getcwd()
-print("current directory is : " + pathname)
+#print("current directory is : " + pathname)
 foldername = os.path.basename(pathname)
-print("Directory name is : " + foldername)
+#print("Directory name is : " + foldername)
 ####################
 
 open_ai_baselines_dir = pathname + '/open_ai_baselines'
-print(open_ai_baselines_dir)
+#print(open_ai_baselines_dir)
 
 urban_AD_env_path = pathname + '/urban_env/envs'
-print(urban_AD_env_path)
+#print(urban_AD_env_path)
 
 sys.path.append(open_ai_baselines_dir)
 sys.path.append(urban_AD_env_path)
@@ -38,6 +38,8 @@ from baselines import logger
 import urban_env
 
 from settings import req_dirs, models_folder
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+warnings.filterwarnings("ignore") 
 
 ###############################################################
 #        DEFINE YOUR "BASELINE" (AGENT) PARAMETERS HERE 
@@ -46,16 +48,16 @@ train_env_id =  'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e1'
+num_timesteps = '1e4'
 #################################################################
 
 def create_dirs(req_dirs):
     for dirName in req_dirs:
         if not os.path.exists(dirName):
             os.mkdir(dirName)
-            print("Directory " , dirName ,  " Created ")
-        else:    
-            print("Directory " , dirName ,  " already exists")
+            #print("Directory " , dirName ,  " Created ")
+        #else:    
+            #print("Directory " , dirName ,  " already exists")
 
 
 def default_args():    
@@ -88,6 +90,7 @@ def default_args():
         '--save_path=' + save_file,        
     #    '--logger_path=' + logger_path,
     #    '--play'
+    #    '--num_env=8' 
     ]
 
     if list_of_file:
@@ -132,22 +135,20 @@ def play(env, policy):
 
 
 if __name__ == "__main__":
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
-    warnings.filterwarnings("ignore", category=DeprecationWarning) 
+    
 
 
     itr = 1
-    
+    args = sys.argv
 
-    while True:
-        args = sys.argv
+
+    while itr<20:
         if len(args) <= 1:
             args = default_args()
-        #args.num_env = 1
         play_env = gym.make(play_env_id)
         policy = run.main(args)
         print(" Batch iteration ", itr)
-        #itr += 1
+        itr += 1
         play(play_env,policy)
         sess = tf_util.get_session()
         sess.close()

@@ -8,6 +8,7 @@ register(
 register(
     id='merge-v0',
     entry_point='urban_env.envs:MergeEnv',
+    tags={'wrapper_config.TimeLimit.max_episode_steps': 15}
 )
 
 register(

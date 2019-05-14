@@ -28,7 +28,7 @@ class TwoWayEnv(AbstractEnv):
     COLLISION_REWARD = -1
     #LEFT_LANE_CONSTRAINT = 1
     LEFT_LANE_REWARD = -0.1
-    HIGH_VELOCITY_REWARD = 0.1
+    HIGH_VELOCITY_REWARD = 0.25
 
     DEFAULT_CONFIG = {
         "observation": {
