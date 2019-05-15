@@ -9,12 +9,13 @@ from os.path import dirname, abspath
 import time
 import gym
 import numpy as np
+import glob
+import warnings
+
 
 ####################
 pathname = os.getcwd()
-print("current directory is : " + pathname)
-foldername = os.path.basename(pathname)
-print("Directory name is : " + foldername)
+#print("current directory is : " + pathname)
 ####################
 
 open_ai_baselines_dir = pathname + '/open_ai_baselines'
@@ -32,23 +33,25 @@ from baselines import logger
 import urban_env
 
 from settings import req_dirs, models_folder
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+warnings.filterwarnings("ignore") 
 
 ###############################################################
 #        DEFINE YOUR "BASELINE" (AGENT) PARAMETERS HERE 
 ###############################################################
 #train_env_id =  'merge-v0'
 #train_env_id =  'roundabout-v0'
-#train_env_id =  'two-way-v0'
-train_env_id =  'parking_2outs-v0'
+train_env_id =  'two-way-v0'
+#train_env_id =  'parking_2outs-v0'
 
 play_env_id = ''
-alg = 'her'
+alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e0'
+num_timesteps = '1e3'
 #load_file_name = '20190511-121635' # 'merge-v0'
 #load_file_name = '20190510-100005' # 'roundabout-v0'
-#load_file_name = '20190509-211658' # 'two-way-v0'
-load_file_name = '20190506-082121' # 'parking_2outs-v0'
+load_file_name = '20190511-180238' # 'two-way-v0'
+#load_file_name = '20190506-082121' # 'parking_2outs-v0'
 #################################################################
 
 def create_dirs(req_dirs):
@@ -67,7 +70,7 @@ def default_args():
     save_folder = models_folder + '/' + train_env_id +'/'+ alg + '/' + network 
     save_file = save_folder + '/' + str(currentDT)
     logger_path = save_file + '_log'
-    load_path = save_folder +'/'+ load_file_name #her_default_20190212-141935' # Good with just Ego        
+    list_of_file = glob.glob(save_folder+'/*')
         
     try:  
         os.mkdir(save_folder)
@@ -82,18 +85,30 @@ def default_args():
     #    '--network=' + network,
         '--num_timesteps=' + num_timesteps,    
     #    '--num_env=0',
-    #    '--save_path=' + save_file,
-        '--load_path=' + load_path,
+        '--save_path=' + save_file,
     #    '--logger_path=' + logger_path,
         '--play'
     ]
 
+    if list_of_file:
+        latest_file = max( list_of_file, key=os.path.getctime)
+        load_path = latest_file 
+        print("load_path",load_path)
+        DEFAULT_ARGUMENTS.append('--load_path=' + load_path) 
+    elif load_file_name != '':
+        load_path = load_file_name
+        print("load_path",load_path)
+        DEFAULT_ARGUMENTS.append('--load_path=' + load_path) 
+    else:
+        print(" list_of_file empty in load path ", save_folder)
+        print('We will train from scratch')        
+
     return DEFAULT_ARGUMENTS
 
 
-def play(env_id, policy):
+def play(env, policy):
     
-    env = gym.make(env_id)
+    # env = gym.make(env_id)
     
     logger.configure()
     logger.log("Running trained model")
@@ -109,19 +124,30 @@ def play(env_id, policy):
         else:
             actions, _, _, _ = policy.step(obs)
 
-        obs, rew, done, _ = env.step(actions)
+        obs, rew, done, _ = env.step(actions[0])
         episode_rew += rew
         env.render()
         done = done.any() if isinstance(done, np.ndarray) else done
         if done:
             print('episode_rew={}'.format(episode_rew))
             episode_rew = 0
-            obs = env.reset()
+            env.close()
+            break
 
-if __name__ == "__main__":
+if __name__ == "__main__":    
     args = sys.argv
-    if len(args) <= 1:
-        args = default_args()
-    policy = run.main(args)
-    #play(play_env_id,policy)          
-
+    itr = 1
+    while itr<20:
+        if len(args) <= 1:
+            args = default_args()
+        
+        policy = run.main(args)
+        print(" Batch iteration ", itr)
+        itr += 1
+        if play_env_id != 'None':
+            if play_env_id == '':
+                play_env_id = train_env_id
+            play_env = gym.make(play_env_id)
+            play(play_env,policy)
+        sess = tf_util.get_session()
+        sess.close()

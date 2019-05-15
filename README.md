@@ -14,23 +14,48 @@ The research will also address the differences (advantages and disadvantages) be
 The Original version of these environments were created by **Edouard Leurent** and can be found in https://github.com/eleurent/highway-env
 
 ## Getting Started
-0) This code requires:
+0) This code requires (Don't install anything yet):
 
    * Python 3
    * OpenAI Gym (https://github.com/openai/gym)
    * OpenAI Baselines (https://github.com/openai/baselines)
 
-1) Clone this repository
-2) Install all the required libraries:
+1) Install the Conda environment with the necessary libraries: 
 ```bash
-    pip install -r requirements.txt
- ```
-3) Install the urban_AD_env: 
-```bash
-    cd urban_AD_env
-    python setup.py install
+conda env create munirjojoverge/rl_baselines_env
+source activate rl_baselines_env
 ```
-4) NOTE: You might have some libraries missing when you run "baselines_run.py". Please add them as needed. 
+    NOTE: Make sure you are inside this environment before you run the code
+
+2) Clone this repository
+3) Navigate to the folder where you cloned this repo. You will see an empty folder named "open_ai_baselines".
+4) Clone openai baselines inside the folder "open_ai_baselines" mentioned above. (https://github.com/openai/baselines). 
+```bash
+git clone https://github.com/openai/baselines.git
+cd baselines
+```
+```bash
+pip install tensorflow-gpu # if you have a CUDA-compatible gpu and proper drivers
+```
+```bash
+pip install tensorflow
+```
+should be sufficient. Refer to TensorFlow installation guide for more details.
+```bash
+pip install -e .
+```
+
+
+
+5) Clone and Install Openai GYM (follow their instructions at https://github.com/openai/gym). The simplest way to do so is running the following commands, but please check their GitHub in case you want a minimal instalation:
+```bash
+git clone https://github.com/openai/gym.git
+cd gym
+pip install -e .
+```
+6) To run the program, check the last section "How to Run" below
+
+NOTE: You might have some libraries missing when you run "baselines_run.py". Please add them as needed. 
 
 
 
@@ -38,25 +63,17 @@ The Original version of these environments were created by **Edouard Leurent** a
 **baselines_run.py** script uses **2** clear defined sections to setup all the main OpenAI Baselines arguments.
 ```python
     ###############################################################
-    #        DEFINE YOUR "BASELINE" (AGENT) PARAMETERS HERE    ###############################################################
-    train_env_id =  'parking_2outs-v0' 
-    play_env_id = 'parking_2outs-v0'
-    alg = 'her'
+    #        DEFINE YOUR "BASELINE" (AGENT) PARAMETERS HERE       
+    ###############################################################
+    train_env_id =  'merge-v0'
+    play_env_id = ''
+    alg = 'ppo2'
     network = 'mlp'
-    num_timesteps = '1e6'
+    num_timesteps = '1e4'
+    load_file_name = '20190511-121635' # 'merge-v0'    
     #################################################################        
 ```
-And
-```python
-    ####################################################################
-    # DEFINE YOUR SAVE FILE, LOAD FILE AND LOGGING FILE PARAMETERS HERE
-    # ##################################################################     
-    save_folder = models_folder + '/' + train_env_id +'/'+ alg + '/' + network 
-    save_file = save_folder + '/' + str(currentDT)
-    logger_path = save_file + '_log'
-    load_path = save_folder +'/'+ '20190430-160146'   
-    ###############################################################
-```
+
  **settings.py** is used to specify the folders where all the training logs and final/trained agent weights will be saved to. 
 
 ## Hyperparameter Tuning
@@ -73,19 +90,17 @@ To reproduce my results, run ***baselines_run.py*** use the following setup:
     ##########################################################
     #            DEFINE YOUR "BASELINES" PARAMETERS HERE 
     ##########################################################
-    env =  'The Environment you want to train'
+    train_env_id =  'merge-v0'
+    play_env_id = ''
     alg = 'a2c'
     network = 'mlp'
-    num_timesteps = '1e5'
-    save_folder = models_folder + '/' + env +'/'+ alg + '/' + network 
-    save_file = save_folder + '/' + str(currentDT)
-    logger_path = save_file + '_log'
-    load_path = save_folder +'/'+ '20190419-113140' 
+    num_timesteps = '1e4'
+    load_file_name = '20190511-121635' # 'merge-v0' 
     ##########################################################
         
 ```
 #### NOTE: 
-1) If you run it for the first time, make sure to comment out the loading path argument (see below)
+1) If you run it for the first time, make sure to comment out the loading path argument (see below), since you don't have any initial weights to load.
 2) If you want to use the "default" network (mlp) you can comment out the "--network" argument (see below)
 3) logger_path will only work with some of the OpenAI baseline algorithms. If you chose one algortihm and it throws you an error regarding the "logger" just comment out the argument (see below)
 4) For more information about what these arguments do and if there are more arguments that you can add to "tune" your agent, please refer to OpenAI baselines README.MD files for the algorithm/agent you are using.
@@ -128,7 +143,7 @@ alg = 'her'
 ```
 #### NOTE:
 1) To know which algorithms you can use, simply take a look at the /open_ai_baselines/baselines folder.
-2) Some algorithms will fail since are NOT suited for this problem. For example, DDPG was implemented for discrete actions spaces and will not take a "BOX" as an action space. Try the one you are interested in and find out why it will not run. Sometimes it will take just a few changes and other times, as metioned before, it might not even be meant for this type of problem. 
+2) Some algorithms will fail since are NOT suited for your problem. For example, DDPG was implemented for discrete actions spaces and will not take a "BOX" as an action space. Try the one you are interested in and find out why it will not run. Sometimes it will take just a few changes and other times, as metioned before, it might not even be meant for this type of problem. 
 
 Note: "Save path" does not work on DDPG unless you add to the ddpg class the following: 
 
@@ -144,33 +159,23 @@ Comment the lines on DEFAULT_ARGUMENTS as shown below if you want to skip certai
 
 ```python
 DEFAULT_ARGUMENTS = [
-
 ​        '--env=' + env,
-
 ​        '--alg=' + alg,
-
-​    \#    '--network=' + network,
-
+​    #    '--network=' + network,
 ​        '--num_timesteps=' + num_timesteps,    
-
-​    \#    '--num_env=0',
-
+​    #    '--num_env=0',
 ​        '--save_path=' + save_file,
-
-​     /#   '--load_path=' + load_path,
-
+​    #    '--load_path=' + load_path,
 ​        '--logger_path=' + logger_path,
-
 ​        '--play'
-
 ​    ]
 ```
 
 ## How to Run
 
-On the command prompt:
+On the command prompt run:
 
-```python
+```bash
 python baselines_run.py
 ```
 If you are using VS Code (Which I recommned) you can just press "F5" to run and debug.
