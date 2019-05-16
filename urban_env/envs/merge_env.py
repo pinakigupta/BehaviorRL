@@ -26,10 +26,11 @@ class MergeEnv(AbstractEnv):
     """
 
     COLLISION_REWARD = -1
-    RIGHT_LANE_REWARD = 0.0
+    RIGHT_LANE_CHANGE_REWARD = 0.0
+    LEFT_LANE_CHANGE_REWARD = 0.2 # When Ego is merging, We want to encourange the merging
     HIGH_VELOCITY_REWARD = 0.02
     #MERGING_VELOCITY_REWARD = -0.5
-    LANE_CHANGE_REWARD = 0.0
+    
 
     DEFAULT_CONFIG = {
         "observation": {
@@ -55,14 +56,14 @@ class MergeEnv(AbstractEnv):
         :param action: the action performed
         :return: the reward of the state-action transition
         """
-        action_reward = {0: self.LANE_CHANGE_REWARD,
+        action_reward = {0: self.LEFT_LANE_CHANGE_REWARD,
                          1: 0,
-                         2: self.LANE_CHANGE_REWARD,
+                         2: self.RIGHT_LANE_CHANGE_REWARD,
                          3: 0,
                          4: 0}
         reward = self.COLLISION_REWARD * self.vehicle.crashed \
             + self.HIGH_VELOCITY_REWARD * self.vehicle.velocity_index / (self.vehicle.SPEED_COUNT - 1)
-                 # + self.RIGHT_LANE_REWARD * self.vehicle.lane_index[2] / 1
+                 # + self.RIGHT_LANE_CHANGE_REWARD * self.vehicle.lane_index[2] / 1
 
         # # Altruistic penalty
         # for vehicle in self.road.vehicles:
@@ -71,7 +72,7 @@ class MergeEnv(AbstractEnv):
         #                   (vehicle.target_velocity - vehicle.velocity) / vehicle.target_velocity
 
         return utils.remap(action_reward[action] + reward,
-                           [self.COLLISION_REWARD, self.HIGH_VELOCITY_REWARD + self.RIGHT_LANE_REWARD],
+                           [self.COLLISION_REWARD, self.HIGH_VELOCITY_REWARD + self.LEFT_LANE_CHANGE_REWARD +  self.RIGHT_LANE_CHANGE_REWARD],
                            [0, 1])
 
     def _is_terminal(self):

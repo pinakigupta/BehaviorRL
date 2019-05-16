@@ -29,6 +29,10 @@ sys.path.append(urban_AD_env_path)
 
 import baselines.run as run
 from baselines import logger
+from baselines.common.vec_env import  VecEnv
+from baselines.common import tf_util
+import tensorflow as tf
+
 
 import urban_env
 
@@ -47,7 +51,7 @@ train_env_id =  'two-way-v0'
 play_env_id = ''
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e3'
+num_timesteps = '1e5'
 #load_file_name = '20190511-121635' # 'merge-v0'
 #load_file_name = '20190510-100005' # 'roundabout-v0'
 load_file_name = '20190511-180238' # 'two-way-v0'

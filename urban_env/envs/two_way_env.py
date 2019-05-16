@@ -31,12 +31,16 @@ class TwoWayEnv(AbstractEnv):
 
     COLLISION_REWARD = -1
     """ The reward received when colliding with a vehicle."""
-    RIGHT_LANE_REWARD = 0.1
+
+    RIGHT_LANE_CHANGE_REWARD = 0.0 #0.001
     """ The reward received when driving on the right-most lanes, linearly mapped to zero for other lanes."""
-    HIGH_VELOCITY_REWARD = 0.4
+    LEFT_LANE_CHANGE_REWARD = 0.0
+    """ The reward received when driving on the right-most lanes, linearly mapped to zero for other lanes."""
+    
+    HIGH_VELOCITY_REWARD = 0.0003
     """ The reward received when driving at full speed, linearly mapped to zero for lower speeds."""
-    LANE_CHANGE_REWARD = -0
-    """ The reward received at each lane change action."""
+    
+    
 
 
     DEFAULT_CONFIG = {
@@ -68,22 +72,24 @@ class TwoWayEnv(AbstractEnv):
         :param action: the action performed
         :return: the reward of the state-action transition
         """
-        
-        action_reward = {0: self.LANE_CHANGE_REWARD, 
+        action_reward = {0: self.LEFT_LANE_CHANGE_REWARD,
                          1: 0,
-                         2: self.LANE_CHANGE_REWARD,
+                         2: self.RIGHT_LANE_CHANGE_REWARD,
                          3: 0,
                          4: 0}
-        neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
-        state_reward = \
-            + self.COLLISION_REWARD * self.vehicle.crashed \
-            + self.RIGHT_LANE_REWARD * self.vehicle.target_lane_index[2] / (len(neighbours) - 1) \
+        reward = self.COLLISION_REWARD * self.vehicle.crashed \
             + self.HIGH_VELOCITY_REWARD * self.vehicle.velocity_index / (self.vehicle.SPEED_COUNT - 1)
-        return utils.remap(action_reward[action] + state_reward,
-                           [self.COLLISION_REWARD, self.HIGH_VELOCITY_REWARD+self.RIGHT_LANE_REWARD],
+                 # + self.RIGHT_LANE_CHANGE_REWARD * self.vehicle.lane_index[2] / 1
+
+        # # Altruistic penalty
+        # for vehicle in self.road.vehicles:
+        #     if vehicle.lane_index == ("b", "c", 2) and isinstance(vehicle, ControlledVehicle):
+        #         reward += self.MERGING_VELOCITY_REWARD * \
+        #                   (vehicle.target_velocity - vehicle.velocity) / vehicle.target_velocity
+
+        return utils.remap(action_reward[action] + reward,
+                           [self.COLLISION_REWARD, self.HIGH_VELOCITY_REWARD + self.LEFT_LANE_CHANGE_REWARD +  self.RIGHT_LANE_CHANGE_REWARD],
                            [0, 1])
-
-
         # neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
 
         # high_velocity_reward = self.HIGH_VELOCITY_REWARD * self.vehicle.velocity_index / (self.vehicle.SPEED_COUNT - 1)
@@ -148,7 +154,7 @@ class TwoWayEnv(AbstractEnv):
         self.vehicle = ego_vehicle
 
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
-        for i in range(3):
+        for i in range(5):
             self.road.vehicles.append(
                 vehicles_type(road,
                               position=road.network.get_lane(("a", "b", 1))
@@ -157,7 +163,7 @@ class TwoWayEnv(AbstractEnv):
                               velocity=10 + 2*self.np_random.randn(),
                               enable_lane_change=False)
             )
-        for i in range(2):
+        for i in range(5):
             v = vehicles_type(road,
                               position=road.network.get_lane(("b", "a", 0))
                               .position(200+100*i + 10*self.np_random.randn(), 0),
