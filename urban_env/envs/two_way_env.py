@@ -18,14 +18,14 @@ from urban_env.vehicle.dynamics import Obstacle
 
 class TwoWayEnv(AbstractEnv):
     """
-        A risk management task: the agent is driving on a two-way lane with icoming traffic.
+        A risk management task: the agent is driving on a two-way lane with oncoming traffic.
         It must balance making progress by overtaking and ensuring safety.
 
         These conflicting objectives are implemented by a reward signal and a constraint signal,
         in the CMDP/BMDP framework.
     """
 
-    COLLISION_REWARD = -1
+    COLLISION_REWARD = -100
     #LEFT_LANE_CONSTRAINT = 1
     LEFT_LANE_REWARD = -0.1
     HIGH_VELOCITY_REWARD = 0.25
@@ -33,7 +33,7 @@ class TwoWayEnv(AbstractEnv):
     DEFAULT_CONFIG = {
         "observation": {
             "type": "Kinematics",
-            "features": ['x', 'y', 'vx', 'vy'],
+            "features": ['x', 'y', 'vx', 'vy', 'length_'],
             "vehicles_count": 6
         },
         "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
@@ -56,10 +56,11 @@ class TwoWayEnv(AbstractEnv):
         :return: the reward of the state-action transition
         """
         neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
-
-        reward = self.COLLISION_REWARD * self.vehicle.crashed  + \
-        self.HIGH_VELOCITY_REWARD * self.vehicle.velocity_index / (self.vehicle.SPEED_COUNT - 1) \
-            + self.LEFT_LANE_REWARD * (len(neighbours) - 1 - self.vehicle.target_lane_index[2]) / (len(neighbours) - 1)
+        collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
+        velocity_reward = self.HIGH_VELOCITY_REWARD * self.vehicle.velocity_index / (self.vehicle.SPEED_COUNT - 1)
+        lane_reward = self.LEFT_LANE_REWARD * (len(neighbours) - 1 - self.vehicle.target_lane_index[2]) / (len(neighbours) - 1)
+        #print("collision_reward ",collision_reward, " velocity_reward ",velocity_reward, " lane_reward ",lane_reward)
+        reward =  collision_reward + velocity_reward + lane_reward
         return reward
 
     def _is_terminal(self):

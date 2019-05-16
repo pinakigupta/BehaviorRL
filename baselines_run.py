@@ -48,7 +48,7 @@ train_env_id =  'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e4'
+num_timesteps = '1e0'
 #################################################################
 
 def create_dirs(req_dirs):
@@ -69,8 +69,11 @@ def default_args():
     ####################################################################        
     save_folder = pathname + '/' + models_folder + '/' + train_env_id +'/'+ alg + '/' + network 
     save_file = save_folder + '/' + str(currentDT)
-    logger_path = save_file + '_log'
+    logger_path = save_folder + '_tensorboard_log/'
     list_of_file = glob.glob(save_folder+'/*')
+
+    os.environ['OPENAI_LOGDIR'] = logger_path
+    os.environ['OPENAI_LOG_FORMAT'] = 'stdout,tensorboard'
   
     ###############################################################
         
@@ -87,11 +90,14 @@ def default_args():
     #    '--network=' + network,
         '--num_timesteps=' + num_timesteps,    
     #    '--num_env=0',
-        '--save_path=' + save_file,        
-    #    '--logger_path=' + logger_path,
+    #    '--save_path=' + save_file,        
+    #     '--tensorboard_log=' + logger_path,
     #    '--play'
     #    '--num_env=8' 
     ]
+
+    if (float(num_timesteps)>1):
+        DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
 
     if list_of_file:
         latest_file = max( list_of_file, key=os.path.getctime)

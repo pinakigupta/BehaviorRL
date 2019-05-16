@@ -171,11 +171,13 @@ class Vehicle(Loggable):
             'vx': self.velocity * self.direction[0],
             'vy': self.velocity * self.direction[1],
             'cos_h': self.direction[0],
-            'sin_h': self.direction[1]
+            'sin_h': self.direction[1],
+            'length_': self.LENGTH,
+            'width_': self.WIDTH
         }
         if origin_vehicle:
             origin_dict = origin_vehicle.to_dict()
-            for key in ['x', 'y', 'vx', 'vy']:
+            for key in ['x', 'y', 'vx', 'vy','length_','width_']:
                 d[key] -= origin_dict[key]
         return d
 

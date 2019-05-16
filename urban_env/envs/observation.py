@@ -62,7 +62,7 @@ class KinematicObservation(ObservationType):
     """
         Observe the kinematics of nearby vehicles.
     """
-    FEATURES = ['presence', 'x', 'y', 'vx', 'vy']
+    FEATURES = ['presence', 'x', 'y', 'vx', 'vy', 'length_']
 
     def __init__(self, env, features=FEATURES, vehicles_count=5, **kwargs):
         """
@@ -92,10 +92,13 @@ class KinematicObservation(ObservationType):
         df['y'] = utils.remap(df['y'], [-y_position_range, y_position_range], [-1, 1])
         df['vx'] = utils.remap(df['vx'], [-velocity_range, velocity_range], [-1, 1])
         df['vy'] = utils.remap(df['vy'], [-velocity_range, velocity_range], [-1, 1])
+        df['length_'] = df['length_']/10
         return df
 
     def observe(self):
         # Add ego-vehicle
+        vehc = self.env.vehicle
+        vehicle_dict = [vehc.to_dict()]
         df = pandas.DataFrame.from_records([self.env.vehicle.to_dict()])[self.features]
         # Add nearby traffic
         close_vehicles = self.env.road.closest_vehicles_to(self.env.vehicle, self.vehicles_count - 1)
