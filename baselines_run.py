@@ -103,7 +103,7 @@ def default_args():
         latest_file = max( list_of_file, key=os.path.getctime)
         load_path = latest_file #her_default_20190212-141935' # Good with just Ego  
         print("load_path",load_path)
-        DEFAULT_ARGUMENTS.append('--load_path=' + load_path) 
+        #DEFAULT_ARGUMENTS.append('--load_path=' + load_path) 
     else :
         print(" list_of_file empty in load path ", save_folder)
         exit
