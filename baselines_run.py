@@ -41,12 +41,16 @@ from settings import req_dirs, models_folder
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 warnings.filterwarnings("ignore") 
 
+
+
+
+
 ###############################################################
 #        DEFINE YOUR "BASELINE" (AGENT) PARAMETERS HERE 
 ###############################################################
 train_env_id =  'two-way-v0' 
 play_env_id = 'two-way-v0'
-alg = 'ppo2'
+alg = 'a2c'
 network = 'mlp'
 num_timesteps = '1e0'
 #################################################################
@@ -69,7 +73,8 @@ def default_args():
     ####################################################################        
     save_folder = pathname + '/' + models_folder + '/' + train_env_id +'/'+ alg + '/' + network 
     save_file = save_folder + '/' + str(currentDT)
-    logger_path = save_folder + '_tensorboard_log/'
+    logger_path = save_folder + '_log/'
+    tb_logger_path = logger_path + '/tb'
     list_of_file = glob.glob(save_folder+'/*')
 
     os.environ['OPENAI_LOGDIR'] = logger_path
@@ -80,7 +85,8 @@ def default_args():
     try:  
         os.mkdir(save_folder)
     except OSError:  
-        print ("Creation of the save path %s failed. It might already exist" % save_folder)
+        #print ("Creation of the save path %s failed. It might already exist" % save_folder)
+        a=1
     else:  
         print ("Successfully created the save path folder %s " % save_folder)
 
@@ -91,7 +97,7 @@ def default_args():
         '--num_timesteps=' + num_timesteps,    
     #    '--num_env=0',
     #    '--save_path=' + save_file,        
-    #     '--tensorboard_log=' + logger_path,
+    #     '--tensorboard --logdir=' + tb_logger_path,
     #    '--play'
     #    '--num_env=8' 
     ]
@@ -102,8 +108,8 @@ def default_args():
     if list_of_file:
         latest_file = max( list_of_file, key=os.path.getctime)
         load_path = latest_file #her_default_20190212-141935' # Good with just Ego  
-        print("load_path",load_path)
-        #DEFAULT_ARGUMENTS.append('--load_path=' + load_path) 
+        #print("load_path",load_path)
+        DEFAULT_ARGUMENTS.append('--load_path=' + load_path) 
     else :
         print(" list_of_file empty in load path ", save_folder)
         exit
@@ -116,13 +122,14 @@ def play(env, policy):
     # env = gym.make(env_id)
     
     logger.configure()
-    logger.log("Running trained model")
+    #logger.log("Running trained model")
     obs = env.reset()
 
     state = policy.initial_state if hasattr(policy, 'initial_state') else None
     dones = np.zeros((1,))
 
     episode_rew = 0
+    episode_len = 0
     while True:
         if state is not None:
             actions, _, state, _ = policy.step(obs,S=state, M=dones)
@@ -131,11 +138,14 @@ def play(env, policy):
 
         obs, rew, done, _ = env.step(actions[0])
         episode_rew += rew
+        episode_len += 1
         env.render()
         done = done.any() if isinstance(done, np.ndarray) else done
         if done:
             print('episode_rew={}'.format(episode_rew))
+            print('episode_len={}'.format(episode_len))
             episode_rew = 0
+            episode_len = 0
             env.close()
             break
 
@@ -147,14 +157,24 @@ if __name__ == "__main__":
     itr = 1
     args = sys.argv
 
-
-    while itr<20:
+    play_env = gym.make(play_env_id)
+    while itr<2:
         if len(args) <= 1:
             args = default_args()
-        play_env = gym.make(play_env_id)
+        
         policy = run.main(args)
         print(" Batch iteration ", itr)
         itr += 1
+        play(play_env,policy)
+        #from tensorboard import main as tb
+        #tb.main()
+        sess = tf_util.get_session()
+        sess.close()
+        tf.reset_default_graph()
+    
+    # Just Play
+    while True:
+        policy = run.main(default_args())
         play(play_env,policy)
         sess = tf_util.get_session()
         sess.close()

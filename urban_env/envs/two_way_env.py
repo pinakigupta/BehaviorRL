@@ -27,9 +27,9 @@ class TwoWayEnv(AbstractEnv):
 
     COLLISION_REWARD = -10
     #LEFT_LANE_CONSTRAINT = 1
-    LEFT_LANE_REWARD = -0.1
-    HIGH_VELOCITY_REWARD = 0.25
-    GOAL_REWARD = 10
+    LEFT_LANE_REWARD = 0
+    VELOCITY_REWARD = 0.01
+    GOAL_REWARD = 0
     ROAD_LENGTH = 1000
 
     DEFAULT_CONFIG = {
@@ -58,12 +58,16 @@ class TwoWayEnv(AbstractEnv):
         :param action: the action performed
         :return: the reward of the state-action transition
         """
+        lane_ID = self.vehicle.lane_index[2]
+        on_route = (lane_ID==1)
+
+
         #print("self.vehicle.position  ",self.vehicle.position)
-        self.goal_achieved = self.vehicle.position[0] > 150
+        #self.goal_achieved = self.vehicle.position[0] > 2000
         neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
         collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
-        velocity_reward = self.HIGH_VELOCITY_REWARD * self.vehicle.velocity_index / (self.vehicle.SPEED_COUNT - 1)
-        lane_reward = self.LEFT_LANE_REWARD * (len(neighbours) - 1 - self.vehicle.target_lane_index[2]) / (len(neighbours) - 1)
+        velocity_reward = on_route*self.VELOCITY_REWARD * self.vehicle.velocity_index / (self.vehicle.SPEED_COUNT - 2)
+        lane_reward = 0 #self.LEFT_LANE_REWARD * (len(neighbours) - 1 - self.vehicle.target_lane_index[2]) / (len(neighbours) - 1)
         goal_reward = self.GOAL_REWARD *self.goal_achieved
         #print("collision_reward ",collision_reward, " velocity_reward ",velocity_reward, " lane_reward ",lane_reward," goal_reward ",goal_reward)
         reward =  collision_reward + velocity_reward + lane_reward + goal_reward
@@ -116,7 +120,6 @@ class TwoWayEnv(AbstractEnv):
         road.vehicles.append(ego_vehicle)
         self.vehicle = ego_vehicle
         ego_x = ego_vehicle.position[0]
-        print("ego_x ",ego_x)
 
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
         for i in range(np.random.randint(low=0,high=4)):
@@ -126,11 +129,11 @@ class TwoWayEnv(AbstractEnv):
                               .position(ego_x+50+40*i + 10*self.np_random.randn(), 0),
                               heading=road.network.get_lane(("a", "b", 1)).heading_at(70+40*i),
                               velocity=24 + 2*self.np_random.randn(),
-                              enable_lane_change=True)
+                              enable_lane_change=False)
             )
 
         # stationary vehicles
-        for i in range(np.random.randint(low=0,high=2)):
+        for i in range(np.random.randint(low=1,high=2)):
             self.road.vehicles.append(
                 vehicles_type(road,
                               position=road.network.get_lane(("a", "b", 1))
@@ -141,13 +144,25 @@ class TwoWayEnv(AbstractEnv):
             )
 
 
-
+        
         for i in range(np.random.randint(low=0,high=10)):
             v = vehicles_type(road,
                               position=road.network.get_lane(("b", "a", 0))
                               .position(self.ROAD_LENGTH-350+ego_x+100*i + 10*self.np_random.randn(), 0),
                               heading=road.network.get_lane(("b", "a", 0)).heading_at(200+100*i),
                               velocity=20 + 5*self.np_random.randn(),
+                              enable_lane_change=False)
+            v.target_lane_index = ("b", "a", 0)
+            self.road.vehicles.append(v)
+
+        
+        # stationary vehicles Left Lane
+        for i in range(np.random.randint(low=0,high=5)):
+            v = vehicles_type(road,
+                              position=road.network.get_lane(("b", "a", 0))
+                              .position(self.ROAD_LENGTH-300+ego_x+50*i + 10*self.np_random.randn(), 0),
+                              heading=road.network.get_lane(("b", "a", 0)).heading_at(200+100*i),
+                              velocity=0,
                               enable_lane_change=False)
             v.target_lane_index = ("b", "a", 0)
             self.road.vehicles.append(v)
