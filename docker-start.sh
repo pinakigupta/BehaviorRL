@@ -17,6 +17,7 @@ sudo pkill -SIGHUP dockerd
 sudo apt autoremove
 
 HOST_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+echo $HOST_DIR
 
 # Clone all
 
@@ -27,11 +28,10 @@ HOST_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 #     git clone --recurse-submodules -j8 https://gitlab.com/havalus-gemini/behavior/rl_baselines_ad.git
 # fi 
 
-if [ -d "$HOST_DIR/rl_baselines_ad/gym" ] 
+if [ -d "$HOST_DIR/gym" ] 
 then
     echo "gym already cloned" 
-else
-    cd rl_baselines_ad
+else    
     git clone --recurse-submodules https://github.com/openai/gym.git
 fi
 
