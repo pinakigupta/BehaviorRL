@@ -1,0 +1,1 @@
+docker build -t munirjojoverge/rl_baselines .

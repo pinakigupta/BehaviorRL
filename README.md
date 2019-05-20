@@ -13,51 +13,57 @@ The research will also address the differences (advantages and disadvantages) be
 
 The Original version of these environments were created by **Edouard Leurent** and can be found in https://github.com/eleurent/highway-env
 
-## Getting Started
+## Getting Started (Docker)
 0) This code requires (Don't install anything yet):
 
    * Python 3
    * OpenAI Gym (https://github.com/openai/gym)
    * OpenAI Baselines (https://github.com/openai/baselines)
 
-1) Install the Conda environment with the necessary libraries: 
+1) **Docker Installation**
+   1) For a clean and encapsulated installation we will use Docker. Follow the instructions on https://docs.docker.com/install/linux/docker-ce/ubuntu/
+      1) Uninstall old versions
+Older versions of Docker were called docker, docker.io , or docker-engine. If these are installed, uninstall them:
+            ```bash
+            sudo apt-get remove docker docker-engine docker.io containerd runc
+            ```
+        2) Update the apt package index.
+            ```bash
+            sudo apt-get update
+            ```
+        3) Install the latest version of Docker CE and containerd, or go to docker page mentioned above to install a specific version:
+            ```bash
+            sudo apt-get install docker-ce docker-ce-cli containerd.io
+            ```
+        4) Verify that Docker CE is installed correctly by running the hello-world image.
+            ```bash
+            sudo docker run hello-world
+            ```
+
+1) Clone this repository and make sure you include the openai baselines submodules by typing the following command
 ```bash
-conda env create munirjojoverge/rl_baselines_env
-source activate rl_baselines_env
+git clone --recurse-submodules -j8 https://gitlab.com/havalus-gemini/behavior/rl_baselines_ad.git
 ```
-    NOTE: Make sure you are inside this environment before you run the code
-
-2) Clone this repository
-3) Navigate to the folder where you cloned this repo. You will see an empty folder named "open_ai_baselines".
-4) Clone openai baselines inside the folder "open_ai_baselines" mentioned above. (https://github.com/openai/baselines). 
+2) Navigate to the folder where you cloned this repo. 
 ```bash
-git clone https://github.com/openai/baselines.git
-cd baselines
+   cd rl_baselines_ad
 ```
+3) Run the following command to build the Docker image. This wil take some time, be patient!
 ```bash
-pip install tensorflow-gpu # if you have a CUDA-compatible gpu and proper drivers
+docker build -t munirjojoverge/rl_baselines .
 ```
+4) Run the following command to start the Docker. Make sure you can run it by makeint executable:   
 ```bash
-pip install tensorflow
+chmod +x docker-start.sh
+./docker-start.sh
 ```
-should be sufficient. Refer to TensorFlow installation guide for more details.
+5) If everything went ok, you should see something like this: 
+![Inside docker](/img/DockerStart.png)
+
+6) Run the following command to install openai gym and all the required libraries to run.
 ```bash
-pip install -e .
+./docker-ini-script.sh
 ```
-
-
-
-5) Clone and Install Openai GYM (follow their instructions at https://github.com/openai/gym). The simplest way to do so is running the following commands, but please check their GitHub in case you want a minimal instalation:
-```bash
-git clone https://github.com/openai/gym.git
-cd gym
-pip install -e .
-```
-6) To run the program, check the last section "How to Run" below
-
-NOTE: You might have some libraries missing when you run "baselines_run.py". Please add them as needed. 
-
-
 
 ## Arguments and Config Files
 **baselines_run.py** script uses **2** clear defined sections to setup all the main OpenAI Baselines arguments.
