@@ -10,6 +10,9 @@ cd ..
 pip install -r requirements.txt
 
 # run test
+echo "###########################################"
+echo "## Running rl_baselines (Crtl+c to stop) ##"
+echo "###########################################"
 mpirun -bind-to none -np 4 --allow-run-as-root python baselines_run.py
 
 # Create a Volume where we will clone all the code

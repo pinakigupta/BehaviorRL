@@ -36,4 +36,4 @@ else
 fi
 
 # We are ready to run the main docker container
-sudo docker run -it --runtime=nvidia -v $HOST_DIR:/rl_baselines_ad --name munirjojoverge/rl_baselines /bin/bash
+sudo docker run -it --runtime=nvidia -v $HOST_DIR:/rl_baselines_ad --name PEPE munirjojoverge/rl_baselines /bin/bash
