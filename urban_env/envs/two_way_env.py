@@ -67,6 +67,8 @@ class TwoWayEnv(AbstractEnv):
         neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
         collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
         velocity_reward = self.VELOCITY_REWARD * (self.vehicle.velocity_index -1) / (self.vehicle.SPEED_COUNT - 1)
+        if (velocity_reward>0):
+            velocity_reward *= on_route
         lane_reward = 0 #self.LEFT_LANE_REWARD * (len(neighbours) - 1 - self.vehicle.target_lane_index[2]) / (len(neighbours) - 1)
         goal_reward = self.GOAL_REWARD *self.goal_achieved
         #print("collision_reward ",collision_reward, " velocity_reward ",velocity_reward, " lane_reward ",lane_reward," goal_reward ",goal_reward)
@@ -123,7 +125,7 @@ class TwoWayEnv(AbstractEnv):
 
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
         
-        '''
+        
         for i in range(np.random.randint(low=0,high=4)):
             self.road.vehicles.append(
                 vehicles_type(road,
@@ -132,7 +134,7 @@ class TwoWayEnv(AbstractEnv):
                               heading=road.network.get_lane(("a", "b", 1)).heading_at(70+40*i),
                               velocity=5 + 2*self.np_random.randn(),
                               enable_lane_change=True)
-            )'''
+            )
         # stationary vehicles
         for i in range(np.random.randint(low=1,high=2)):
             self.road.vehicles.append(
@@ -153,7 +155,7 @@ class TwoWayEnv(AbstractEnv):
                               velocity=20 + 5*self.np_random.randn(),
                               enable_lane_change=False)
             v.target_lane_index = ("b", "a", 0)
-            self.road.vehicles.append(v)
+            self.road.vehicles.append(v)'''
 
         
         # stationary vehicles Left Lane
@@ -165,7 +167,7 @@ class TwoWayEnv(AbstractEnv):
                               velocity=0,
                               enable_lane_change=False)
             v.target_lane_index = ("b", "a", 0)
-            self.road.vehicles.append(v) '''
+            self.road.vehicles.append(v) 
 
 
 

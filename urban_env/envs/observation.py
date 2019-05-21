@@ -13,7 +13,7 @@ from gym.utils import seeding
 import numpy as np
 
 from urban_env import utils
-from urban_env.envs.finite_mdp import finite_mdp, compute_ttc_grid
+from urban_env.envs.finite_mdp import  compute_ttc_grid
 from urban_env.envs.graphics import EnvViewer
 from urban_env.road.lane import AbstractLane
 from urban_env.vehicle.behavior import IDMVehicle
