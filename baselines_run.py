@@ -50,7 +50,7 @@ warnings.filterwarnings("ignore")
 ###############################################################
 train_env_id =  'two-way-v0' 
 play_env_id = 'two-way-v0'
-alg = 'a2c'
+alg = 'ppo2'
 network = 'mlp'
 num_timesteps = '1e0'
 #################################################################
@@ -109,7 +109,8 @@ def default_args():
         latest_file = max( list_of_file, key=os.path.getctime)
         load_path = latest_file #her_default_20190212-141935' # Good with just Ego  
         #print("load_path",load_path)
-        DEFAULT_ARGUMENTS.append('--load_path=' + load_path) 
+        if (float(num_timesteps)==1):
+            DEFAULT_ARGUMENTS.append('--load_path=' + load_path) 
     else :
         print(" list_of_file empty in load path ", save_folder)
         exit
@@ -141,6 +142,7 @@ def play(env, policy):
         episode_len += 1
         env.render()
         done = done.any() if isinstance(done, np.ndarray) else done
+        print('episode_rew={}'.format(episode_rew))
         if done:
             print('episode_rew={}'.format(episode_rew))
             print('episode_len={}'.format(episode_len))

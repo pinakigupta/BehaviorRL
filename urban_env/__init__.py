@@ -19,7 +19,7 @@ register(
 register(
     id='two-way-v0',
     entry_point='urban_env.envs:TwoWayEnv',
-    tags={'wrapper_config.TimeLimit.max_episode_steps': 15}
+    tags={'wrapper_config.TimeLimit.max_episode_steps': 250}
 )
 
 register(

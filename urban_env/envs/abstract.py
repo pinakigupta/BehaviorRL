@@ -36,7 +36,13 @@ class AbstractEnv(gym.Env):
                1: 'IDLE',
                2: 'LANE_RIGHT',
                3: 'FASTER',
-               4: 'SLOWER'}
+               4: 'SLOWER',
+               5: 'LANE_LEFT_AGGRESSIVE',
+               6: 'LANE_RIGHT_AGGRESSIVE'}
+    
+    """ Which Actions are Allowed for the current Agent """
+    ACTION_MASKS = [True,True,True,True,True,True,True] 
+
     """
         A mapping of action indexes to action labels
     """
@@ -238,9 +244,11 @@ class AbstractEnv(gym.Env):
             if l_index[2] < self.vehicle.lane_index[2] \
                     and self.road.network.get_lane(l_index).is_reachable_from(self.vehicle.position):
                 actions.append(self.ACTIONS_INDEXES['LANE_LEFT'])
+                actions.append(self.ACTIONS_INDEXES['LANE_LEFT_AGGRESSIVE'])
             if l_index[2] > self.vehicle.lane_index[2] \
                     and self.road.network.get_lane(l_index).is_reachable_from(self.vehicle.position):
                 actions.append(self.ACTIONS_INDEXES['LANE_RIGHT'])
+                actions.append(self.ACTIONS_INDEXES['LANE_RIGHT_AGGRESSIVE'])
         if self.vehicle.velocity_index < self.vehicle.SPEED_COUNT - 1:
             actions.append(self.ACTIONS_INDEXES['FASTER'])
         if self.vehicle.velocity_index > 0:

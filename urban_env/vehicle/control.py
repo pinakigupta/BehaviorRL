@@ -79,23 +79,28 @@ class ControlledVehicle(Vehicle):
 
         :param action: a high-level action
         """
+        is_aggressive_lcx = False
         self.follow_road()
         if action == "FASTER":
             self.target_velocity += self.DELTA_VELOCITY
         elif action == "SLOWER":
             self.target_velocity -= self.DELTA_VELOCITY
-        elif action == "LANE_RIGHT":
+        elif action == "LANE_RIGHT" or "LANE_RIGHT_AGGRESSIVE":
             _from, _to, _id = self.target_lane_index
             target_lane_index = _from, _to, np.clip(_id + 1, 0, len(self.road.network.graph[_from][_to]) - 1)
             if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
                 self.target_lane_index = target_lane_index
-        elif action == "LANE_LEFT":
+            if action == "LANE_RIGHT_AGGRESSIVE":
+                is_aggressive_lcx = True
+        elif action == "LANE_LEFT" or "LANE_LEFT_AGGRESSIVE":
             _from, _to, _id = self.target_lane_index
             target_lane_index = _from, _to, np.clip(_id - 1, 0, len(self.road.network.graph[_from][_to]) - 1)
             if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
                 self.target_lane_index = target_lane_index
+            if action == "LANE_LEFT_AGGRESSIVE":
+                is_aggressive_lcx = True
 
-        action = {'steering': self.steering_control(self.target_lane_index),
+        action = {'steering': self.steering_control(self.target_lane_index,is_aggressive_lcx),
                   'acceleration': self.velocity_control(self.target_velocity)}
         super(ControlledVehicle, self).act(action)
 
@@ -109,7 +114,7 @@ class ControlledVehicle(Vehicle):
                                                                  position=self.position,
                                                                  np_random=self.road.np_random)
 
-    def steering_control(self, target_lane_index):
+    def steering_control(self, target_lane_index, is_agressive = False ):
         """
             Steer the vehicle to follow the center of an given lane.
 
@@ -127,12 +132,14 @@ class ControlledVehicle(Vehicle):
         lane_future_heading = target_lane.heading_at(lane_next_coords)
 
         # Lateral position control
-        lateral_velocity_command = - self.KP_LATERAL * lane_coords[1]
+        lateral_velocity_command = (- 2* self.KP_LATERAL * lane_coords[1]) if is_agressive else (- self.KP_LATERAL * lane_coords[1])
+
         # Lateral velocity to heading
         heading_command = np.arcsin(np.clip(lateral_velocity_command/utils.not_zero(self.velocity), -1, 1))
         heading_ref = lane_future_heading + np.clip(heading_command, -np.pi/4, np.pi/4)
         # Heading control
         heading_rate_command = self.KP_HEADING * utils.wrap_to_pi(heading_ref - self.heading)
+        heading_rate_command = (2*heading_rate_command)  if is_agressive else heading_rate_command
         # Heading rate to steering angle
         steering_angle = self.LENGTH / utils.not_zero(self.velocity) * np.arctan(heading_rate_command)
         steering_angle = np.clip(steering_angle, -self.MAX_STEERING_ANGLE, self.MAX_STEERING_ANGLE)

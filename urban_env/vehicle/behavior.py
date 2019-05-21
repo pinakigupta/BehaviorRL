@@ -117,12 +117,18 @@ class IDMVehicle(ControlledVehicle):
         """
         if not ego_vehicle:
             return 0
+
+        if self.target_velocity is not None:
+            if (self.target_velocity == 0):
+                return 0
         acceleration = self.COMFORT_ACC_MAX * (
                 1 - np.power(ego_vehicle.velocity / utils.not_zero(ego_vehicle.target_velocity), self.DELTA))
         if front_vehicle:
             d = ego_vehicle.lane_distance_to(front_vehicle)
             acceleration -= self.COMFORT_ACC_MAX * \
                 np.power(self.desired_gap(ego_vehicle, front_vehicle) / utils.not_zero(d), 2)
+            if (self.velocity==0):
+                acceleration = max(acceleration,0)
         return acceleration
 
     def desired_gap(self, ego_vehicle, front_vehicle=None):
