@@ -70,7 +70,7 @@ class ControlledVehicle(Vehicle):
             self.route = [self.lane_index]
         return self
 
-    def act(self, action=None):
+    def act(self, action):
         """
             Perform a high-level action to change the desired lane or velocity.
 
@@ -81,11 +81,13 @@ class ControlledVehicle(Vehicle):
         """
         is_aggressive_lcx = False
         self.follow_road()
-        if action == "FASTER":
+        #print("action : ",action)
+        '''if action == "FASTER":
             self.target_velocity += self.DELTA_VELOCITY
         elif action == "SLOWER":
             self.target_velocity -= self.DELTA_VELOCITY
-        elif action == "LANE_RIGHT" :
+        el'''
+        if action == "LANE_RIGHT" :
             _from, _to, _id = self.target_lane_index
             target_lane_index = _from, _to, np.clip(_id + 1, 0, len(self.road.network.graph[_from][_to]) - 1)
             if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
@@ -101,13 +103,14 @@ class ControlledVehicle(Vehicle):
             if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
                 self.target_lane_index = target_lane_index
                 is_aggressive_lcx = True
+            # print("LANE_RIGHT_AGGRESSIVE")
         elif action == "LANE_LEFT_AGGRESSIVE":
             _from, _to, _id = self.target_lane_index
             target_lane_index = _from, _to, np.clip(_id - 1, 0, len(self.road.network.graph[_from][_to]) - 1)
             if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
                 self.target_lane_index = target_lane_index
                 is_aggressive_lcx = True
-
+            # print("LANE_LEFT_AGGRESSIVE")
         action = {'steering': self.steering_control(self.target_lane_index,is_aggressive_lcx),
                   'acceleration': self.velocity_control(self.target_velocity)}
         super(ControlledVehicle, self).act(action)
@@ -222,14 +225,18 @@ class MDPVehicle(ControlledVehicle):
         """
         if action == "FASTER":
             self.velocity_index = self.speed_to_index(self.velocity) + 1
+            self.velocity_index = np.clip(self.velocity_index, 0, self.SPEED_COUNT - 1)
+            self.target_velocity = self.index_to_speed(self.velocity_index)
+            super(MDPVehicle, self).act(action)
         elif action == "SLOWER":
             self.velocity_index = self.speed_to_index(self.velocity) - 1
+            self.velocity_index = np.clip(self.velocity_index, 0, self.SPEED_COUNT - 1)
+            self.target_velocity = self.index_to_speed(self.velocity_index)
+            super(MDPVehicle, self).act(action)
         else:
             super(MDPVehicle, self).act(action)
-            return
-        self.velocity_index = np.clip(self.velocity_index, 0, self.SPEED_COUNT - 1)
-        self.target_velocity = self.index_to_speed(self.velocity_index)
-        super(MDPVehicle, self).act()
+        return
+
 
     @classmethod
     def index_to_speed(cls, index):

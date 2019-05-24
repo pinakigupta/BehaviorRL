@@ -21,7 +21,7 @@ class VehicleGraphics(object):
     BLACK = (60, 60, 60)
     PURPLE = (200, 0, 150)
     DEFAULT_COLOR = YELLOW
-    EGO_COLOR = GREEN
+    EGO_COLOR = PURPLE
 
     @classmethod
     def display(cls, vehicle, surface, transparent=False):

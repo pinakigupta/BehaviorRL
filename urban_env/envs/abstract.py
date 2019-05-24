@@ -177,11 +177,11 @@ class AbstractEnv(gym.Env):
             Perform several steps of simulation with constant action
         """
         for k in range(int(self.SIMULATION_FREQUENCY // self.POLICY_FREQUENCY)):
-            if action is not None and self.time % int(self.SIMULATION_FREQUENCY // self.POLICY_FREQUENCY) == 0:
+            if action is not None : # and self.time % int(self.SIMULATION_FREQUENCY // self.POLICY_FREQUENCY) == 0:
                 # Forward action to the vehicle
                 self.vehicle.act(self.ACTIONS[action])
 
-            self.road.act()
+            self.road.act(ego_MDPVehicle = self.vehicle)
             self.road.step(1 / self.SIMULATION_FREQUENCY)
             self.time += 1
 

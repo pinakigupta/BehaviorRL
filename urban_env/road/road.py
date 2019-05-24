@@ -245,12 +245,13 @@ class Road(Loggable):
                           key=lambda v: abs(vehicle.lane_distance_to(v)))
         return sorted_v[:count]
 
-    def act(self):
+    def act(self, ego_MDPVehicle = None):
         """
             Decide the actions of each entity on the road.
         """
         for vehicle in self.vehicles:
-            vehicle.act()
+            if vehicle is not ego_MDPVehicle:
+                vehicle.act()
 
     def step(self, dt):
         """

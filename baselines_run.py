@@ -52,7 +52,7 @@ train_env_id =  'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e5'
+num_timesteps = '1e0'
 #################################################################
 
 def create_dirs(req_dirs):
@@ -109,8 +109,8 @@ def default_args():
         latest_file = max( list_of_file, key=os.path.getctime)
         load_path = latest_file #her_default_20190212-141935' # Good with just Ego  
         #print("load_path",load_path)
-        #if (float(num_timesteps)==1):
-            #DEFAULT_ARGUMENTS.append('--load_path=' + load_path) 
+        if (float(num_timesteps)==1) :
+            DEFAULT_ARGUMENTS.append('--load_path=' + load_path) 
     else :
         print(" list_of_file empty in load path ", save_folder)
         exit
