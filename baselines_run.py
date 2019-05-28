@@ -54,7 +54,7 @@ train_env_id =  'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e2'
+num_timesteps = '2e5'
 #################################################################
 
 def create_dirs(req_dirs):
