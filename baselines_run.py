@@ -54,7 +54,7 @@ train_env_id =  'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '3e4'
+num_timesteps = '1e2'
 #################################################################
 
 def create_dirs(req_dirs):
@@ -66,23 +66,25 @@ def create_dirs(req_dirs):
             #print("Directory " , dirName ,  " already exists")
 
 InceptcurrentDT = time.strftime("%Y%m%d-%H%M%S")
-def default_args(InceptcurrentDT=None):    
+def default_args(save_in_sub_folder=None):    
     create_dirs(req_dirs)
 
     currentDT = time.strftime("%Y%m%d-%H%M%S")
+    
     ####################################################################
     # DEFINE YOUR SAVE FILE, LOAD FILE AND LOGGING FILE PARAMETERS HERE 
     #################################################################### 
     save_folder = pathname + '/' + models_folder + '/' + train_env_id +'/'+ alg + '/' + network 
-    if InceptcurrentDT is not None:
-       save_folder +=  '/' + str(InceptcurrentDT)
+    if save_in_sub_folder is not None:
+       save_folder +=  '/' + str(save_in_sub_folder)
     save_file = save_folder + '/' + str(currentDT)
-    logger_path = save_folder + '_log/'
-    tb_logger_path = logger_path + '/tb'
     list_of_file = glob.glob(save_folder+'/*')
 
+    # Specifiy log directories for open AI 
+    ''' logger_path = save_folder + '_log/'
+    tb_logger_path = logger_path + '/tb'
     os.environ['OPENAI_LOGDIR'] = logger_path
-    os.environ['OPENAI_LOG_FORMAT'] = 'stdout,tensorboard'
+    os.environ['OPENAI_LOG_FORMAT'] = 'stdout,tensorboard'''
   
     ###############################################################
         
@@ -106,24 +108,39 @@ def default_args(InceptcurrentDT=None):
     #    '--num_env=8' 
     ]
 
-    if (float(num_timesteps)>1):
-        DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
+    loadlatestfileforplay = False
+    if (float(num_timesteps) == 1):
+       loadlatestfileforplay = True
 
-    if list_of_file:
-        latest_file_or_folder = max( list_of_file, key=os.path.getctime)
-        if os.path.isdir(latest_file_or_folder):
-            list_of_files = glob.glob(latest_file_or_folder+'/*')
-            if list_of_files:
-               latest_file = max( list_of_files, key=os.path.getctime)
-        else:
+    if list_of_file: # is there anything in the save directory
+        latest_file_or_folder = max( list_of_file, key=os.path.getctime) 
+#        print(" latest_file_or_folder " ,latest_file_or_folder)
+        if os.path.isdir(latest_file_or_folder): # search for the latest file (to load) from the latest folder\
+            latest_folder = latest_file_or_folder
+            list_of_files = glob.glob(latest_folder+'/*')
+            if list_of_files and (save_in_sub_folder is not None) :
+               if save_in_sub_folder in latest_folder:
+                  latest_file = max( list_of_files, key=os.path.getctime)
+                  DEFAULT_ARGUMENTS.append('--load_path=' + latest_file)
+                  print(" load_path " ,latest_file)
+
+            DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
+#            print(" save_path " ,save_file)
+        else: # got the latest file (to load)
             latest_file = latest_file_or_folder
-        load_path = latest_file #her_default_20190212-141935' # Good with just Ego  
-        #print("load_path",load_path)
-        if (float(num_timesteps)==1):
-            DEFAULT_ARGUMENTS.append('--load_path=' + load_path) 
-    else :
+            if loadlatestfileforplay:
+                DEFAULT_ARGUMENTS.append('--load_path=' + latest_file) 
+            elif save_in_sub_folder is not None :
+                DEFAULT_ARGUMENTS.append('--load_path=' + latest_file) 
+                DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
+            else:
+                DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
+    else : 
         print(" list_of_file empty in load path ", save_folder)
-        exit
+        if not loadlatestfileforplay:
+           DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
+
+#    print(" DEFAULT_ARGUMENTS ", DEFAULT_ARGUMENTS)
 
     return DEFAULT_ARGUMENTS
 
@@ -167,19 +184,21 @@ if __name__ == "__main__":
 
 
     itr = 1
-    args = sys.argv
+    sys_args = sys.argv
 
     play_env = gym.make(play_env_id)
-    max_iteration = 4
+    max_iteration = 1
     while itr<=max_iteration:
-        if len(args) <= 1:
+        print(" Batch iteration ", itr)
+        if len(sys_args) <= 1:
             save_in_sub_folder = None
             if max_iteration > 1:
                save_in_sub_folder = InceptcurrentDT
             args = default_args(save_in_sub_folder)
-        
+
         policy = run.main(args)
-        print(" Batch iteration ", itr)
+
+        print("policy training args ", args,"\n\n")
         itr += 1
         #play(play_env,policy)
         #from tensorboard import main as tb
