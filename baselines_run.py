@@ -11,6 +11,8 @@ import gym
 import numpy as np
 import glob
 import warnings
+import subprocess
+
 
 from baselines.common.vec_env import  VecEnv
 from baselines.common import tf_util
@@ -52,7 +54,7 @@ train_env_id =  'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e6'
+num_timesteps = '1e1'
 #################################################################
 
 def create_dirs(req_dirs):
@@ -63,15 +65,17 @@ def create_dirs(req_dirs):
         #else:    
             #print("Directory " , dirName ,  " already exists")
 
-
-def default_args():    
+InceptcurrentDT = time.strftime("%Y%m%d-%H%M%S")
+def default_args(InceptcurrentDT=None):    
     create_dirs(req_dirs)
 
     currentDT = time.strftime("%Y%m%d-%H%M%S")
     ####################################################################
     # DEFINE YOUR SAVE FILE, LOAD FILE AND LOGGING FILE PARAMETERS HERE 
-    ####################################################################        
+    #################################################################### 
     save_folder = pathname + '/' + models_folder + '/' + train_env_id +'/'+ alg + '/' + network 
+    if InceptcurrentDT is not None:
+       save_folder +=  '/' + str(InceptcurrentDT)
     save_file = save_folder + '/' + str(currentDT)
     logger_path = save_folder + '_log/'
     tb_logger_path = logger_path + '/tb'
@@ -93,7 +97,7 @@ def default_args():
     DEFAULT_ARGUMENTS = [
         '--env=' + train_env_id,
         '--alg=' + alg,
-    #    '--network=' + network,
+        '--network=' + network,
         '--num_timesteps=' + num_timesteps,    
     #    '--num_env=0',
     #    '--save_path=' + save_file,        
@@ -106,7 +110,13 @@ def default_args():
         DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
 
     if list_of_file:
-        latest_file = max( list_of_file, key=os.path.getctime)
+        latest_file_or_folder = max( list_of_file, key=os.path.getctime)
+        if os.path.isdir(latest_file_or_folder):
+            list_of_files = glob.glob(latest_file_or_folder+'/*')
+            if list_of_files:
+               latest_file = max( list_of_files, key=os.path.getctime)
+        else:
+            latest_file = latest_file_or_folder
         load_path = latest_file #her_default_20190212-141935' # Good with just Ego  
         #print("load_path",load_path)
         if (float(num_timesteps)==1):
@@ -160,24 +170,33 @@ if __name__ == "__main__":
     args = sys.argv
 
     play_env = gym.make(play_env_id)
-    while itr<2:
+    max_iteration = 10
+    while itr<=max_iteration:
         if len(args) <= 1:
-            args = default_args()
+            save_in_sub_folder = None
+            if max_iteration > 1:
+               save_in_sub_folder = InceptcurrentDT
+            args = default_args(save_in_sub_folder)
         
         policy = run.main(args)
         print(" Batch iteration ", itr)
         itr += 1
-        play(play_env,policy)
+        #play(play_env,policy)
         #from tensorboard import main as tb
         #tb.main()
         sess = tf_util.get_session()
         sess.close()
         tf.reset_default_graph()
-    
+
+    try:
+        subprocess.call(["rsync", "-avu", "--delete","../", "~/Documents/aws_sync"])
+    except:
+        print("Rsync didn't work")
+
     # Just Play
-    while True:
+    '''while True:
         policy = run.main(default_args())
         play(play_env,policy)
         sess = tf_util.get_session()
         sess.close()
-        tf.reset_default_graph()
+        tf.reset_default_graph()'''

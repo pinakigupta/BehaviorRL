@@ -29,7 +29,7 @@ class TwoWayEnv(AbstractEnv):
     #LEFT_LANE_CONSTRAINT = 1
     LEFT_LANE_REWARD = 0
     VELOCITY_REWARD = 1
-    GOAL_REWARD = 0
+    GOAL_REWARD = 2000
     ROAD_LENGTH = 1000
 
     DEFAULT_CONFIG = {
@@ -62,19 +62,21 @@ class TwoWayEnv(AbstractEnv):
         on_route = (lane_ID==1)
 
         #print("self.vehicle.position  ",self.vehicle.position)
-        #self.goal_achieved = self.vehicle.position[0] > 2000
+        self.goal_achieved = on_route and (self.vehicle.position[0] > 300)
         neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
         collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
         velocity_reward = self.VELOCITY_REWARD * (self.vehicle.velocity_index -1) / (self.vehicle.SPEED_COUNT - 1)
         if (velocity_reward>0):
             velocity_reward *= on_route
-        lane_reward = 0 #self.LEFT_LANE_REWARD * (len(neighbours) - 1 - self.vehicle.target_lane_index[2]) / (len(neighbours) - 1)
-        goal_reward = self.GOAL_REWARD *self.goal_achieved
+        #lane_reward = 0 #self.LEFT_LANE_REWARD * (len(neighbours) - 1 - self.vehicle.target_lane_index[2]) / (len(neighbours) - 1)
+        goal_reward = self.GOAL_REWARD 
         #print("collision_reward ",collision_reward, " velocity_reward ",velocity_reward, " lane_reward ",lane_reward," goal_reward ",goal_reward)
         if self.vehicle.crashed:
             reward =  collision_reward 
+        elif self.goal_achieved:
+            reward = goal_reward
         else :
-            reward =   velocity_reward + lane_reward + goal_reward
+            reward =   velocity_reward  
         return reward
 
     def _is_terminal(self):
@@ -150,7 +152,7 @@ class TwoWayEnv(AbstractEnv):
                               enable_lane_change=False)
             )
 
-        '''
+        
         for i in range(np.random.randint(low=0,high=10)):
             v = vehicles_type(road,
                               position=road.network.get_lane(("b", "a", 0))
@@ -159,7 +161,7 @@ class TwoWayEnv(AbstractEnv):
                               velocity=max(0,20 + 5*self.np_random.randn()),
                               enable_lane_change=False)
             v.target_lane_index = ("b", "a", 0)
-            self.road.vehicles.append(v)'''
+            self.road.vehicles.append(v)
 
         '''
         # stationary vehicles Left Lane
