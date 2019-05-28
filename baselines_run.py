@@ -54,7 +54,7 @@ train_env_id =  'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e1'
+num_timesteps = '3e4'
 #################################################################
 
 def create_dirs(req_dirs):
@@ -170,7 +170,7 @@ if __name__ == "__main__":
     args = sys.argv
 
     play_env = gym.make(play_env_id)
-    max_iteration = 10
+    max_iteration = 4
     while itr<=max_iteration:
         if len(args) <= 1:
             save_in_sub_folder = None
@@ -188,10 +188,10 @@ if __name__ == "__main__":
         sess.close()
         tf.reset_default_graph()
 
-    try:
-        subprocess.call(["rsync", "-avu", "--delete","../", "~/Documents/aws_sync"])
+    '''try:
+        subprocess.call(["rsync", "-avu", "--delete","../", "localhost:~/Documents/aws_sync"])
     except:
-        print("Rsync didn't work")
+        print("Rsync didn't work")'''
 
     # Just Play
     '''while True:
