@@ -28,7 +28,7 @@ class TwoWayEnv(AbstractEnv):
     COLLISION_REWARD = -200
     #LEFT_LANE_CONSTRAINT = 1
     LEFT_LANE_REWARD = 0
-    VELOCITY_REWARD = 1
+    VELOCITY_REWARD = 5
     GOAL_REWARD = 2000
     ROAD_LENGTH = 1000
 
@@ -47,6 +47,7 @@ class TwoWayEnv(AbstractEnv):
         self.steps = 0
         self.reset()
         self.goal_achieved = False
+        self.ego_x0 = None
 
     def step(self, action):
         self.steps += 1
@@ -62,7 +63,8 @@ class TwoWayEnv(AbstractEnv):
         on_route = (lane_ID==1)
 
         #print("self.vehicle.position  ",self.vehicle.position)
-        self.goal_achieved = on_route and (self.vehicle.position[0] > 300)
+        if self.ego_x0 is not None:
+            self.goal_achieved = on_route and (self.vehicle.position[0] > self.ego_x0+300)
         neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
         collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
         velocity_reward = self.VELOCITY_REWARD * (self.vehicle.velocity_index -1) / (self.vehicle.SPEED_COUNT - 1)
@@ -122,21 +124,22 @@ class TwoWayEnv(AbstractEnv):
         :return: the ego-vehicle
         """
         road = self.road
-        ego_vehicle = MDPVehicle(road, road.network.get_lane(("a", "b", 1)).position(np.random.randint(low=60,high=120), 0),\
+        ego_vehicle = MDPVehicle(road, road.network.get_lane(("a", "b", 1)).position(np.random.randint(low=360,high=420), 0),\
              velocity=np.random.randint(low=15,high=35))
         road.vehicles.append(ego_vehicle)
         self.vehicle = ego_vehicle
-        ego_x = ego_vehicle.position[0]
-        print("ego_x",ego_x)
+        self.ego_x0 = ego_vehicle.position[0]
+        print("ego_x",self.ego_x0)
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
         
         
         for i in range(np.random.randint(low=0,high=4)):
+            x0 = self.ego_x0+90+40*i + 10*self.np_random.randn()
             self.road.vehicles.append(
                 vehicles_type(road,
                               position=road.network.get_lane(("a", "b", 1))
-                              .position(ego_x+90+40*i + 10*self.np_random.randn(), 0),
-                              heading=road.network.get_lane(("a", "b", 1)).heading_at(70+40*i),
+                              .position( x0, 0),
+                              heading=road.network.get_lane(("a", "b", 1)).heading_at(100),
                               velocity=max(0,10 + 2*self.np_random.randn()),
                               enable_lane_change=False)
             )
@@ -144,21 +147,23 @@ class TwoWayEnv(AbstractEnv):
         
         # stationary vehicles
         for i in range(np.random.randint(low=1,high=2)):
+            x0 = self.ego_x0+90+90*i + 10*self.np_random.randn()
             self.road.vehicles.append(
                 vehicles_type(road,
                               position=road.network.get_lane(("a", "b", 1))
-                              .position(ego_x+90+90*i + 10*self.np_random.randn(), 1),
-                              heading=road.network.get_lane(("a", "b", 1)).heading_at(70+40*i),
+                              .position(x0, 1),
+                              heading=road.network.get_lane(("a", "b", 1)).heading_at(100),
                               velocity=0,target_velocity = 0,
                               enable_lane_change=False)
             )
 
         
         for i in range(np.random.randint(low=0,high=10)):
+            x0 = self.ROAD_LENGTH-350+self.ego_x0+100*i + 10*self.np_random.randn()
             v = vehicles_type(road,
                               position=road.network.get_lane(("b", "a", 0))
-                              .position(self.ROAD_LENGTH-350+ego_x+100*i + 10*self.np_random.randn(), 0),
-                              heading=road.network.get_lane(("b", "a", 0)).heading_at(200+100*i),
+                              .position(x0, 0),
+                              heading=road.network.get_lane(("b", "a", 0)).heading_at(100),
                               velocity=max(0,20 + 5*self.np_random.randn()),
                               enable_lane_change=False)
             v.target_lane_index = ("b", "a", 0)
@@ -167,10 +172,11 @@ class TwoWayEnv(AbstractEnv):
         '''
         # stationary vehicles Left Lane
         for i in range(np.random.randint(low=0,high=5)):
+            x0 = self.ROAD_LENGTH-250+self.ego_x0+50*i + 10*self.np_random.randn()
             v = vehicles_type(road,
                               position=road.network.get_lane(("b", "a", 0))
-                              .position(self.ROAD_LENGTH-250+ego_x+50*i + 10*self.np_random.randn(), 0),
-                              heading=road.network.get_lane(("b", "a", 0)).heading_at(200+100*i),
+                              .position(x0 , 1),
+                              heading=road.network.get_lane(("b", "a", 0)).heading_at(x0),
                               velocity=0,target_velocity = 0,
                               enable_lane_change=False)
             v.target_lane_index = ("b", "a", 0)

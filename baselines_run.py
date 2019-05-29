@@ -152,7 +152,7 @@ def default_args(save_in_sub_folder=None):
         if not loadlatestfileforplay:
                 save_model(save_file=save_file)
 
-    print(" DEFAULT_ARGUMENTS ", DEFAULT_ARGUMENTS)
+    #print(" DEFAULT_ARGUMENTS ", DEFAULT_ARGUMENTS)
 
     return DEFAULT_ARGUMENTS
 
@@ -181,8 +181,8 @@ def play(env, policy):
         episode_len += 1
         env.render()
         done = done.any() if isinstance(done, np.ndarray) else done
-        if episode_len%1000 ==0:
-            print('episode_rew={}'.format(episode_rew))
+        if episode_len%10 ==0:
+            print('episode_rew={}'.format(episode_rew), '  episode_len={}'.format(episode_len))
         if done:
             print('episode_rew={}'.format(episode_rew))
             print('episode_len={}'.format(episode_len))
@@ -199,9 +199,10 @@ if __name__ == "__main__":
     itr = 1
     sys_args = sys.argv
 
-    play_env = gym.make(play_env_id)
+    
     max_iteration = 1
-    while itr<=max_iteration:
+    while itr<=max_iteration and float(num_timesteps)>1:
+        play_env = gym.make(play_env_id)
         print(" Batch iteration ", itr)
         if len(sys_args) <= 1:
             save_in_sub_folder = None
@@ -227,11 +228,12 @@ if __name__ == "__main__":
 
     try:
         # Just try Play
+        play_env = gym.make(play_env_id)
+        policy = run.main(default_args())
         while True:
-            policy = run.main(default_args())
             play(play_env,policy)
-            sess = tf_util.get_session()
+            '''sess = tf_util.get_session()
             sess.close()
-            tf.reset_default_graph()
-    except:
-        print("Could not play the prediction")
+            tf.reset_default_graph()'''
+    except Exception as e:
+        print("Could not play the prediction due to error ",e)
