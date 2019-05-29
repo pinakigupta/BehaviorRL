@@ -122,11 +122,12 @@ class TwoWayEnv(AbstractEnv):
         :return: the ego-vehicle
         """
         road = self.road
-        ego_vehicle = MDPVehicle(road, road.network.get_lane(("a", "b", 1)).position(30, 0), velocity=30)
+        ego_vehicle = MDPVehicle(road, road.network.get_lane(("a", "b", 1)).position(np.random.randint(low=60,high=120), 0),\
+             velocity=np.random.randint(low=15,high=35))
         road.vehicles.append(ego_vehicle)
         self.vehicle = ego_vehicle
         ego_x = ego_vehicle.position[0]
-
+        print("ego_x",ego_x)
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
         
         
@@ -137,7 +138,7 @@ class TwoWayEnv(AbstractEnv):
                               .position(ego_x+90+40*i + 10*self.np_random.randn(), 0),
                               heading=road.network.get_lane(("a", "b", 1)).heading_at(70+40*i),
                               velocity=max(0,10 + 2*self.np_random.randn()),
-                              enable_lane_change=True)
+                              enable_lane_change=False)
             )
         
         
@@ -146,7 +147,7 @@ class TwoWayEnv(AbstractEnv):
             self.road.vehicles.append(
                 vehicles_type(road,
                               position=road.network.get_lane(("a", "b", 1))
-                              .position(120+90*i + 10*self.np_random.randn(), 1),
+                              .position(ego_x+90+90*i + 10*self.np_random.randn(), 1),
                               heading=road.network.get_lane(("a", "b", 1)).heading_at(70+40*i),
                               velocity=0,target_velocity = 0,
                               enable_lane_change=False)

@@ -181,7 +181,7 @@ def play(env, policy):
         episode_len += 1
         env.render()
         done = done.any() if isinstance(done, np.ndarray) else done
-        if episode_len%10 ==0:
+        if episode_len%1000 ==0:
             print('episode_rew={}'.format(episode_rew))
         if done:
             print('episode_rew={}'.format(episode_rew))
@@ -225,10 +225,13 @@ if __name__ == "__main__":
     except:
         print("Rsync didn't work")'''
 
-    # Just Play
-    while True:
-        policy = run.main(default_args())
-        play(play_env,policy)
-        sess = tf_util.get_session()
-        sess.close()
-        tf.reset_default_graph()
+    try:
+        # Just try Play
+        while True:
+            policy = run.main(default_args())
+            play(play_env,policy)
+            sess = tf_util.get_session()
+            sess.close()
+            tf.reset_default_graph()
+    except:
+        print("Could not play the prediction")
