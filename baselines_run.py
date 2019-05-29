@@ -54,7 +54,7 @@ train_env_id =  'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e6'
+num_timesteps = '1e0'
 #################################################################
 
 def create_dirs(req_dirs):
@@ -66,6 +66,8 @@ def create_dirs(req_dirs):
             #print("Directory " , dirName ,  " already exists")
 
 InceptcurrentDT = time.strftime("%Y%m%d-%H%M%S")
+
+
 def default_args(save_in_sub_folder=None):    
     create_dirs(req_dirs)
 
@@ -108,6 +110,16 @@ def default_args(save_in_sub_folder=None):
     #    '--num_env=8' 
     ]
 
+    def save_model(save_file = None):
+        if save_file is not None:
+            DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
+        return 
+
+    def load_model(load_file = None):
+        if load_file is not None:
+            DEFAULT_ARGUMENTS.append('--load_path=' + load_file)
+        return 
+
     loadlatestfileforplay = False
     if (float(num_timesteps) == 1):
        loadlatestfileforplay = True
@@ -121,26 +133,26 @@ def default_args(save_in_sub_folder=None):
             if list_of_files and (save_in_sub_folder is not None) :
                if save_in_sub_folder in latest_folder:
                   latest_file = max( list_of_files, key=os.path.getctime)
-                  DEFAULT_ARGUMENTS.append('--load_path=' + latest_file)
+                  load_model(load_file=latest_file)
                   print(" load_path " ,latest_file)
 
-            DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
+            save_model(save_file=save_file)
 #            print(" save_path " ,save_file)
         else: # got the latest file (to load)
             latest_file = latest_file_or_folder
             if loadlatestfileforplay:
-                DEFAULT_ARGUMENTS.append('--load_path=' + latest_file) 
+                load_model(load_file=latest_file) 
             elif save_in_sub_folder is not None :
-                DEFAULT_ARGUMENTS.append('--load_path=' + latest_file) 
-                DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
+                load_model(load_file=latest_file) 
+                save_model(save_file=save_file)
             else:
-                DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
+                save_model(save_file=save_file)
     else : 
         print(" list_of_file empty in load path ", save_folder)
         if not loadlatestfileforplay:
-           DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
+                save_model(save_file=save_file)
 
-#    print(" DEFAULT_ARGUMENTS ", DEFAULT_ARGUMENTS)
+    print(" DEFAULT_ARGUMENTS ", DEFAULT_ARGUMENTS)
 
     return DEFAULT_ARGUMENTS
 
@@ -169,7 +181,8 @@ def play(env, policy):
         episode_len += 1
         env.render()
         done = done.any() if isinstance(done, np.ndarray) else done
-        #print('episode_rew={}'.format(episode_rew))
+        if episode_len%10 ==0:
+            print('episode_rew={}'.format(episode_rew))
         if done:
             print('episode_rew={}'.format(episode_rew))
             print('episode_len={}'.format(episode_len))
@@ -213,9 +226,9 @@ if __name__ == "__main__":
         print("Rsync didn't work")'''
 
     # Just Play
-    '''while True:
+    while True:
         policy = run.main(default_args())
         play(play_env,policy)
         sess = tf_util.get_session()
         sess.close()
-        tf.reset_default_graph()'''
+        tf.reset_default_graph()
