@@ -129,7 +129,7 @@ class TwoWayEnv(AbstractEnv):
         road.vehicles.append(ego_vehicle)
         self.vehicle = ego_vehicle
         self.ego_x0 = ego_vehicle.position[0]
-        print("ego_x",self.ego_x0)
+        #print("ego_x",self.ego_x0)
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
         
         
