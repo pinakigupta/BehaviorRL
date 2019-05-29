@@ -12,8 +12,8 @@ import numpy as np
 import glob
 import warnings
 import subprocess
-
-
+from baselines.common.cmd_util import common_arg_parser, parse_unknown_args
+from baselines.results_plotter import plot_results
 from baselines.common.vec_env import  VecEnv
 from baselines.common import tf_util
 import tensorflow as tf
@@ -54,7 +54,7 @@ train_env_id =  'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '3e5'
+num_timesteps = '1e1'
 #################################################################
 
 def create_dirs(req_dirs):
@@ -83,10 +83,10 @@ def default_args(save_in_sub_folder=None):
     list_of_file = glob.glob(save_folder+'/*')
 
     # Specifiy log directories for open AI 
-    ''' logger_path = save_folder + '_log/'
-    tb_logger_path = logger_path + '/tb'
+    logger_path = save_folder + '/log/'
+    tb_logger_path = save_folder + '/tb/'
     os.environ['OPENAI_LOGDIR'] = logger_path
-    os.environ['OPENAI_LOG_FORMAT'] = 'stdout,tensorboard'''
+    os.environ['OPENAI_LOG_FORMAT'] = 'stdout,tensorboard'
   
     ###############################################################
         
@@ -118,10 +118,9 @@ def default_args(save_in_sub_folder=None):
 
     def save_model(save_file = None):
         if save_file is not None:
-            if MPI is None:
+            if MPI is None or rank == 0:
                 DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
-            elif rank ==0:
-                DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
+                #DEFAULT_ARGUMENTS.append('--tensorboard --logdir=' + tb_logger_path)
         return 
 
     def load_model(load_file = None):
@@ -209,7 +208,7 @@ if __name__ == "__main__":
     sys_args = sys.argv
 
     
-    max_iteration = 1
+    max_iteration = 1           
     while itr<=max_iteration and float(num_timesteps)>1:
         play_env = gym.make(play_env_id)
         print(" Batch iteration ", itr)
@@ -223,7 +222,11 @@ if __name__ == "__main__":
 
         #print("policy training args ", args,"\n\n")
         itr += 1
-        #play(play_env,policy)
+
+        try:
+            play(play_env,policy)
+        except Exception as e:
+            print("Could not play the prediction after training due to error  ",e)
         #from tensorboard import main as tb
         #tb.main()
         sess = tf_util.get_session()
