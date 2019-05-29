@@ -118,7 +118,9 @@ def default_args(save_in_sub_folder=None):
 
     def save_model(save_file = None):
         if save_file is not None:
-            if rank ==0:
+            if MPI is None:
+                DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
+            elif rank ==0:
                 DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
         return 
 
