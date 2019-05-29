@@ -110,9 +110,16 @@ def default_args(save_in_sub_folder=None):
     #    '--num_env=8' 
     ]
 
+    try:
+        from mpi4py import MPI
+        rank = MPI.COMM_WORLD.Get_rank()
+    except ImportError:
+        MPI = None
+
     def save_model(save_file = None):
         if save_file is not None:
-            DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
+            if rank ==0:
+                DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
         return 
 
     def load_model(load_file = None):
