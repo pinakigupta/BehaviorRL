@@ -54,7 +54,7 @@ train_env_id =  'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '2e5'
+num_timesteps = '1e6'
 #################################################################
 
 def create_dirs(req_dirs):
@@ -198,7 +198,7 @@ if __name__ == "__main__":
 
         policy = run.main(args)
 
-        print("policy training args ", args,"\n\n")
+        #print("policy training args ", args,"\n\n")
         itr += 1
         #play(play_env,policy)
         #from tensorboard import main as tb
