@@ -54,7 +54,7 @@ train_env_id =  'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e0'
+num_timesteps = '1e5'
 #################################################################
 
 def create_dirs(req_dirs):
@@ -113,6 +113,7 @@ def default_args(save_in_sub_folder=None):
     try:
         from mpi4py import MPI
         rank = MPI.COMM_WORLD.Get_rank()
+        print("rank",rank)
     except ImportError:
         MPI = None
 
