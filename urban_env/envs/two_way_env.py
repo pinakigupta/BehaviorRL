@@ -158,8 +158,8 @@ class TwoWayEnv(AbstractEnv):
             )
 
         
-        for i in range(np.random.randint(low=0,high=10)):
-            x0 = self.ROAD_LENGTH-350+self.ego_x0+100*i + 10*self.np_random.randn()
+        for i in range(np.random.randint(low=0,high=5)):
+            x0 = self.ROAD_LENGTH-self.ego_x0-20-120*i + 10*self.np_random.randn()
             v = vehicles_type(road,
                               position=road.network.get_lane(("b", "a", 0))
                               .position(x0, 0),

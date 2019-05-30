@@ -54,7 +54,7 @@ train_env_id =  'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e1'
+num_timesteps = '1e0'
 #################################################################
 
 def create_dirs(req_dirs):
@@ -192,8 +192,8 @@ def play(env, policy):
         #if episode_len%100 ==0:
             #print('episode_rew={}'.format(episode_rew), '  episode_len={}'.format(episode_len))
         if done:
-            print('episode_rew={}'.format(episode_rew))
-            print('episode_len={}'.format(episode_len))
+            print('episode_rew={}'.format(episode_rew), '  episode_len={}'.format(episode_len),\
+                'episode travel = ',env.vehicle.position[0]-env.ego_x0)
             episode_rew = 0
             episode_len = 0
             env.close()
