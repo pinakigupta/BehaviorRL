@@ -83,10 +83,10 @@ def default_args(save_in_sub_folder=None):
     list_of_file = glob.glob(save_folder+'/*')
 
     # Specifiy log directories for open AI 
-    logger_path = save_folder + '/log/'
+    '''logger_path = save_folder + '/log/'
     tb_logger_path = save_folder + '/tb/'
     os.environ['OPENAI_LOGDIR'] = logger_path
-    os.environ['OPENAI_LOG_FORMAT'] = 'stdout,tensorboard'
+    os.environ['OPENAI_LOG_FORMAT'] = 'stdout,tensorboard'''
   
     ###############################################################
         
@@ -121,12 +121,14 @@ def default_args(save_in_sub_folder=None):
         if save_file is not None:
             if MPI is None or rank == 0:
                 DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
+                print("Saving file",save_file)
                 #DEFAULT_ARGUMENTS.append('--tensorboard --logdir=' + tb_logger_path)
         return 
 
     def load_model(load_file = None):
         if load_file is not None:
             DEFAULT_ARGUMENTS.append('--load_path=' + load_file)
+            print("Loading file",load_file)
         return 
 
     loadlatestfileforplay = False
