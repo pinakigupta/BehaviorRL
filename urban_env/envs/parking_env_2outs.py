@@ -71,13 +71,13 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "type": "KinematicsGoal",
             "features": ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h'],
             "scale": 100,
-            "observation_near_ego": 6,
+            "observation_near_ego": 0,
             "normalize": False
         },
         "other_vehicles_type": "urban_AD_env.vehicle.behavior.IDMVehicle",
         "centering_position": [0.5, 0.5],
         "parking_spots": 15, #'random', # Parking Spots Per side
-        "vehicles_count": 'random', # Total number of cars in the parking (apart from Ego)
+        "vehicles_count": 0, #'random', # Total number of cars in the parking (apart from Ego)
         "screen_width": 600 * 2,
         "screen_height": 300 * 2 
     }    

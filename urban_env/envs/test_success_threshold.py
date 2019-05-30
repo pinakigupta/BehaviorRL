@@ -13,7 +13,6 @@ REWARD_WEIGHTS = [7/100, 7/100, 1/100, 1/100, 9/10, 9/10]
 #REWARD_WEIGHTS = [5/100, 5/100, 1/100, 1/100, 5/10, 5/10]
 #REWARD_WEIGHTS = [1/100, 1/100, 1/100, 1/100, 1/10, 1/10]
 
-SUCCESS_THRESHOLD = 0.15
 
 def distance_2_goal_reward(achieved_goal, desired_goal, p=0.5):
     return - np.power(np.dot(OBS_SCALE * np.abs(achieved_goal - desired_goal), REWARD_WEIGHTS), p)

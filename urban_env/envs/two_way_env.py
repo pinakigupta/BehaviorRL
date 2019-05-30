@@ -32,7 +32,7 @@ class TwoWayEnv(AbstractEnv):
     COLLISION_REWARD = -1
     """ The reward received when colliding with a vehicle."""
 
-    RIGHT_LANE_CHANGE_REWARD = 0.0 #0.001
+    RIGHT_LANE_CHANGE_REWARD = 0.001 #0.001
     """ The reward received when driving on the right-most lanes, linearly mapped to zero for other lanes."""
     LEFT_LANE_CHANGE_REWARD = 0.0
     """ The reward received when driving on the right-most lanes, linearly mapped to zero for other lanes."""
@@ -87,9 +87,10 @@ class TwoWayEnv(AbstractEnv):
         #         reward += self.MERGING_VELOCITY_REWARD * \
         #                   (vehicle.target_velocity - vehicle.velocity) / vehicle.target_velocity
 
-        return utils.remap(action_reward[action] + reward,
-                           [self.COLLISION_REWARD, self.HIGH_VELOCITY_REWARD + self.LEFT_LANE_CHANGE_REWARD +  self.RIGHT_LANE_CHANGE_REWARD],
-                           [0, 1])
+        # return utils.remap(action_reward[action] + reward,
+        #                    [self.COLLISION_REWARD, self.HIGH_VELOCITY_REWARD + self.LEFT_LANE_CHANGE_REWARD +  self.RIGHT_LANE_CHANGE_REWARD],
+        #                    [0, 1])
+        return action_reward[action] + reward
         # neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
 
         # high_velocity_reward = self.HIGH_VELOCITY_REWARD * self.vehicle.velocity_index / (self.vehicle.SPEED_COUNT - 1)

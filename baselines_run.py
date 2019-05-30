@@ -45,16 +45,17 @@ warnings.filterwarnings("ignore")
 ###############################################################
 #train_env_id =  'merge-v0'
 #train_env_id =  'roundabout-v0'
-train_env_id =  'two-way-v0'
+#train_env_id =  'two-way-v0'
 #train_env_id =  'parking_2outs-v0'
+train_env_id =  'multilane-v0'
 
 play_env_id = ''
 alg = 'ppo2'
 network = 'mlp'
 num_timesteps = '1e5'
-#load_file_name = '20190511-121635' # 'merge-v0'
+load_file_name = '' # 'merge-v0'
 #load_file_name = '20190510-100005' # 'roundabout-v0'
-load_file_name = '20190511-180238' # 'two-way-v0'
+#load_file_name = '' # 'two-way-v0'
 #load_file_name = '20190506-082121' # 'parking_2outs-v0'
 #################################################################
 
@@ -86,15 +87,15 @@ def default_args():
     DEFAULT_ARGUMENTS = [
         '--env=' + train_env_id,
         '--alg=' + alg,
-    #    '--network=' + network,
+        '--network=' + network,
         '--num_timesteps=' + num_timesteps,    
-    #    '--num_env=0',
+        '--num_env=4',
         '--save_path=' + save_file,
-    #    '--logger_path=' + logger_path,
+        #'--logger_path=' + logger_path,
         '--play'
     ]
 
-    if list_of_file:
+    if load_file_name == 'last' and list_of_file:
         latest_file = max( list_of_file, key=os.path.getctime)
         load_path = latest_file 
         print("load_path",load_path)

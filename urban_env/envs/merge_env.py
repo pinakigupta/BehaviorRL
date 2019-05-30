@@ -24,10 +24,11 @@ class MergeEnv(AbstractEnv):
         It is rewarded for maintaining a high velocity and avoiding collisions, but also making room for merging
         vehicles.
     """
+    EGO_MERGING = True
 
     COLLISION_REWARD = -1
     RIGHT_LANE_CHANGE_REWARD = 0.0
-    LEFT_LANE_CHANGE_REWARD = 0.2 # When Ego is merging, We want to encourange the merging
+    LEFT_LANE_CHANGE_REWARD = 0.0 # When Ego is merging, We want to encourange the merging
     HIGH_VELOCITY_REWARD = 0.02
     #MERGING_VELOCITY_REWARD = -0.5
     
@@ -124,16 +125,21 @@ class MergeEnv(AbstractEnv):
         :return: the ego-vehicle
         """
         road = self.road
-        #ego_vehicle = MDPVehicle(road, road.network.get_lane(("a", "b", 1)).position(30, 0), velocity=30)
-        ego_vehicle = MDPVehicle(road, road.network.get_lane(("j", "k", 0)).position(110, 0), velocity=31.5)
-        road.vehicles.append(ego_vehicle)
 
+        # Adding all agents on the main road
         other_vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
         road.vehicles.append(other_vehicles_type(road, road.network.get_lane(("a", "b", 0)).position(90, 0), velocity=29))
         road.vehicles.append(other_vehicles_type(road, road.network.get_lane(("a", "b", 1)).position(70, 0), velocity=31))
         road.vehicles.append(other_vehicles_type(road, road.network.get_lane(("a", "b", 0)).position(5, 0), velocity=31.5))
 
-        # merging_v = other_vehicles_type(road, road.network.get_lane(("j", "k", 0)).position(110, 0), velocity=20)
-        # merging_v.target_velocity = 30
-        # road.vehicles.append(merging_v)
+        # Adding the merging vehicle 
+        if self.EGO_MERGING:
+            ego_vehicle = MDPVehicle(road, road.network.get_lane(("j", "k", 0)).position(110, 0), velocity=31.5)
+        else:
+            ego_vehicle = MDPVehicle(road, road.network.get_lane(("a", "b", 1)).position(30, 0), velocity=30)
+            merging_v = other_vehicles_type(road, road.network.get_lane(("j", "k", 0)).position(110, 0), velocity=20)
+            merging_v.target_velocity = 30
+            road.vehicles.append(merging_v)
+
+        road.vehicles.append(ego_vehicle)                
         self.vehicle = ego_vehicle
