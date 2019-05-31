@@ -23,6 +23,7 @@ from baselines.common.vec_env import VecEnv
 from baselines.common import tf_util
 import tensorflow as tf
 from shutil import copyfile
+from mpi4py import MPI
 
 ####################
 pathname = os.getcwd()
@@ -52,7 +53,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '0.8e5'
+num_timesteps = '1e1'
 #################################################################
 first_call = True
 
@@ -66,8 +67,12 @@ def create_dirs(req_dirs):
             # print("Directory " , dirName ,  " already exists")
 
 
-InceptcurrentDT = time.strftime("%Y%m%d-%H%M%S")
 
+def is_master():
+    return MPI.COMM_WORLD.Get_rank()==0
+
+
+InceptcurrentDT = time.strftime("%Y%m%d-%H%M%S")
 
 def is_predict_only():
     return float(num_timesteps) == 1
@@ -103,13 +108,7 @@ def default_args(save_in_sub_folder=None):
 
     ###############################################################
 
-    try:
-        os.mkdir(save_folder)
-    except OSError:
-        # print ("Creation of the save path %s failed. It might already exist" % save_folder)
-        a = 1
-    else:
-        print("Successfully created the save path folder %s " % save_folder)
+
 
     DEFAULT_ARGUMENTS = [
         '--env=' + train_env_id,
@@ -123,22 +122,26 @@ def default_args(save_in_sub_folder=None):
         #    '--num_env=8'
     ]
 
-    try:
-        from mpi4py import MPI
-        rank = MPI.COMM_WORLD.Get_rank()
-        print("rank", rank)
-    except ImportError:
-        MPI = None
 
     def copy_terminal_output_file():
         src = os.getcwd() + '/' + terminal_output_file_name
         dst = save_folder + '/' + terminal_output_file_name
         copyfile(src, dst)
 
+    def create_save_folder(save_folder):
+        try:
+            os.mkdir(save_folder)
+        except OSError:
+            # print ("Creation of the save path %s failed. It might already exist" % save_folder)
+            a = 1
+        else:
+            print("Successfully created the save path folder %s " % save_folder)
+
     def save_model(save_file=None):
         if save_file is not None:
             if not is_predict_only():
-                if MPI is None or rank == 0:
+                if MPI is None or is_master():
+                    create_save_folder(save_folder=save_folder)
                     DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
                     print("Saving file", save_file)
                     copy_terminal_output_file()
@@ -153,28 +156,34 @@ def default_args(save_in_sub_folder=None):
 
     terminal_output_file_name = 'output.txt'
 
-    def get_latest_file(list_of_files):
+    def get_latest_file_or_folder(list_of_files):
+        for filename in list_of_files:
+            if '.' in filename:
+               list_of_files.remove(filename)
+            elif os.path.isdir(filename): # remove empty directories
+                if not os.listdir(filename):
+                    list_of_files.remove(filename)
+
         if not list_of_files:
             return None
         if list_of_files is None:
             return None
-        for filename in list_of_files:
-            if '-' not in filename:
-               list_of_files.remove(filename)
         def keyfn(filename):
             return int(filename.split('/')[-1].replace('-',''))
         return max(list_of_files, key=keyfn)
 
     def latest_model_file_from_list_of_files_and_folders(list_of_files):
         while list_of_files:
-            latest_file = get_latest_file(list_of_files = list_of_files)
-            if os.path.isfile(latest_file) and (terminal_output_file_name not in latest_file):
+            latest_file_or_folder = get_latest_file_or_folder(list_of_files = list_of_files)
+            if latest_file_or_folder is None:
+                return None
+            if os.path.isfile(latest_file_or_folder) :
                 #print(" load_path ", latest_file)
                 return latest_file
-            list_of_files.remove(latest_file)  # directory
+            list_of_files.remove(latest_file_or_folder)  # directory
 
     if list_of_file:  # is there anything in the save directory
-        latest_file_or_folder = get_latest_file(list_of_files = list_of_file)
+        latest_file_or_folder = get_latest_file_or_folder(list_of_files = list_of_file)
 #        print(" latest_file_or_folder " ,latest_file_or_folder)
         if os.path.isdir(latest_file_or_folder):  # search for the latest file (to load) from the latest folder\
             latest_folder = latest_file_or_folder
@@ -265,10 +274,10 @@ if __name__ == "__main__":
             # print("policy training args ", args,"\n\n")
             itr += 1
 
-            try:
+            '''try:
                 play(play_env, policy)
             except Exception as e:
-                print("Could not play the prediction after training due to error  ", e)
+                print("Could not play the prediction after training due to error  ", e)'''
             # from tensorboard import main as tb
             # tb.main()
 
