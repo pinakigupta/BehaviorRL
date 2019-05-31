@@ -153,18 +153,25 @@ def default_args(save_in_sub_folder=None):
 
     terminal_output_file_name = 'output.txt'
 
-
+    def get_latest_file(list_of_files):
+        if not list_of_files:
+            return None
+        if list_of_files is None:
+            return None
+        def keyfn(filename):
+            return int(filename.split('/')[-1].replace('-',''))
+        return max(list_of_files, key=keyfn)
 
     def latest_model_file_from_list_of_files_and_folders(list_of_files):
         while list_of_files:
-            latest_file = max(list_of_files, key=os.path.getctime)
+            latest_file = get_latest_file(list_of_files = list_of_files)
             if os.path.isfile(latest_file) and (terminal_output_file_name not in latest_file):
                 #print(" load_path ", latest_file)
                 return latest_file
             list_of_files.remove(latest_file)  # directory
 
     if list_of_file:  # is there anything in the save directory
-        latest_file_or_folder = max(list_of_file, key=os.path.getctime)
+        latest_file_or_folder = get_latest_file(list_of_files = list_of_file)
 #        print(" latest_file_or_folder " ,latest_file_or_folder)
         if os.path.isdir(latest_file_or_folder):  # search for the latest file (to load) from the latest folder\
             latest_folder = latest_file_or_folder
