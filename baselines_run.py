@@ -52,7 +52,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e0'
+num_timesteps = '0.8e5'
 #################################################################
 first_call = True
 
@@ -158,6 +158,9 @@ def default_args(save_in_sub_folder=None):
             return None
         if list_of_files is None:
             return None
+        for filename in list_of_files:
+            if '-' not in filename:
+               list_of_files.remove(filename)
         def keyfn(filename):
             return int(filename.split('/')[-1].replace('-',''))
         return max(list_of_files, key=keyfn)
@@ -243,7 +246,7 @@ if __name__ == "__main__":
 
     policy = None
     play_env = None
-    max_iteration = 5
+    max_iteration = 10
     if not is_predict_only():
         while itr <= max_iteration:
             sess = tf_util.get_session()
