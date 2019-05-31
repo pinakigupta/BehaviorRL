@@ -26,9 +26,9 @@ from shutil import copyfile
 
 ####################
 pathname = os.getcwd()
-#print("current directory is : " + pathname)
+# print("current directory is : " + pathname)
 foldername = os.path.basename(pathname)
-#print("Directory name is : " + foldername)
+# print("Directory name is : " + foldername)
 ####################
 
 open_ai_baselines_dir = pathname + '/open_ai_baselines'
@@ -52,7 +52,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e1'
+num_timesteps = '1e0'
 #################################################################
 first_call = True
 
@@ -61,9 +61,9 @@ def create_dirs(req_dirs):
     for dirName in req_dirs:
         if not os.path.exists(dirName):
             os.mkdir(dirName)
-            #print("Directory " , dirName ,  " Created ")
+            # print("Directory " , dirName ,  " Created ")
         # else:
-            #print("Directory " , dirName ,  " already exists")
+            # print("Directory " , dirName ,  " already exists")
 
 
 InceptcurrentDT = time.strftime("%Y%m%d-%H%M%S")
@@ -71,6 +71,7 @@ InceptcurrentDT = time.strftime("%Y%m%d-%H%M%S")
 
 def is_predict_only():
     return float(num_timesteps) == 1
+
 
 def default_args(save_in_sub_folder=None):
     create_dirs(req_dirs)
@@ -83,12 +84,12 @@ def default_args(save_in_sub_folder=None):
         '/' + train_env_id + '/' + alg + '/' + network
 
     if first_call:
-        list_of_file = glob.glob(save_folder+'/*') 
+        list_of_file = glob.glob(save_folder+'/*')
         if save_in_sub_folder is not None:
             save_folder += '/' + str(save_in_sub_folder)
         save_file = save_folder + '/' + str(currentDT)
         first_call = False
-    else:       
+    else:
         if save_in_sub_folder is not None:
             save_folder += '/' + str(save_in_sub_folder)
         save_file = save_folder + '/' + str(currentDT)
@@ -105,7 +106,7 @@ def default_args(save_in_sub_folder=None):
     try:
         os.mkdir(save_folder)
     except OSError:
-        #print ("Creation of the save path %s failed. It might already exist" % save_folder)
+        # print ("Creation of the save path %s failed. It might already exist" % save_folder)
         a = 1
     else:
         print("Successfully created the save path folder %s " % save_folder)
@@ -129,12 +130,19 @@ def default_args(save_in_sub_folder=None):
     except ImportError:
         MPI = None
 
+    def copy_terminal_output_file():
+        src = os.getcwd() + '/' + terminal_output_file_name
+        dst = save_folder + '/' + terminal_output_file_name
+        copyfile(src, dst)
+
     def save_model(save_file=None):
         if save_file is not None:
-            if MPI is None or rank == 0:
-                DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
-                print("Saving file", save_file)
-                #DEFAULT_ARGUMENTS.append('--tensorboard --logdir=' + tb_logger_path)
+            if not is_predict_only():
+                if MPI is None or rank == 0:
+                    DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
+                    print("Saving file", save_file)
+                    copy_terminal_output_file()
+                    # DEFAULT_ARGUMENTS.append('--tensorboard --logdir=' + tb_logger_path)
         return
 
     def load_model(load_file=None):
@@ -143,10 +151,17 @@ def default_args(save_in_sub_folder=None):
             print("Loading file", load_file)
         return
 
-    def copy_terminal_output_file():
-        src = os.getcwd()+'/output.txt'
-        dst = save_folder+'/output.txt'
-        copyfile(src, dst)
+    terminal_output_file_name = 'output.txt'
+
+
+
+    def latest_model_file_from_list_of_files_and_folders(list_of_files):
+        while list_of_files:
+            latest_file = max(list_of_files, key=os.path.getctime)
+            if os.path.isfile(latest_file) and (terminal_output_file_name not in latest_file):
+                #print(" load_path ", latest_file)
+                return latest_file
+            list_of_files.remove(latest_file)  # directory
 
     if list_of_file:  # is there anything in the save directory
         latest_file_or_folder = max(list_of_file, key=os.path.getctime)
@@ -154,34 +169,27 @@ def default_args(save_in_sub_folder=None):
         if os.path.isdir(latest_file_or_folder):  # search for the latest file (to load) from the latest folder\
             latest_folder = latest_file_or_folder
             list_of_files = glob.glob(latest_folder+'/*')
-            if list_of_files and (save_in_sub_folder is not None):
+            if list_of_files and save_in_sub_folder is not None :
                 if save_in_sub_folder in latest_folder:
-                    while list_of_files:
-                        latest_file = max(list_of_files, key=os.path.getctime)
-                        if os.path.isfile(latest_file) and ('output' not in latest_file):
-                            load_model(load_file=latest_file)
-                            print(" load_path ", latest_file)
-                            break
-                        list_of_files.remove(latest_file)  # directory
+                    latest_file = latest_model_file_from_list_of_files_and_folders(list_of_files)
+                    load_model(load_file=latest_file)
+            elif list_of_files and is_predict_only():
+                latest_file = latest_model_file_from_list_of_files_and_folders(list_of_files)
+                load_model(load_file=latest_file)
+
             save_model(save_file=save_file)
-            copy_terminal_output_file()
-#            print(" save_path " ,save_file)
         else:  # got the latest file (to load)
             latest_file = latest_file_or_folder
-            if is_predict_only():
-                load_model(load_file=latest_file)
-            elif save_in_sub_folder is not None:
+            if save_in_sub_folder is not None:
                 load_model(load_file=latest_file)
                 save_model(save_file=save_file)
-                copy_terminal_output_file()
             else:
                 save_model(save_file=save_file)
     else:
         print(" list_of_file empty in load path ", save_folder)
-        if not is_predict_only():
-            save_model(save_file=save_file)
+        save_model(save_file=save_file)
 
-    #print(" DEFAULT_ARGUMENTS ", DEFAULT_ARGUMENTS)
+    # print(" DEFAULT_ARGUMENTS ", DEFAULT_ARGUMENTS)
 
     return DEFAULT_ARGUMENTS
 
@@ -191,7 +199,7 @@ def play(env, policy):
     # env = gym.make(env_id)
 
     logger.configure()
-    #logger.log("Running trained model")
+    # logger.log("Running trained model")
     obs = env.reset()
 
     state = policy.initial_state if hasattr(policy, 'initial_state') else None
@@ -211,7 +219,7 @@ def play(env, policy):
         env.render()
         done = done.any() if isinstance(done, np.ndarray) else done
         # if episode_len%100 ==0:
-        #print('episode_rew={}'.format(episode_rew), '  episode_len={}'.format(episode_len))
+        # print('episode_rew={}'.format(episode_rew), '  episode_len={}'.format(episode_len))
         if done:
             print('episode_rew={}'.format(episode_rew), '  episode_len={}'.format(episode_len),
                   'episode travel = ', env.vehicle.position[0]-env.ego_x0)
@@ -244,14 +252,14 @@ if __name__ == "__main__":
 
             policy = run.main(args)
 
-            #print("policy training args ", args,"\n\n")
+            # print("policy training args ", args,"\n\n")
             itr += 1
 
             try:
                 play(play_env, policy)
             except Exception as e:
                 print("Could not play the prediction after training due to error  ", e)
-            #from tensorboard import main as tb
+            # from tensorboard import main as tb
             # tb.main()
 
     else:
