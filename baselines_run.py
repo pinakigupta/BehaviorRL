@@ -54,7 +54,7 @@ train_env_id =  'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e5'
+num_timesteps = '1e0'
 #################################################################
 
 def create_dirs(req_dirs):
@@ -67,6 +67,8 @@ def create_dirs(req_dirs):
 
 InceptcurrentDT = time.strftime("%Y%m%d-%H%M%S")
 
+def is_predict_only():
+    return float(num_timesteps)==1
 
 def default_args(save_in_sub_folder=None):    
     create_dirs(req_dirs)
@@ -131,9 +133,6 @@ def default_args(save_in_sub_folder=None):
             print("Loading file",load_file)
         return 
 
-    loadlatestfileforplay = False
-    if (float(num_timesteps) == 1):
-       loadlatestfileforplay = True
 
     if list_of_file: # is there anything in the save directory
         latest_file_or_folder = max( list_of_file, key=os.path.getctime) 
@@ -143,15 +142,18 @@ def default_args(save_in_sub_folder=None):
             list_of_files = glob.glob(latest_folder+'/*')
             if list_of_files and (save_in_sub_folder is not None) :
                if save_in_sub_folder in latest_folder:
-                  latest_file = max( list_of_files, key=os.path.getctime)
-                  load_model(load_file=latest_file)
-                  print(" load_path " ,latest_file)
-
+                   while list_of_files:
+                        latest_file = max( list_of_files, key=os.path.getctime)
+                        if os.path.isfile(latest_file) :
+                            load_model(load_file=latest_file)
+                            print(" load_path " ,latest_file)
+                            break
+                        list_of_files.remove(latest_file)                           
             save_model(save_file=save_file)
 #            print(" save_path " ,save_file)
         else: # got the latest file (to load)
             latest_file = latest_file_or_folder
-            if loadlatestfileforplay:
+            if is_predict_only():
                 load_model(load_file=latest_file) 
             elif save_in_sub_folder is not None :
                 load_model(load_file=latest_file) 
@@ -160,7 +162,7 @@ def default_args(save_in_sub_folder=None):
                 save_model(save_file=save_file)
     else : 
         print(" list_of_file empty in load path ", save_folder)
-        if not loadlatestfileforplay:
+        if not is_predict_only():
                 save_model(save_file=save_file)
 
     #print(" DEFAULT_ARGUMENTS ", DEFAULT_ARGUMENTS)
@@ -210,31 +212,37 @@ if __name__ == "__main__":
     itr = 1
     sys_args = sys.argv
 
-    
-    max_iteration = 1           
-    while itr<=max_iteration and float(num_timesteps)>1:
+    policy = None
+    play_env = None
+    max_iteration = 1  
+    if not is_predict_only():
+        while itr<=max_iteration:
+            sess = tf_util.get_session()
+            sess.close()
+            tf.reset_default_graph()
+            play_env = gym.make(play_env_id)
+            print(" Batch iteration ", itr)
+            if len(sys_args) <= 1:
+                save_in_sub_folder = None
+                if max_iteration > 1:
+                    save_in_sub_folder = InceptcurrentDT
+                args = default_args(save_in_sub_folder)
+
+            policy = run.main(args)
+
+            #print("policy training args ", args,"\n\n")
+            itr += 1
+
+            try:
+                play(play_env,policy)
+            except Exception as e:
+                print("Could not play the prediction after training due to error  ",e)
+            #from tensorboard import main as tb
+            #tb.main()
+
+    else:
+        policy = run.main(default_args())
         play_env = gym.make(play_env_id)
-        print(" Batch iteration ", itr)
-        if len(sys_args) <= 1:
-            save_in_sub_folder = None
-            if max_iteration > 1:
-               save_in_sub_folder = InceptcurrentDT
-            args = default_args(save_in_sub_folder)
-
-        policy = run.main(args)
-
-        #print("policy training args ", args,"\n\n")
-        itr += 1
-
-        try:
-            play(play_env,policy)
-        except Exception as e:
-            print("Could not play the prediction after training due to error  ",e)
-        #from tensorboard import main as tb
-        #tb.main()
-        sess = tf_util.get_session()
-        sess.close()
-        tf.reset_default_graph()
 
     '''try:
         subprocess.call(["rsync", "-avu", "--delete","../", "localhost:~/Documents/aws_sync"])
@@ -242,9 +250,7 @@ if __name__ == "__main__":
         print("Rsync didn't work")'''
 
     try:
-        # Just try Play
-        play_env = gym.make(play_env_id)
-        policy = run.main(default_args())
+        # Just try to Play
         while True:
             play(play_env,policy)
             '''sess = tf_util.get_session()
