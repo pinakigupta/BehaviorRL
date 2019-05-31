@@ -53,7 +53,7 @@ class TwoWayEnv(AbstractEnv):
         self.steps += 1
         return super(TwoWayEnv, self).step(action)
 
-    def _reward(self, action):
+    def _reward(self, action, is_training = True):
         """
             The vehicle is rewarded for driving with high velocity
         :param action: the action performed
@@ -64,7 +64,8 @@ class TwoWayEnv(AbstractEnv):
 
         #print("self.vehicle.position  ",self.vehicle.position)
         if self.ego_x0 is not None:
-            self.goal_achieved = on_route and (self.vehicle.position[0] > self.ego_x0+300)
+            if is_training:
+                self.goal_achieved = on_route and (self.vehicle.position[0] > self.ego_x0+300)
         neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
         collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
         velocity_reward = self.VELOCITY_REWARD * (self.vehicle.velocity_index -1) / (self.vehicle.SPEED_COUNT - 1)
@@ -85,7 +86,9 @@ class TwoWayEnv(AbstractEnv):
         """
             The episode is over if the ego vehicle crashed or the time is out.
         """
-        terminal = self.vehicle.crashed or self.goal_achieved
+        lane_ID = self.vehicle.lane_index[2]
+        on_road = self.vehicle.position[0] < self.ROAD_LENGTH
+        terminal = self.vehicle.crashed or self.goal_achieved or (not on_road)
         return terminal
 
     def _constraint(self, action):

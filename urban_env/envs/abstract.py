@@ -114,7 +114,7 @@ class AbstractEnv(gym.Env):
         self.observation = observation_factory(self, self.config["observation"])
         self.observation_space = self.observation.space()
 
-    def _reward(self, action):
+    def _reward(self, action, is_training = True):
         """
             Return the reward associated with performing a given action and ending up in the current state.
 
@@ -149,7 +149,7 @@ class AbstractEnv(gym.Env):
         self.define_spaces()
         return self.observation.observe()
 
-    def step(self, action):
+    def step(self, action, is_training = True):
         """
             Perform an action and step the environment dynamics.
 
@@ -164,7 +164,7 @@ class AbstractEnv(gym.Env):
         self._simulate(action)
 
         obs = self.observation.observe()
-        reward = self._reward(action)
+        reward = self._reward(action, is_training)
         terminal = self._is_terminal()
 
         constraint = self._constraint(action)
