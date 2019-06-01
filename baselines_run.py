@@ -53,7 +53,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e1'
+num_timesteps = '0.6e5'
 #################################################################
 first_call = True
 
@@ -77,7 +77,7 @@ InceptcurrentDT = time.strftime("%Y%m%d-%H%M%S")
 def is_predict_only():
     return float(num_timesteps) == 1
 
-
+LOAD_PREV_MODEL = False
 def default_args(save_in_sub_folder=None):
     create_dirs(req_dirs)
     currentDT = time.strftime("%Y%m%d-%H%M%S")
@@ -150,19 +150,21 @@ def default_args(save_in_sub_folder=None):
 
     def load_model(load_file=None):
         if load_file is not None:
-            DEFAULT_ARGUMENTS.append('--load_path=' + load_file)
-            print("Loading file", load_file)
+           if not LOAD_PREV_MODEL and first_call:
+              return
+           DEFAULT_ARGUMENTS.append('--load_path=' + load_file)
+           print("Loading file", load_file)
         return
 
     terminal_output_file_name = 'output.txt'
 
     def get_latest_file_or_folder(list_of_files):
-        for filename in list_of_files:
-            if '.' in filename:
-               list_of_files.remove(filename)
-            elif os.path.isdir(filename): # remove empty directories
-                if not os.listdir(filename):
-                    list_of_files.remove(filename)
+        for fileorfoldername in list_of_files:
+            if '.' in fileorfoldername:
+               list_of_files.remove(fileorfoldername)
+            elif os.path.isdir(fileorfoldername): # remove empty directories
+                if not os.listdir(fileorfoldername):
+                    list_of_files.remove(fileorfoldername)
 
         if not list_of_files:
             return None
@@ -181,11 +183,14 @@ def default_args(save_in_sub_folder=None):
                 #print(" load_path ", latest_file)
                 return latest_file
             list_of_files.remove(latest_file_or_folder)  # directory
+        return None
 
     if list_of_file:  # is there anything in the save directory
         latest_file_or_folder = get_latest_file_or_folder(list_of_files = list_of_file)
 #        print(" latest_file_or_folder " ,latest_file_or_folder)
-        if os.path.isdir(latest_file_or_folder):  # search for the latest file (to load) from the latest folder\
+        if latest_file_or_folder is None:
+           print("latest_file_or_folder is None in list_of_file",list_of_file)
+        elif os.path.isdir(latest_file_or_folder):  # search for the latest file (to load) from the latest folder\
             latest_folder = latest_file_or_folder
             list_of_files = glob.glob(latest_folder+'/*')
             if list_of_files and save_in_sub_folder is not None :
