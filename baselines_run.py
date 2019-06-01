@@ -53,7 +53,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '0.6e2'
+num_timesteps = '0.65e2'
 #################################################################
 first_call = True
 
@@ -158,7 +158,7 @@ def default_args(save_in_sub_folder=None):
 
     terminal_output_file_name = 'output.txt'
 
-    def get_latest_file_or_folder(list_of_files)
+    def get_latest_file_or_folder(list_of_files):
         list_of_file_or_folders = list_of_files
         for fileorfoldername in list_of_file_or_folders:
             if '.' in fileorfoldername:
