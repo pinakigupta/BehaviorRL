@@ -53,7 +53,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '0.6e5'
+num_timesteps = '0.6e2'
 #################################################################
 first_call = True
 
@@ -158,21 +158,22 @@ def default_args(save_in_sub_folder=None):
 
     terminal_output_file_name = 'output.txt'
 
-    def get_latest_file_or_folder(list_of_files):
-        for fileorfoldername in list_of_files:
+    def get_latest_file_or_folder(list_of_files)
+        list_of_file_or_folders = list_of_files
+        for fileorfoldername in list_of_file_or_folders:
             if '.' in fileorfoldername:
-               list_of_files.remove(fileorfoldername)
+               list_of_file_or_folders.remove(fileorfoldername)
             elif os.path.isdir(fileorfoldername): # remove empty directories
                 if not os.listdir(fileorfoldername):
-                    list_of_files.remove(fileorfoldername)
+                    list_of_file_or_folders.remove(fileorfoldername)
 
-        if not list_of_files:
+        if not list_of_file_or_folders:
             return None
-        if list_of_files is None:
+        if list_of_file_or_folders is None:
             return None
         def keyfn(filename):
             return int(filename.split('/')[-1].replace('-',''))
-        return max(list_of_files, key=keyfn)
+        return max(list_of_file_or_folders, key=keyfn)
 
     def latest_model_file_from_list_of_files_and_folders(list_of_files):
         while list_of_files:
@@ -260,7 +261,7 @@ if __name__ == "__main__":
 
     policy = None
     play_env = None
-    max_iteration = 10
+    max_iteration = 5
     if not is_predict_only():
         while itr <= max_iteration:
             sess = tf_util.get_session()
@@ -295,12 +296,11 @@ if __name__ == "__main__":
     except:
         print("Rsync didn't work")'''
 
-    try:
+
+
+    '''try:
         # Just try to Play
         while True:
             play(play_env, policy)
-            '''sess = tf_util.get_session()
-            sess.close()
-            tf.reset_default_graph()'''
     except Exception as e:
-        print("Could not play the prediction due to error ", e)
+        print("Could not play the prediction due to error ", e)'''

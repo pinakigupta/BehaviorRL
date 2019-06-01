@@ -20,7 +20,7 @@ if [ $worker_numbers -eq 1 ]
   then
     python -W ignore  $pdb_commands $runfile  2>&1 | tee  $outputfile
   else
-    mpirun  -np $worker_numbers  python -W ignore $pdb_commands  $runfile  2>&1 | tee  $outputfile
+    mpirun  -np $worker_numbers  python -W ignore $runfile  2>&1 | tee  $outputfile
 fi
 
 
