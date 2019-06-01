@@ -53,7 +53,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '0.65e2'
+num_timesteps = '0.65e1'
 #################################################################
 first_call = True
 
@@ -72,7 +72,12 @@ def is_master():
     return MPI.COMM_WORLD.Get_rank()==0
 
 
-InceptcurrentDT = time.strftime("%Y%m%d-%H%M%S")
+if is_master():
+    InceptcurrentDT = time.strftime("%Y%m%d-%H%M%S")
+else:
+    InceptcurrentDT = None
+
+InceptcurrentDT = MPI.COMM_WORLD.bcast(InceptcurrentDT, root=0)
 
 def is_predict_only():
     return float(num_timesteps) == 1
@@ -276,6 +281,7 @@ if __name__ == "__main__":
                 args = default_args(save_in_sub_folder=save_in_sub_folder)
 
             policy = run.main(args)
+            MPI.COMM_WORLD.barrier()
 
             # print("policy training args ", args,"\n\n")
             itr += 1
