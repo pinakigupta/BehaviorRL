@@ -18,7 +18,7 @@ export USE_SIMPLE_THREADED_LEVEL=1;
 
 if [ $worker_numbers -eq 1 ]
   then
-    python -W ignore  $pdb_commands $runfile  2>&1 | tee  $outputfile
+    python -W ignore  $runfile  2>&1 | tee  $outputfile
   else
     mpirun  -np $worker_numbers  python -W ignore $runfile  2>&1 | tee  $outputfile
 fi

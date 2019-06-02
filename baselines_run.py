@@ -53,7 +53,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '0.65e1'
+num_timesteps = '1e0'
 #################################################################
 first_call = True
 
@@ -187,7 +187,7 @@ def default_args(save_in_sub_folder=None):
                 return None
             if os.path.isfile(latest_file_or_folder) :
                 #print(" load_path ", latest_file)
-                return latest_file
+                return latest_file_or_folder
             list_of_files.remove(latest_file_or_folder)  # directory
         return None
 
@@ -304,9 +304,9 @@ if __name__ == "__main__":
 
 
 
-    '''try:
+    try:
         # Just try to Play
         while True:
             play(play_env, policy)
     except Exception as e:
-        print("Could not play the prediction due to error ", e)'''
+        print("Could not play the prediction due to error ", e)
