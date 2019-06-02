@@ -20,7 +20,7 @@ import subprocess
 from baselines.common.cmd_util import common_arg_parser, parse_unknown_args
 from baselines.results_plotter import plot_results
 from baselines.common.vec_env import VecEnv
-from baselines.common import tf_util
+from baselines.common import tf_util,mpi_util
 import tensorflow as tf
 from shutil import copyfile
 from mpi4py import MPI
@@ -274,6 +274,7 @@ if __name__ == "__main__":
             tf.reset_default_graph()
             play_env = gym.make(play_env_id)
             print(" Batch iteration ", itr)
+            print("(rank , size) = ",mpi_util.get_local_rank_size(MPI.COMM_WORLD))
             if len(sys_args) <= 1:
                 save_in_sub_folder = None
                 if max_iteration > 1:
@@ -285,6 +286,7 @@ if __name__ == "__main__":
 
             # print("policy training args ", args,"\n\n")
             itr += 1
+            print()
 
             '''try:
                 play(play_env, policy)
@@ -303,10 +305,10 @@ if __name__ == "__main__":
         print("Rsync didn't work")'''
 
 
-
+    '''
     try:
         # Just try to Play
         while True:
             play(play_env, policy)
     except Exception as e:
-        print("Could not play the prediction due to error ", e)
+        print("Could not play the prediction due to error ", e)'''
