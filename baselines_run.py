@@ -53,7 +53,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e0'
+num_timesteps = '1e5'
 #################################################################
 first_call = True
 
@@ -82,7 +82,7 @@ InceptcurrentDT = MPI.COMM_WORLD.bcast(InceptcurrentDT, root=0)
 def is_predict_only():
     return float(num_timesteps) == 1
 
-LOAD_PREV_MODEL = False
+LOAD_PREV_MODEL = True
 def default_args(save_in_sub_folder=None):
     create_dirs(req_dirs)
     currentDT = time.strftime("%Y%m%d-%H%M%S")
@@ -155,7 +155,7 @@ def default_args(save_in_sub_folder=None):
 
     def load_model(load_file=None):
         if load_file is not None:
-           if not LOAD_PREV_MODEL and first_call:
+           if (not LOAD_PREV_MODEL) and first_call:
               return
            DEFAULT_ARGUMENTS.append('--load_path=' + load_file)
            print("Loading file", load_file)
@@ -163,58 +163,58 @@ def default_args(save_in_sub_folder=None):
 
     terminal_output_file_name = 'output.txt'
 
-    def get_latest_file_or_folder(list_of_files):
-        list_of_file_or_folders = list_of_files
+    def is_empty_directory(directorypath):
+        if not os.path.isdir(directorypath):
+               return False
+        if not os.listdir(directorypath):
+               return True
+        return False
+
+    def filetonum(filename):
+        try:
+            return int(filename.split('/')[-1].replace('-',''))
+        except:
+            return None
+
+    def purge_names_not_matching_pattern(list_of_file_or_folders):
+        if not list_of_file_or_folders:
+            return None
         for fileorfoldername in list_of_file_or_folders:
             if '.' in fileorfoldername:
                list_of_file_or_folders.remove(fileorfoldername)
-            elif os.path.isdir(fileorfoldername): # remove empty directories
-                if not os.listdir(fileorfoldername):
-                    list_of_file_or_folders.remove(fileorfoldername)
+            elif is_empty_directory(directorypath=fileorfoldername): # remove empty directories
+                 list_of_file_or_folders.remove(fileorfoldername)
+        return list_of_file_or_folders
 
-        if not list_of_file_or_folders:
-            return None
-        if list_of_file_or_folders is None:
-            return None
-        def keyfn(filename):
-            return int(filename.split('/')[-1].replace('-',''))
-        return max(list_of_file_or_folders, key=keyfn)
 
     def latest_model_file_from_list_of_files_and_folders(list_of_files):
-        while list_of_files:
-            latest_file_or_folder = get_latest_file_or_folder(list_of_files = list_of_files)
-            if latest_file_or_folder is None:
-                return None
-            if os.path.isfile(latest_file_or_folder) :
-                #print(" load_path ", latest_file)
-                return latest_file_or_folder
-            list_of_files.remove(latest_file_or_folder)  # directory
-        return None
+        list_of_file_or_folders = purge_names_not_matching_pattern(list_of_file_or_folders =list_of_files )
+        if not list_of_file_or_folders :
+            return None
+        latest_file_or_folder = max(list_of_file_or_folders, key=filetonum)
+        if os.path.isdir(latest_file_or_folder) :
+            list_of_files_and_folders_in_subdir = glob.glob(latest_file_or_folder+'/*')
+            latest_model_file_in_subdir = \
+                    latest_model_file_from_list_of_files_and_folders(list_of_files_and_folders_in_subdir)
+            if latest_model_file_in_subdir is None:
+                list_of_file_or_folders.remove(latest_file_or_folder)
+                return latest_model_file_from_list_of_files_and_folders(list_of_file_or_folders)
+            else:
+                return latest_model_file_in_subdir
+        return latest_file_or_folder # must be a file
 
     if list_of_file:  # is there anything in the save directory
-        latest_file_or_folder = get_latest_file_or_folder(list_of_files = list_of_file)
-#        print(" latest_file_or_folder " ,latest_file_or_folder)
-        if latest_file_or_folder is None:
-           print("latest_file_or_folder is None in list_of_file",list_of_file)
-        elif os.path.isdir(latest_file_or_folder):  # search for the latest file (to load) from the latest folder\
-            latest_folder = latest_file_or_folder
-            list_of_files = glob.glob(latest_folder+'/*')
-            if list_of_files and save_in_sub_folder is not None :
-                if save_in_sub_folder in latest_folder:
-                    latest_file = latest_model_file_from_list_of_files_and_folders(list_of_files)
-                    load_model(load_file=latest_file)
-            elif list_of_files and is_predict_only():
-                latest_file = latest_model_file_from_list_of_files_and_folders(list_of_files)
-                load_model(load_file=latest_file)
+       latest_file = latest_model_file_from_list_of_files_and_folders(list_of_files=list_of_file)
+       if save_in_sub_folder is  None:
+          load_last_model = LOAD_PREV_MODEL
+       else:
+          load_last_model = LOAD_PREV_MODEL or not first_call
 
-            save_model(save_file=save_file)
-        else:  # got the latest file (to load)
-            latest_file = latest_file_or_folder
-            if save_in_sub_folder is not None:
-                load_model(load_file=latest_file)
-                save_model(save_file=save_file)
-            else:
-                save_model(save_file=save_file)
+       if load_last_model:
+          load_model(load_file=latest_file)
+          save_model(save_file=save_file)
+       else:
+          save_model(save_file=save_file)
     else:
         print(" list_of_file empty in load path ", save_folder)
         save_model(save_file=save_file)
@@ -266,7 +266,7 @@ if __name__ == "__main__":
 
     policy = None
     play_env = None
-    max_iteration = 5
+    max_iteration = 10
     if not is_predict_only():
         while itr <= max_iteration:
             sess = tf_util.get_session()
