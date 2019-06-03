@@ -48,12 +48,13 @@ class TwoWayEnv(AbstractEnv):
         self.reset()
         self.goal_achieved = False
         self.ego_x0 = None
+        self._predict_only = False
 
     def step(self, action):
         self.steps += 1
         return super(TwoWayEnv, self).step(action)
 
-    def _reward(self, action, is_training = True):
+    def _reward(self, action):
         """
             The vehicle is rewarded for driving with high velocity
         :param action: the action performed
@@ -64,7 +65,7 @@ class TwoWayEnv(AbstractEnv):
 
         #print("self.vehicle.position  ",self.vehicle.position)
         if self.ego_x0 is not None:
-            if is_training:
+            if not self._predict_only:
                 self.goal_achieved = on_route and (self.vehicle.position[0] > self.ego_x0+300)
         neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
         collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
