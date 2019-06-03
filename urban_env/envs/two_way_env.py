@@ -66,7 +66,7 @@ class TwoWayEnv(AbstractEnv):
         #print("self.vehicle.position  ",self.vehicle.position)
         if self.ego_x0 is not None:
             if not self._predict_only:
-                self.goal_achieved = on_route and (self.vehicle.position[0] > self.ego_x0+300)
+                self.goal_achieved =  (self.vehicle.position[0] > self.ego_x0+300)
         neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
         collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
         velocity_reward = self.VELOCITY_REWARD * (self.vehicle.velocity_index -1) / (self.vehicle.SPEED_COUNT - 1)
@@ -78,7 +78,8 @@ class TwoWayEnv(AbstractEnv):
         if self.vehicle.crashed:
             reward =  collision_reward + min(0,velocity_reward)
         elif self.goal_achieved:
-            reward = goal_reward + velocity_reward
+            if on_route:
+                reward = goal_reward + velocity_reward
         else :
             reward =   velocity_reward  
         return reward
@@ -176,7 +177,7 @@ class TwoWayEnv(AbstractEnv):
         '''
         # stationary vehicles Left Lane
         for i in range(np.random.randint(low=0,high=5)):
-            x0 = self.ROAD_LENGTH-250+self.ego_x0+50*i + 10*self.np_random.randn()
+            x0 = self.ROAD_LENGTH-self.ego_x0-100-120*i + 10*self.np_random.randn()
             v = vehicles_type(road,
                               position=road.network.get_lane(("b", "a", 0))
                               .position(x0 , 1),
