@@ -53,7 +53,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e5'
+num_timesteps = '1e0'
 #################################################################
 first_call = True
 
@@ -244,7 +244,7 @@ def play(env, policy):
             actions, _, _, _ = policy.step(obs)
 
         obs, rew, done, _ = env.step(actions[0])
-        env._predict_only = is_predict_only()
+        env.env._predict_only = is_predict_only()
        # print(env._max_episode_step)
         episode_rew += rew
         episode_len += 1
