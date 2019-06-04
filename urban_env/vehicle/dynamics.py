@@ -178,7 +178,7 @@ class Vehicle(Loggable):
         }
         if origin_vehicle:
             origin_dict = origin_vehicle.to_dict()
-            for key in ['x', 'y', 'vx', 'vy','length_','width_']:
+            for key in ['x', 'y', 'vx', 'vy','length_','width_','cos_h', 'sin_h']:
                 d[key] -= origin_dict[key]
         return d
 

@@ -62,7 +62,7 @@ class KinematicObservation(ObservationType):
     """
         Observe the kinematics of nearby vehicles.
     """
-    FEATURES = ['presence', 'x', 'y', 'vx', 'vy', 'length_','psi']
+    FEATURES = ['presence', 'x', 'y', 'vx', 'vy', 'length_','cos_h', 'sin_h']
 
     def __init__(self, env, features=FEATURES, vehicles_count=5, **kwargs):
         """
@@ -77,7 +77,7 @@ class KinematicObservation(ObservationType):
     def space(self):
         return spaces.Box(shape=(len(self.features) * self.vehicles_count,), low=-1, high=1, dtype=np.float32)
 
-    def normalize(self, df, df0):
+    def normalize(self, df):
         """
             Normalize the observation values.
 
@@ -93,7 +93,7 @@ class KinematicObservation(ObservationType):
         df['vx'] = utils.remap(df['vx'] , [-velocity_range, velocity_range], [-1, 1])
         df['vy'] = utils.remap(df['vy'], [-velocity_range, velocity_range], [-1, 1])
         df['length_'] = df['length_']/10
-        df['psi'] = df['psi']/np.pi
+        #df['psi'] = df['psi']/np.pi
         return df
 
     def observe(self):
@@ -108,7 +108,7 @@ class KinematicObservation(ObservationType):
                  for v in close_vehicles[-self.vehicles_count + 1:]])[self.features],
                            ignore_index=True)
         # Normalize
-        df = self.normalize(df,df0)
+        df = self.normalize(df)
         # Fill missing rows
         if df.shape[0] < self.vehicles_count:
             rows = -np.ones((self.vehicles_count - df.shape[0], len(self.features)))

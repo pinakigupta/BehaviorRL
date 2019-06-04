@@ -35,7 +35,7 @@ class TwoWayEnv(AbstractEnv):
     DEFAULT_CONFIG = {
         "observation": {
             "type": "Kinematics",
-            "features": ['x', 'y', 'vx', 'vy', 'length_','psi'],
+            "features": ['x', 'y', 'vx', 'vy', 'length_','cos_h', 'sin_h'],
             "vehicles_count": 6
         },
         "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
