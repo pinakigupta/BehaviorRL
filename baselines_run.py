@@ -53,7 +53,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e1'
+num_timesteps = '1.5e5'
 #################################################################
 first_MPI_call  = True
 
@@ -272,7 +272,7 @@ if __name__ == "__main__":
 
     policy = None
     play_env = None
-    max_iteration = 10
+    max_iteration = 6
     if not is_predict_only():
         while itr <= max_iteration:
             sess = tf_util.get_session()
@@ -312,9 +312,8 @@ if __name__ == "__main__":
 
 
     
-    try:
+    if is_predict_only():
         # Just try to Play
         while True:
             play(play_env, policy)
-    except Exception as e:
-        print("Could not play the prediction due to error ", e)
+
