@@ -62,7 +62,7 @@ class KinematicObservation(ObservationType):
     """
         Observe the kinematics of nearby vehicles.
     """
-    FEATURES = ['presence', 'x', 'y', 'vx', 'vy', 'length_']
+    FEATURES = ['presence', 'x', 'y', 'vx', 'vy', 'length_','psi']
 
     def __init__(self, env, features=FEATURES, vehicles_count=5, **kwargs):
         """
@@ -77,7 +77,7 @@ class KinematicObservation(ObservationType):
     def space(self):
         return spaces.Box(shape=(len(self.features) * self.vehicles_count,), low=-1, high=1, dtype=np.float32)
 
-    def normalize(self, df):
+    def normalize(self, df, df0):
         """
             Normalize the observation values.
 
@@ -85,21 +85,21 @@ class KinematicObservation(ObservationType):
         :param Dataframe df: observation data
         """
         side_lanes = self.env.road.network.all_side_lanes(self.env.vehicle.lane_index)
-        x_position_range = 5.0 * MDPVehicle.SPEED_MAX
+        x_position_range = 7.0 * MDPVehicle.SPEED_MAX
         y_position_range = AbstractLane.DEFAULT_WIDTH * len(side_lanes)
         velocity_range = 2*MDPVehicle.SPEED_MAX
-        df['x'] = utils.remap(df['x'], [-x_position_range, x_position_range], [-1, 1])
+        df['x'] = utils.remap(df['x']  , [-x_position_range, x_position_range], [-1, 1])
         df['y'] = utils.remap(df['y'], [-y_position_range, y_position_range], [-1, 1])
-        df['vx'] = utils.remap(df['vx'], [-velocity_range, velocity_range], [-1, 1])
+        df['vx'] = utils.remap(df['vx'] , [-velocity_range, velocity_range], [-1, 1])
         df['vy'] = utils.remap(df['vy'], [-velocity_range, velocity_range], [-1, 1])
         df['length_'] = df['length_']/10
+        df['psi'] = df['psi']/np.pi
         return df
 
     def observe(self):
         # Add ego-vehicle
-        vehc = self.env.vehicle
-        vehicle_dict = [vehc.to_dict()]
         df = pandas.DataFrame.from_records([self.env.vehicle.to_dict()])[self.features]
+        df0 = df
         # Add nearby traffic
         close_vehicles = self.env.road.closest_vehicles_to(self.env.vehicle, self.vehicles_count - 1)
         if close_vehicles:
@@ -108,7 +108,7 @@ class KinematicObservation(ObservationType):
                  for v in close_vehicles[-self.vehicles_count + 1:]])[self.features],
                            ignore_index=True)
         # Normalize
-        df = self.normalize(df)
+        df = self.normalize(df,df0)
         # Fill missing rows
         if df.shape[0] < self.vehicles_count:
             rows = -np.ones((self.vehicles_count - df.shape[0], len(self.features)))

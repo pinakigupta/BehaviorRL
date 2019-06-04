@@ -173,7 +173,8 @@ class Vehicle(Loggable):
             'cos_h': self.direction[0],
             'sin_h': self.direction[1],
             'length_': self.LENGTH,
-            'width_': self.WIDTH
+            'width_': self.WIDTH,
+            'psi': self.heading
         }
         if origin_vehicle:
             origin_dict = origin_vehicle.to_dict()

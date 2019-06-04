@@ -53,9 +53,9 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e0'
+num_timesteps = '1e1'
 #################################################################
-first_call = True
+first_MPI_call  = True
 
 
 def create_dirs(req_dirs):
@@ -82,28 +82,29 @@ InceptcurrentDT = MPI.COMM_WORLD.bcast(InceptcurrentDT, root=0)
 def is_predict_only():
     return float(num_timesteps) == 1
 
-LOAD_PREV_MODEL = True
+LOAD_PREV_MODEL = False
 def default_args(save_in_sub_folder=None):
     create_dirs(req_dirs)
     currentDT = time.strftime("%Y%m%d-%H%M%S")
-    global first_call
+    global first_MPI_call 
     ####################################################################
     # DEFINE YOUR SAVE FILE, LOAD FILE AND LOGGING FILE PARAMETERS HERE
     ####################################################################
     save_folder = pathname + '/' + models_folder + \
         '/' + train_env_id + '/' + alg + '/' + network
 
-    if first_call:
+    if first_MPI_call :
         list_of_file = glob.glob(save_folder+'/*')
         if save_in_sub_folder is not None:
             save_folder += '/' + str(save_in_sub_folder)
         save_file = save_folder + '/' + str(currentDT)
-        first_call = False
+        first_MPI_call_Trigger  = True
     else:
         if save_in_sub_folder is not None:
             save_folder += '/' + str(save_in_sub_folder)
         save_file = save_folder + '/' + str(currentDT)
         list_of_file = glob.glob(save_folder+'/*')
+        first_MPI_call_Trigger = False
 
     # Specifiy log directories for open AI
     '''logger_path = save_folder + '/log/'
@@ -155,7 +156,7 @@ def default_args(save_in_sub_folder=None):
 
     def load_model(load_file=None):
         if load_file is not None:
-           if (not LOAD_PREV_MODEL) and first_call:
+           if (not LOAD_PREV_MODEL) and first_MPI_call :
               return
            DEFAULT_ARGUMENTS.append('--load_path=' + load_file)
            print("Loading file", load_file)
@@ -208,7 +209,7 @@ def default_args(save_in_sub_folder=None):
        if save_in_sub_folder is  None:
           load_last_model = LOAD_PREV_MODEL
        else:
-          load_last_model = LOAD_PREV_MODEL or not first_call
+          load_last_model = LOAD_PREV_MODEL or not first_MPI_call 
 
        if load_last_model:
           load_model(load_file=latest_file)
@@ -220,6 +221,9 @@ def default_args(save_in_sub_folder=None):
         save_model(save_file=save_file)
 
     # print(" DEFAULT_ARGUMENTS ", DEFAULT_ARGUMENTS)
+
+    if first_MPI_call_Trigger:
+        first_MPI_call = False
 
     return DEFAULT_ARGUMENTS
 
