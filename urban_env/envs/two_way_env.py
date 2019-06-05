@@ -35,7 +35,7 @@ class TwoWayEnv(AbstractEnv):
     DEFAULT_CONFIG = {
         "observation": {
             "type": "Kinematics",
-            "features": ['x', 'y', 'vx', 'vy', 'length_','cos_h', 'sin_h'],
+            "features": ['x', 'y', 'vx', 'vy', 'psi'],
             "vehicles_count": 6
         },
         "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
@@ -66,7 +66,7 @@ class TwoWayEnv(AbstractEnv):
         #print("self.vehicle.position  ",self.vehicle.position)
         if self.ego_x0 is not None:
             if not self._predict_only:
-                self.goal_achieved =  (self.vehicle.position[0] > self.ego_x0+300)
+                self.goal_achieved =  (self.vehicle.position[0] > self.ego_x0+200)
         neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
         collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
         velocity_reward = self.VELOCITY_REWARD * (self.vehicle.velocity_index -1) / (self.vehicle.SPEED_COUNT - 1)

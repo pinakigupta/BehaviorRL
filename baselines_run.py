@@ -53,10 +53,10 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e0'
+num_timesteps = '1.5e5'
 #################################################################
 first_MPI_call  = True
-LOAD_PREV_MODEL = True
+LOAD_PREV_MODEL = False
 
 def create_dirs(req_dirs):
     for dirName in req_dirs:
@@ -253,8 +253,8 @@ def play(env, policy):
         episode_len += 1
         env.render()
         done = done.any() if isinstance(done, np.ndarray) else done
-        # if episode_len%100 ==0:
-        # print('episode_rew={}'.format(episode_rew), '  episode_len={}'.format(episode_len))
+        if episode_len%10 ==0:
+            print('episode_rew={}'.format(episode_rew), '  episode_len={}'.format(episode_len))
         if done:
             print('episode_rew={}'.format(episode_rew), '  episode_len={}'.format(episode_len),
                   'episode travel = ', env.vehicle.position[0]-env.ego_x0)
@@ -271,7 +271,7 @@ if __name__ == "__main__":
 
     policy = None
     play_env = None
-    max_iteration = 6
+    max_iteration = 4
     if not is_predict_only():
         while itr <= max_iteration:
             sess = tf_util.get_session()

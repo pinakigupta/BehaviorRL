@@ -62,7 +62,7 @@ class KinematicObservation(ObservationType):
     """
         Observe the kinematics of nearby vehicles.
     """
-    FEATURES = ['presence', 'x', 'y', 'vx', 'vy', 'length_','cos_h', 'sin_h']
+    FEATURES = ['presence', 'x', 'y', 'vx', 'vy', 'psi']
 
     def __init__(self, env, features=FEATURES, vehicles_count=5, **kwargs):
         """
@@ -92,14 +92,13 @@ class KinematicObservation(ObservationType):
         df['y'] = utils.remap(df['y'], [-y_position_range, y_position_range], [-1, 1])
         df['vx'] = utils.remap(df['vx'] , [-velocity_range, velocity_range], [-1, 1])
         df['vy'] = utils.remap(df['vy'], [-velocity_range, velocity_range], [-1, 1])
-        df['length_'] = df['length_']/10
+        #df['length_'] = df['length_']/10
         #df['psi'] = df['psi']/np.pi
         return df
 
     def observe(self):
         # Add ego-vehicle
         df = pandas.DataFrame.from_records([self.env.vehicle.to_dict()])[self.features]
-        df0 = df
         # Add nearby traffic
         close_vehicles = self.env.road.closest_vehicles_to(self.env.vehicle, self.vehicles_count - 1)
         if close_vehicles:
@@ -108,6 +107,7 @@ class KinematicObservation(ObservationType):
                  for v in close_vehicles[-self.vehicles_count + 1:]])[self.features],
                            ignore_index=True)
         # Normalize
+        #df = df.iloc[1:]
         df = self.normalize(df)
         # Fill missing rows
         if df.shape[0] < self.vehicles_count:
