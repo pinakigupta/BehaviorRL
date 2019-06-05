@@ -53,10 +53,10 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e1'
+num_timesteps = '1e0'
 #################################################################
 first_MPI_call  = True
-
+LOAD_PREV_MODEL = True
 
 def create_dirs(req_dirs):
     for dirName in req_dirs:
@@ -82,7 +82,6 @@ InceptcurrentDT = MPI.COMM_WORLD.bcast(InceptcurrentDT, root=0)
 def is_predict_only():
     return float(num_timesteps) == 1
 
-LOAD_PREV_MODEL = False
 def default_args(save_in_sub_folder=None):
     create_dirs(req_dirs)
     currentDT = time.strftime("%Y%m%d-%H%M%S")
@@ -302,8 +301,14 @@ if __name__ == "__main__":
             # tb.main()
 
     else:
-        policy = run.main(default_args())
+        DFLT_ARGS = default_args()
+        loaded_file_correctly = ('load_path' in stringarg for stringarg in DFLT_ARGS)
+        policy = run.main(DFLT_ARGS)
         play_env = gym.make(play_env_id)
+        # Just try to Play
+        while loaded_file_correctly:
+            play(play_env, policy)
+
 
     '''try:
         subprocess.call(["rsync", "-avu", "--delete","../", "localhost:~/Documents/aws_sync"])
@@ -312,8 +317,4 @@ if __name__ == "__main__":
 
 
     
-    if is_predict_only():
-        # Just try to Play
-        while True:
-            play(play_env, policy)
 
