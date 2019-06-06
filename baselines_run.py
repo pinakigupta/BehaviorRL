@@ -5,25 +5,10 @@
 #######################################################################
 
 from settings import req_dirs, models_folder
-import urban_env
-from baselines import logger
-import baselines.run as run
 import sys
 import os
 from os.path import dirname, abspath
 import time
-import gym
-import numpy as np
-import glob
-import warnings
-import subprocess
-from baselines.common.cmd_util import common_arg_parser, parse_unknown_args
-from baselines.results_plotter import plot_results
-from baselines.common.vec_env import VecEnv
-from baselines.common import tf_util,mpi_util
-import tensorflow as tf
-from shutil import copyfile
-from mpi4py import MPI
 
 ####################
 pathname = os.getcwd()
@@ -32,14 +17,37 @@ foldername = os.path.basename(pathname)
 # print("Directory name is : " + foldername)
 ####################
 
-open_ai_baselines_dir = pathname + '/open_ai_baselines'
-# print(open_ai_baselines_dir)
-
 urban_AD_env_path = pathname + '/urban_env/envs'
 # print(urban_AD_env_path)
 
+open_ai_baselines_dir = pathname + '/open_ai_baselines'
+# print(open_ai_baselines_dir)
+
 sys.path.append(open_ai_baselines_dir)
 sys.path.append(urban_AD_env_path)
+
+
+import gym
+import urban_env
+import numpy as np
+import glob
+import warnings
+import subprocess
+
+import tensorflow as tf
+from shutil import copyfile
+from mpi4py import MPI
+
+
+
+
+from baselines.common.cmd_util import common_arg_parser, parse_unknown_args
+from baselines.results_plotter import plot_results
+from baselines.common.vec_env import VecEnv
+from baselines.common import tf_util,mpi_util
+from baselines import logger
+import baselines.run as run
+
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -53,7 +61,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1.5e5'
+num_timesteps = '1e1'
 #################################################################
 first_MPI_call  = True
 LOAD_PREV_MODEL = False
@@ -131,11 +139,13 @@ def default_args(save_in_sub_folder=None):
     def copy_terminal_output_file():
         src = os.getcwd() + '/' + terminal_output_file_name
         dst = save_folder + '/' + terminal_output_file_name
+        if not os.path.exists(save_folder):
+           os.mkdir(save_folder)
         copyfile(src, dst)
 
     def create_save_folder(save_folder):
         try:
-            os.mkdir(save_folder)
+            os.makedirs(save_folder)
         except OSError:
             # print ("Creation of the save path %s failed. It might already exist" % save_folder)
             a = 1
