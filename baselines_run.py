@@ -9,7 +9,8 @@ import sys
 import os
 from os.path import dirname, abspath
 import time
-
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
 ####################
 pathname = os.getcwd()
 # print("current directory is : " + pathname)
@@ -37,8 +38,7 @@ import subprocess
 import tensorflow as tf
 from shutil import copyfile
 from mpi4py import MPI
-
-
+from urban_env.envs.abstract import AbstractEnv
 
 
 from baselines.common.cmd_util import common_arg_parser, parse_unknown_args
@@ -64,7 +64,7 @@ network = 'mlp'
 num_timesteps = '1e0'
 #################################################################
 first_MPI_call  = True
-LOAD_PREV_MODEL = False
+LOAD_PREV_MODEL = True
 
 def create_dirs(req_dirs):
     for dirName in req_dirs:
@@ -214,13 +214,13 @@ def default_args(save_in_sub_folder=None):
         return latest_file_or_folder # must be a file
 
     if list_of_file:  # is there anything in the save directory
-       latest_file = latest_model_file_from_list_of_files_and_folders(list_of_files=list_of_file)
        if save_in_sub_folder is  None:
           load_last_model = LOAD_PREV_MODEL
        else:
           load_last_model = LOAD_PREV_MODEL or not first_MPI_call 
 
        if load_last_model:
+          latest_file = latest_model_file_from_list_of_files_and_folders(list_of_files=list_of_file)
           load_model(load_file=latest_file)
           save_model(save_file=save_file)
        else:
@@ -248,6 +248,13 @@ def play(env, policy):
     state = policy.initial_state if hasattr(policy, 'initial_state') else None
     dones = np.zeros((1,))
 
+    def print_action_and_obs():
+        print('episode_rew={}'.format(episode_rew), '  episode_len={}'.format(episode_len),\
+                'episode travel = ', env.vehicle.position[0]-env.ego_x0)
+        print("obs space ")
+        pp.pprint(np.round(np.reshape(obs,(6, 5)),3))
+        print("Optimal action ",AbstractEnv.ACTIONS[actions[0]], "\n" )
+
     episode_rew = 0
     episode_len = 0
     while True:
@@ -263,11 +270,10 @@ def play(env, policy):
         episode_len += 1
         env.render()
         done = done.any() if isinstance(done, np.ndarray) else done
-        if episode_len%10 ==0:
-            print('episode_rew={}'.format(episode_rew), '  episode_len={}'.format(episode_len))
+        if episode_len%10 ==0 and is_predict_only():
+            print_action_and_obs()    
         if done:
-            print('episode_rew={}'.format(episode_rew), '  episode_len={}'.format(episode_len),
-                  'episode travel = ', env.vehicle.position[0]-env.ego_x0)
+            print_action_and_obs()
             episode_rew = 0
             episode_len = 0
             env.close()
@@ -318,12 +324,6 @@ if __name__ == "__main__":
         # Just try to Play
         while loaded_file_correctly:
             play(play_env, policy)
-
-
-    '''try:
-        subprocess.call(["rsync", "-avu", "--delete","../", "localhost:~/Documents/aws_sync"])
-    except:
-        print("Rsync didn't work")'''
 
 
     

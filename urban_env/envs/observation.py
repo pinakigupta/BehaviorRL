@@ -98,7 +98,7 @@ class KinematicObservation(ObservationType):
 
     def observe(self):
         # Add ego-vehicle
-        df = pandas.DataFrame.from_records([self.env.vehicle.to_dict()])[self.features]
+        df = pandas.DataFrame.from_records([self.env.vehicle.to_dict(self.env.vehicle)])[self.features]
         # Add nearby traffic
         close_vehicles = self.env.road.closest_vehicles_to(self.env.vehicle, self.vehicles_count - 1)
         if close_vehicles:
