@@ -61,7 +61,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e1'
+num_timesteps = '1e0'
 #################################################################
 first_MPI_call  = True
 LOAD_PREV_MODEL = False

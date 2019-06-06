@@ -1,4 +1,7 @@
 #!/bin/sh
+eval "$(conda shell.bash hook)"
+conda activate RL
+
 if [ $# -eq 1 ]
   then
     worker_numbers=$1
