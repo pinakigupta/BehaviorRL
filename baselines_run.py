@@ -264,7 +264,7 @@ def play(env, policy):
             actions, _, _, _ = policy.step(obs)
 
         obs, rew, done, _ = env.step(actions[0])
-        env.env._predict_only = is_predict_only()
+        
        # print(env._max_episode_step)
         episode_rew += rew
         episode_len += 1
@@ -294,6 +294,7 @@ if __name__ == "__main__":
             sess.close()
             tf.reset_default_graph()
             play_env = gym.make(play_env_id)
+            play_env.env._predict_only = is_predict_only()
             print(" Batch iteration ", itr)
             print("(rank , size) = ",mpi_util.get_local_rank_size(MPI.COMM_WORLD))
             if len(sys_args) <= 1:

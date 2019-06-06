@@ -63,12 +63,14 @@ class AbstractEnv(gym.Env):
     """
         The maximum distance of any vehicle present in the observation [m]
     """
-
+    
     DEFAULT_CONFIG = {
         "observation": {
             "type": "TimeToCollision"
         }
     }
+
+    _predict_only = False
 
     def __init__(self, config=None):
         # Configuration
@@ -98,6 +100,8 @@ class AbstractEnv(gym.Env):
         self.should_update_rendering = True
         self.rendering_mode = 'human'
         self.enable_auto_render = False
+
+        
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)

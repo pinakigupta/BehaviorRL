@@ -48,7 +48,7 @@ class TwoWayEnv(AbstractEnv):
         self.reset()
         self.goal_achieved = False
         self.ego_x0 = None
-        self._predict_only = False
+        
 
     def step(self, action):
         self.steps += 1
@@ -67,7 +67,7 @@ class TwoWayEnv(AbstractEnv):
         if self.ego_x0 is not None:
             if not self._predict_only:
                 self.goal_achieved =  (self.vehicle.position[0] > self.ego_x0+200)
-        neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
+        #neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
         collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
         velocity_reward = self.VELOCITY_REWARD * (self.vehicle.velocity_index -1) / (self.vehicle.SPEED_COUNT - 1)
         if (velocity_reward>0):

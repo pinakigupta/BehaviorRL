@@ -11,7 +11,6 @@ import pandas as pd
 from urban_env import utils
 from urban_env.logger import Loggable
 
-
 class Vehicle(Loggable):
     """
         A moving vehicle on a road, and its dynamics.
@@ -154,12 +153,18 @@ class Vehicle(Loggable):
             return np.nan
         return self.lane.local_coordinates(vehicle.position)[0] - self.lane.local_coordinates(self.position)[0]
 
-    def check_collision(self, other, SCALE_=1.0):
+    def check_collision(self, other ):
         """
             Check for collision with another vehicle.
 
         :param other: the other vehicle
         """
+
+        if False:
+            SCALE_= 0.9
+        else:
+            SCALE_=1.1
+
         if not self.COLLISIONS_ENABLED or not other.COLLISIONS_ENABLED or self.crashed or other is self:
             return
 

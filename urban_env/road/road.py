@@ -16,6 +16,7 @@ from urban_env.vehicle.dynamics import Obstacle
 
 
 class RoadNetwork(object):
+    
     def __init__(self):
         self.graph = {}
 
