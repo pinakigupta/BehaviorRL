@@ -66,7 +66,7 @@ class TwoWayEnv(AbstractEnv):
         #print("self.vehicle.position  ",self.vehicle.position)
         if self.ego_x0 is not None:
             if not gym.Env.metadata['_predict_only']:
-                self.goal_achieved =  (self.vehicle.position[0] > self.ego_x0+200)
+                self.goal_achieved =  (self.vehicle.position[0] > self.ego_x0+np.random.randint(low = 180,high=220))
         #neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
         collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
         velocity_reward = self.VELOCITY_REWARD * (self.vehicle.velocity_index -1) / (self.vehicle.SPEED_COUNT - 1)

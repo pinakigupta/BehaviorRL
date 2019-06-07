@@ -89,6 +89,7 @@ InceptcurrentDT = MPI.COMM_WORLD.bcast(InceptcurrentDT, root=0)
 
 def is_predict_only():
     return float(num_timesteps) == 1
+gym.Env.metadata['_predict_only'] = is_predict_only()
 
 def default_args(save_in_sub_folder=None):
     create_dirs(req_dirs)
@@ -321,7 +322,6 @@ if __name__ == "__main__":
         loaded_file_correctly = ('load_path' in stringarg for stringarg in DFLT_ARGS)
         policy = run.main(DFLT_ARGS)
         play_env = gym.make(play_env_id)
-        gym.Env.metadata['_predict_only'] = is_predict_only()
         # Just try to Play
         while loaded_file_correctly:
             play(play_env, policy)
