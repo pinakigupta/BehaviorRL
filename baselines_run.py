@@ -61,7 +61,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e0'
+num_timesteps = '3e5'
 #################################################################
 first_MPI_call  = True
 LOAD_PREV_MODEL = True
@@ -184,7 +184,7 @@ def default_args(save_in_sub_folder=None):
         try:
             return int(filename.split('/')[-1].replace('-',''))
         except:
-            return None
+            return -1
 
     def purge_names_not_matching_pattern(list_of_file_or_folders):
         if not list_of_file_or_folders:
@@ -287,7 +287,7 @@ if __name__ == "__main__":
 
     policy = None
     play_env = None
-    max_iteration = 4
+    max_iteration = 1
     if not is_predict_only():
         while itr <= max_iteration:
             sess = tf_util.get_session()
