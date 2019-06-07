@@ -30,7 +30,8 @@ class AbstractEnv(gym.Env):
         velocity. The action space is fixed, but the observation space and reward function must be defined in the
         environment implementations.
     """
-    metadata = {'render.modes': ['human', 'rgb_array']}
+    metadata = {'render.modes': ['human', 'rgb_array'],
+                '_predict_only': 'False'}
 
     ACTIONS = {0: 'LANE_LEFT',
                1: 'IDLE',
@@ -70,7 +71,7 @@ class AbstractEnv(gym.Env):
         }
     }
 
-    _predict_only = False
+    #_predict_only = False
 
     def __init__(self, config=None):
         # Configuration

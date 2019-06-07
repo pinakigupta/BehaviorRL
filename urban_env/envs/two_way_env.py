@@ -6,7 +6,7 @@
 
 from __future__ import division, print_function, absolute_import
 import numpy as np
-
+import gym
 
 from urban_env import utils
 from urban_env.envs.abstract import AbstractEnv
@@ -65,7 +65,7 @@ class TwoWayEnv(AbstractEnv):
 
         #print("self.vehicle.position  ",self.vehicle.position)
         if self.ego_x0 is not None:
-            if not self._predict_only:
+            if not gym.Env.metadata['_predict_only']:
                 self.goal_achieved =  (self.vehicle.position[0] > self.ego_x0+200)
         #neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
         collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
