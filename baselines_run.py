@@ -294,7 +294,6 @@ if __name__ == "__main__":
             sess.close()
             tf.reset_default_graph()
             play_env = gym.make(play_env_id)
-            play_env.env._predict_only = is_predict_only()
             print(" Batch iteration ", itr)
             print("(rank , size) = ",mpi_util.get_local_rank_size(MPI.COMM_WORLD))
             if len(sys_args) <= 1:
@@ -322,6 +321,7 @@ if __name__ == "__main__":
         loaded_file_correctly = ('load_path' in stringarg for stringarg in DFLT_ARGS)
         policy = run.main(DFLT_ARGS)
         play_env = gym.make(play_env_id)
+        gym.Env.metadata['_predict_only'] = is_predict_only()
         # Just try to Play
         while loaded_file_correctly:
             play(play_env, policy)

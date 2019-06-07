@@ -8,6 +8,8 @@ from __future__ import division, print_function
 import numpy as np
 import pandas as pd
 
+import gym
+
 from urban_env import utils
 from urban_env.logger import Loggable
 
@@ -160,7 +162,7 @@ class Vehicle(Loggable):
         :param other: the other vehicle
         """
 
-        if False:
+        if gym.Env.metadata['_predict_only']:
             SCALE_= 0.9
         else:
             SCALE_=1.1
