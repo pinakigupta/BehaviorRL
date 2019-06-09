@@ -261,6 +261,7 @@ class Road(Loggable):
         :param dt: timestep [s]
         """
         for vehicle in self.vehicles:
+            vehicle.act()
             vehicle.step(dt)
 
         for vehicle in self.vehicles:

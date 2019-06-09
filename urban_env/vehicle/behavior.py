@@ -43,6 +43,12 @@ class IDMVehicle(ControlledVehicle):
         super(IDMVehicle, self).__init__(road, position, heading, velocity, target_lane_index, target_velocity, route)
         self.enable_lane_change = enable_lane_change
         self.timer = timer or (np.sum(self.position)*np.pi) % self.LANE_CHANGE_DELAY
+        self.front_vehicle = None
+        self.rear_vehicle = None
+
+    @staticmethod
+    def Id(idmvehicle):
+        return str(id(idmvehicle))[-3:]
 
     def randomize_behavior(self):
         pass
@@ -73,7 +79,7 @@ class IDMVehicle(ControlledVehicle):
         if self.crashed:
             return
         action = {}
-        front_vehicle, rear_vehicle = self.road.neighbour_vehicles(self)
+        self.front_vehicle, self.rear_vehicle = self.road.neighbour_vehicles(self)
 
         # Lateral: MOBIL
         self.follow_road()
@@ -83,8 +89,8 @@ class IDMVehicle(ControlledVehicle):
 
         # Longitudinal: IDM
         action['acceleration'] = self.acceleration(ego_vehicle=self,
-                                                   front_vehicle=front_vehicle,
-                                                   rear_vehicle=rear_vehicle)
+                                                   front_vehicle=self.front_vehicle,
+                                                   rear_vehicle=self.rear_vehicle)
         # action['acceleration'] = self.recover_from_stop(action['acceleration'])
         action['acceleration'] = np.clip(action['acceleration'], -self.ACC_MAX, self.ACC_MAX)
         super(ControlledVehicle, self).act(action)
@@ -115,7 +121,7 @@ class IDMVehicle(ControlledVehicle):
         :param rear_vehicle: the vehicle following the ego-vehicle
         :return: the acceleration command for the ego-vehicle [m/s2]
         """
-        if not ego_vehicle:
+        if  ego_vehicle:
             return 0
 
         if self.target_velocity is not None:

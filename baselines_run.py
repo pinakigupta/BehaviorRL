@@ -61,7 +61,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '3e5'
+num_timesteps = '1e0'
 #################################################################
 first_MPI_call  = True
 LOAD_PREV_MODEL = True
@@ -254,9 +254,21 @@ def play(env, policy):
                 'episode travel = ', env.vehicle.position[0]-env.ego_x0)
         print("obs space ")
         pp.pprint(np.round(np.reshape(obs,(6, 5)),3))
+        for idmvehicle in env.road.vehicles:
+            from urban_env.vehicle.behavior import IDMVehicle as IDMVehicle
+            if isinstance(idmvehicle,IDMVehicle):
+                front_vehicle = [] 
+                rear_vehicle = []
+                if idmvehicle.front_vehicle is not None:
+                    front_vehicle = idmvehicle.front_vehicle
+                if idmvehicle.rear_vehicle is not None:
+                    rear_vehicle = idmvehicle.rear_vehicle
+                print("idmvehicle = ",IDMVehicle.Id(idmvehicle),\
+                     "front vehicle = ",IDMVehicle.Id(front_vehicle),\
+                          " rear_vehicle = ",IDMVehicle.Id(rear_vehicle))
         print("Optimal action ",AbstractEnv.ACTIONS[actions[0]], "\n" )
 
-    episode_rew = 0
+    episode_rew = 0 
     episode_len = 0
     while True:
         if state is not None:
