@@ -6,7 +6,7 @@
 
 from __future__ import division, print_function
 import numpy as np
-from urban_env.vehicle.control import ControlledVehicle
+from urban_env.vehicle.control import ControlledVehicle, MDPVehicle
 from urban_env import utils
 
 
@@ -48,7 +48,9 @@ class IDMVehicle(ControlledVehicle):
 
     @staticmethod
     def Id(idmvehicle):
-        return str(id(idmvehicle))[-3:]
+        if isinstance(idmvehicle,IDMVehicle):
+            return str(id(idmvehicle))[-3:]
+        return None
 
     def randomize_behavior(self):
         pass
@@ -281,6 +283,20 @@ class IDMVehicle(ControlledVehicle):
                 return -self.COMFORT_ACC_MAX / 2
         return acceleration
 
+    def __str__(self):
+        str = ""
+        str = "idmvehicle = " + IDMVehicle.Id(self) 
+        if self.front_vehicle is not None:
+            if isinstance(self.front_vehicle,IDMVehicle):            
+                str += " front_vehicle = " + IDMVehicle.Id(self.front_vehicle)
+            elif isinstance(self.front_vehicle,MDPVehicle): 
+                str += " front_vehicle = " + MDPVehicle.Id(self.front_vehicle)            
+        if self.rear_vehicle is not None: 
+            if isinstance(self.rear_vehicle,IDMVehicle):            
+                str += " rear_vehicle = " + IDMVehicle.Id(self.rear_vehicle)
+            elif isinstance(self.rear_vehicle,MDPVehicle): 
+                str += " rear_vehicle = " + MDPVehicle.Id(self.rear_vehicle)
+        return str
 
 class LinearVehicle(IDMVehicle):
     """

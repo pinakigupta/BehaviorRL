@@ -214,6 +214,12 @@ class MDPVehicle(ControlledVehicle):
         self.velocity_index = self.speed_to_index(self.target_velocity)
         self.target_velocity = self.index_to_speed(self.velocity_index)
 
+    @staticmethod
+    def Id(mdpvehicle):
+        if isinstance(mdpvehicle,MDPVehicle):
+            return str(id(mdpvehicle))[-3:]
+        return None
+
     def act(self, action=None):
         """
             Perform a high-level action.

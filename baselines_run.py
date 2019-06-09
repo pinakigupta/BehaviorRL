@@ -255,17 +255,8 @@ def play(env, policy):
         print("obs space ")
         pp.pprint(np.round(np.reshape(obs,(6, 5)),3))
         for idmvehicle in env.road.vehicles:
-            from urban_env.vehicle.behavior import IDMVehicle as IDMVehicle
-            if isinstance(idmvehicle,IDMVehicle):
-                front_vehicle = [] 
-                rear_vehicle = []
-                if idmvehicle.front_vehicle is not None:
-                    front_vehicle = idmvehicle.front_vehicle
-                if idmvehicle.rear_vehicle is not None:
-                    rear_vehicle = idmvehicle.rear_vehicle
-                print("idmvehicle = ",IDMVehicle.Id(idmvehicle),\
-                     "front vehicle = ",IDMVehicle.Id(front_vehicle),\
-                          " rear_vehicle = ",IDMVehicle.Id(rear_vehicle))
+            print(idmvehicle)
+                
         print("Optimal action ",AbstractEnv.ACTIONS[actions[0]], "\n" )
 
     episode_rew = 0 

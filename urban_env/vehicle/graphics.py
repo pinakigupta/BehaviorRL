@@ -76,15 +76,20 @@ class VehicleGraphics(object):
         sr = pygame.transform.rotate(s, -h * 180 / np.pi)
         surface.blit(sr, (surface.pos2pix(v.position[0] - v.LENGTH / 2, v.position[1] - v.LENGTH / 2))) 
 
+        font_type = 'freesansbold.ttf'
+        size = 12
+        color = cls.WHITE
+        font = pygame.font.Font(font_type, size) 
+
+        text = ""
         if isinstance(v,IDMVehicle):           
-            font_type = 'freesansbold.ttf'
-            size = 12
-            color = cls.WHITE
-            font = pygame.font.Font(font_type, size) 
             text = font.render(IDMVehicle.Id(v), False, color) 
-            textRect = text.get_rect() 
-            textRect.center = (surface.pos2pix(v.position[0] , v.position[1] ))
-            surface.blit(text, textRect)
+        elif isinstance(v,MDPVehicle):
+            text = font.render(MDPVehicle.Id(v), False, color) 
+        
+        textRect = text.get_rect() 
+        textRect.center = (surface.pos2pix(v.position[0] , v.position[1] ))
+        surface.blit(text, textRect)
                 
 
     @classmethod
