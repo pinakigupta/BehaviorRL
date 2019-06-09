@@ -227,7 +227,6 @@ class Vehicle(Loggable):
                     'dy_lane_{}'.format(lane_index): lane_coords[1],
                     'psi_lane_{}'.format(lane_index): self.road.network.get_lane(lane_index).heading_at(lane_coords[0])
                 })
-            front_vehicle, rear_vehicle = self.road.neighbour_vehicles(self)
             if front_vehicle:
                 data.update({
                     'front_v': front_vehicle.velocity,

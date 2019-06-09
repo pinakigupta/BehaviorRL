@@ -43,8 +43,7 @@ class IDMVehicle(ControlledVehicle):
         super(IDMVehicle, self).__init__(road, position, heading, velocity, target_lane_index, target_velocity, route)
         self.enable_lane_change = enable_lane_change
         self.timer = timer or (np.sum(self.position)*np.pi) % self.LANE_CHANGE_DELAY
-        self.front_vehicle = None
-        self.rear_vehicle = None
+
 
     @staticmethod
     def Id(idmvehicle):
@@ -81,7 +80,7 @@ class IDMVehicle(ControlledVehicle):
         if self.crashed:
             return
         action = {}
-        self.front_vehicle, self.rear_vehicle = self.road.neighbour_vehicles(self)
+        
 
         # Lateral: MOBIL
         self.follow_road()
@@ -297,7 +296,7 @@ class IDMVehicle(ControlledVehicle):
             elif isinstance(self.rear_vehicle,MDPVehicle): 
                 str += " rear_vehicle = " + MDPVehicle.Id(self.rear_vehicle)
         return str
-
+        
 class LinearVehicle(IDMVehicle):
     """
         A Vehicle whose longitudinal and lateral controllers are linear with respect to parameters

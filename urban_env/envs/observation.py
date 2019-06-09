@@ -101,11 +101,14 @@ class KinematicObservation(ObservationType):
         df = pandas.DataFrame.from_records([self.env.vehicle.to_dict(self.env.vehicle)])[self.features]
         # Add nearby traffic
         close_vehicles = self.env.road.closest_vehicles_to(self.env.vehicle, self.vehicles_count - 1)
+        #extra_obs = [self.env.vehicle.__str__()]
         if close_vehicles:
             df = df.append(pandas.DataFrame.from_records(
                 [v.to_dict(self.env.vehicle)
                  for v in close_vehicles[-self.vehicles_count + 1:]])[self.features],
                            ignore_index=True)
+
+        #    extra_obs = extra_obs.append([v.__str__() for v in close_vehicles[-self.vehicles_count + 1:])
         # Normalize
         #df = df.iloc[1:]
         df = self.normalize(df)
@@ -113,6 +116,7 @@ class KinematicObservation(ObservationType):
         if df.shape[0] < self.vehicles_count:
             rows = -np.ones((self.vehicles_count - df.shape[0], len(self.features)))
             df = df.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
+            
         # Reorder
         df = df[self.features]
         # Clip

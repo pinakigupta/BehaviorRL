@@ -42,6 +42,8 @@ class ControlledVehicle(Vehicle):
         self.target_lane_index = target_lane_index or self.lane_index
         self.target_velocity = target_velocity or self.velocity
         self.route = route
+        self.front_vehicle = None
+        self.rear_vehicle = None
 
     @classmethod
     def create_from(cls, vehicle):
@@ -79,6 +81,7 @@ class ControlledVehicle(Vehicle):
 
         :param action: a high-level action
         """
+        self.front_vehicle, self.rear_vehicle = self.road.neighbour_vehicles(self)
         is_aggressive_lcx = False
         self.follow_road()
         #print("action : ",action)
@@ -193,6 +196,7 @@ class ControlledVehicle(Vehicle):
                      [(self.route[index][1], next_destinations_from[next_index], self.route[index][2])]
 
 
+
 class MDPVehicle(ControlledVehicle):
     """
         A controlled vehicle with a specified discrete range of allowed target velocities.
@@ -213,6 +217,7 @@ class MDPVehicle(ControlledVehicle):
         super(MDPVehicle, self).__init__(road, position, heading, velocity, target_lane_index, target_velocity, route)
         self.velocity_index = self.speed_to_index(self.target_velocity)
         self.target_velocity = self.index_to_speed(self.velocity_index)
+
 
     @staticmethod
     def Id(mdpvehicle):
@@ -294,3 +299,5 @@ class MDPVehicle(ControlledVehicle):
                 if (t % int(trajectory_timestep / dt)) == 0:
                     states.append(copy.deepcopy(v))
         return states
+
+
