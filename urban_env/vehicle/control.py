@@ -35,10 +35,15 @@ class ControlledVehicle(Vehicle):
                  position,
                  heading=0,
                  velocity=0,
+                 lane_index = None,
                  target_lane_index=None,
                  target_velocity=None,
                  route=None):
-        super(ControlledVehicle, self).__init__(road, position, heading, velocity)
+        super(ControlledVehicle, self).__init__(road = road, 
+                                                position = position, 
+                                                lane_index = lane_index, 
+                                                heading = heading, 
+                                                velocity =velocity)
         self.target_lane_index = target_lane_index or self.lane_index
         self.target_velocity = target_velocity or self.velocity
         self.route = route
@@ -217,10 +222,18 @@ class MDPVehicle(ControlledVehicle):
                  position,
                  heading=0,
                  velocity=0,
+                 lane_index = None,
                  target_lane_index=None,
                  target_velocity=None,
                  route=None):
-        super(MDPVehicle, self).__init__(road, position, heading, velocity, target_lane_index, target_velocity, route)
+        super(MDPVehicle, self).__init__(road = road, 
+                                         position = position, 
+                                         heading = heading, 
+                                         velocity = velocity, 
+                                         lane_index = lane_index,
+                                         target_lane_index = target_lane_index, 
+                                         target_velocity = target_velocity, 
+                                         route = route)
         self.velocity_index = self.speed_to_index(self.target_velocity)
         self.target_velocity = self.index_to_speed(self.velocity_index)
 

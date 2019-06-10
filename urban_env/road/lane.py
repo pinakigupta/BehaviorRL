@@ -99,7 +99,9 @@ class AbstractLane(object):
             Compute the L1 distance [m] from a position to the lane
         """
         s, r = self.local_coordinates(position)
-        return abs(r) + max(s - self.length, 0) + max(0 - s, 0)
+        # return abs(r) + max(s - self.length, 0) + max(0 - s, 0) . Just return the L2 instead of L1 norm for now. This calc is not right anyway
+        return abs(r)
+
 
 
 class LineType:

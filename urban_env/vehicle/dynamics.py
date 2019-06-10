@@ -32,17 +32,18 @@ class Vehicle(Loggable):
     MAX_VELOCITY = 40
     """ Maximum reachable velocity [m/s] """
 
-    def __init__(self, road, position, heading=0, velocity=0, length=5.0, width=2.0):
+    def __init__(self, road, position, lane_index = None , heading=0, velocity=0, length=5.0, width=2.0):
         self.LENGTH = length
         self.WIDTH = width
         self.road = road
         self.position = np.array(position).astype('float')
         self.heading = heading
         self.velocity = velocity
-        self.lane_index = self.road.network.get_closest_lane_index(
-            self.position) if self.road else np.nan
-        self.lane = self.road.network.get_lane(
-            self.lane_index) if self.road else None
+        if lane_index is None:
+            self.lane_index = self.road.network.get_closest_lane_index(self.position, self.heading) if self.road else np.nan
+        else:
+            self.lane_index = lane_index
+        self.lane = self.road.network.get_lane(self.lane_index) if self.road else None
         self.action = {'steering': 0, 'acceleration': 0}
         self.crashed = False
         self.log = []
@@ -140,8 +141,7 @@ class Vehicle(Loggable):
         self.velocity += self.action['acceleration'] * dt
 
         if self.road:
-            self.lane_index = self.road.network.get_closest_lane_index(
-                self.position)
+            self.lane_index = self.road.network.get_closest_lane_index(self.position, self.heading)
             self.lane = self.road.network.get_lane(self.lane_index)
 
     def lane_distance_to(self, vehicle):
