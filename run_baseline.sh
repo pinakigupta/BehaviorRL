@@ -1,13 +1,22 @@
 #!/bin/sh
-eval "$(conda shell.bash hook)"
-conda activate RL
 
-if [ $# -eq 1 ]
+
+if [ $# > 0 ]
   then
     worker_numbers=$1
   else
-    worker_numbers=1 # backup map file
+    worker_numbers=1 
 fi
+
+'''
+if [ $# > 1 ]
+  then
+     conda_env=$2
+     eval "$(conda shell.bash hook)"
+     conda activate $conda_env
+  else
+     echo "Conda env not automatically updated"
+fi'''
 
 outputfile="output.txt"
 runfile="./baselines_run.py"
