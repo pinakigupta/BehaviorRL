@@ -136,16 +136,19 @@ class IDMVehicle(ControlledVehicle):
         acceleration = self.COMFORT_ACC_MAX * (
                 1 - np.power(ego_vehicle.velocity / utils.not_zero(ego_vehicle.target_velocity), self.DELTA))
         if front_vehicle:
-            d = ego_vehicle.lane_distance_to(front_vehicle)
+            buffer = ego_vehicle.LENGTH /3
+            d = ego_vehicle.lane_distance_to(front_vehicle) - (ego_vehicle.LENGTH + front_vehicle.LENGTH)/2 - buffer
+            d = max(d,0)
             d_star = self.desired_gap(ego_vehicle, front_vehicle) 
-            min_d = 50.0
-            if d < min_d:
-                rel_vel = ego_vehicle.velocity - front_vehicle.velocity
-                acceleration = - (rel_vel*rel_vel)/(2.0*min_d) # + front_vehicle.acceleration
-            else:
-                acceleration -= self.COMFORT_ACC_MAX * np.power(d_star/ utils.not_zero(d), 2)
-            #if (self.velocity==0):
-            #    acceleration = max(acceleration,0)
+            min_d = 30.0
+            min_d = min(min_d,d)
+            numerator = front_vehicle.velocity * front_vehicle.velocity - ego_vehicle.velocity * ego_vehicle.velocity 
+            min_acceleration = numerator/(2.0*utils.not_zero(min_d)) # + front_vehicle.acceleration
+            acceleration -= self.COMFORT_ACC_MAX * np.power(d_star/ utils.not_zero(d), 2)
+            acceleration = min(acceleration, min_acceleration)
+            if (self.velocity <0):
+                acceleration = max(acceleration,0.1)
+
         return acceleration
 
     def desired_gap(self, ego_vehicle, front_vehicle=None):

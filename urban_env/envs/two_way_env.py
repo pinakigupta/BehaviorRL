@@ -137,19 +137,6 @@ class TwoWayEnv(AbstractEnv):
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
         
         
-        for i in range(np.random.randint(low=0,high=4)):
-            x0 = self.ego_x0+90+40*i + 10*self.np_random.randn()
-            self.road.vehicles.append(
-                vehicles_type(road,
-                              position=road.network.get_lane(("a", "b", 1))
-                              .position( x0, 0),
-                              heading=road.network.get_lane(("a", "b", 1)).heading_at(100),
-                              velocity=max(0,10 + 2*self.np_random.randn()),
-                              target_lane_index = ("a", "b", 1), lane_index = ("a", "b", 1),                             
-                              enable_lane_change=False)
-            )
-        
-        
         # stationary vehicles
         for i in range(np.random.randint(low=1,high=2)):
             x0 = self.ego_x0+90+90*i + 10*self.np_random.randn()
@@ -162,22 +149,30 @@ class TwoWayEnv(AbstractEnv):
                               target_lane_index = ("a", "b", 1), lane_index = ("a", "b", 1),                             
                               enable_lane_change=False)
             )
+            
+        for i in range(np.random.randint(low=0,high=4)):
+            x0 = self.ego_x0+90+40*i + 10*self.np_random.randn()
+            v = vehicles_type(road,
+                              position=road.network.get_lane(("a", "b", 1))
+                              .position( x0, 0),
+                              heading=road.network.get_lane(("a", "b", 1)).heading_at(100),
+                              velocity=max(0,10 + 2*self.np_random.randn()),
+                              target_lane_index = ("a", "b", 1), lane_index = ("a", "b", 1),                             
+                              enable_lane_change=False)
+            front_vehicle, _ = self.road.neighbour_vehicles(v)
+            d = v.lane_distance_to(front_vehicle) 
+            if (d<5):
+                continue
+            elif(d<20):
+                v.velocity = max(0,2.5 + 0.5*self.np_random.randn())
+            self.road.vehicles.append(v)
+        
+        
+
+
+    
 
         
-        for i in range(np.random.randint(low=0,high=5)):
-            x0 = self.ROAD_LENGTH-self.ego_x0-20-120*i + 10*self.np_random.randn()
-            v = vehicles_type(road,
-                              position=road.network.get_lane(("b", "a", 0))
-                              .position(x0, 0.1),
-                              heading=road.network.get_lane(("b", "a", 0)).heading_at(100),
-                              velocity=max(0,20 + 5*self.np_random.randn()),
-                              target_lane_index = ("b", "a", 0), lane_index = ("b", "a", 0),
-                              enable_lane_change=False)
-            v.target_lane_index = ("b", "a", 0)
-            v.lane_index = ("b", "a", 0)
-            self.road.vehicles.append(v)
-
-        '''
         # stationary vehicles Left Lane
         for i in range(np.random.randint(low=0,high=5)):
             x0 = self.ROAD_LENGTH-self.ego_x0-100-120*i + 10*self.np_random.randn()
@@ -190,7 +185,27 @@ class TwoWayEnv(AbstractEnv):
                               enable_lane_change=False)
             v.target_lane_index = ("b", "a", 0)
             v.lane_index = ("b", "a", 0)
-            self.road.vehicles.append(v)'''
+            self.road.vehicles.append(v)
+
+
+        for i in range(np.random.randint(low=0,high=5)):
+            x0 = self.ROAD_LENGTH-self.ego_x0-20-120*i + 10*self.np_random.randn()
+            v = vehicles_type(road,
+                              position=road.network.get_lane(("b", "a", 0))
+                              .position(x0, 0.1),
+                              heading=road.network.get_lane(("b", "a", 0)).heading_at(100),
+                              velocity=max(0,20 + 5*self.np_random.randn()),
+                              target_lane_index = ("b", "a", 0), lane_index = ("b", "a", 0),
+                              enable_lane_change=False)
+            v.target_lane_index = ("b", "a", 0)
+            v.lane_index = ("b", "a", 0)
+            front_vehicle, _ = self.road.neighbour_vehicles(v)
+            d = v.lane_distance_to(front_vehicle)
+            if(d<5):
+                continue 
+            elif(d<20):
+                v.velocity = max(0,4 + self.np_random.randn())
+            self.road.vehicles.append(v)
 
 
 
