@@ -3,8 +3,8 @@
 #                  Created/Modified on: February 5, 2019
 #                      Author: Munir Jojo-Verge
 #######################################################################
-
 from __future__ import division, print_function
+import abc
 import numpy as np
 import copy
 from urban_env import utils
@@ -195,7 +195,13 @@ class ControlledVehicle(Vehicle):
         self.route = self.route[0:index+1] + \
                      [(self.route[index][1], next_destinations_from[next_index], self.route[index][2])]
 
+    @abc.abstractmethod
+    def Id(self):
+        raise NotImplementedError()
 
+    @abc.abstractmethod
+    def __str__(self):
+        raise NotImplementedError()
 
 class MDPVehicle(ControlledVehicle):
     """
@@ -218,12 +224,6 @@ class MDPVehicle(ControlledVehicle):
         self.velocity_index = self.speed_to_index(self.target_velocity)
         self.target_velocity = self.index_to_speed(self.velocity_index)
 
-
-    @staticmethod
-    def Id(mdpvehicle):
-        if isinstance(mdpvehicle,MDPVehicle):
-            return str(id(mdpvehicle))[-3:]
-        return None
 
     def act(self, action=None):
         """
@@ -300,4 +300,14 @@ class MDPVehicle(ControlledVehicle):
                     states.append(copy.deepcopy(v))
         return states
 
+    def Id(self):
+        return str(id(self))[-3:]
 
+    def __str__(self):
+        str = ""
+        str = "vehicle = " + self.Id() 
+        if self.front_vehicle is not None:
+            str += " front_vehicle = " + self.front_vehicle.Id()          
+        if self.rear_vehicle is not None: 
+            str += " rear_vehicle = " + self.rear_vehicle.Id()
+        return str    

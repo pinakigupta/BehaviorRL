@@ -82,10 +82,7 @@ class VehicleGraphics(object):
         font = pygame.font.Font(font_type, size) 
 
         text = ""
-        if isinstance(v,IDMVehicle):           
-            text = font.render(IDMVehicle.Id(v), False, color) 
-        elif isinstance(v,MDPVehicle):
-            text = font.render(MDPVehicle.Id(v), False, color) 
+        text = font.render(v.Id(), False, color) 
         
         textRect = text.get_rect() 
         textRect.center = (surface.pos2pix(v.position[0] , v.position[1] ))

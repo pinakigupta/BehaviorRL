@@ -45,11 +45,8 @@ class IDMVehicle(ControlledVehicle):
         self.timer = timer or (np.sum(self.position)*np.pi) % self.LANE_CHANGE_DELAY
 
 
-    @staticmethod
-    def Id(idmvehicle):
-        if isinstance(idmvehicle,IDMVehicle):
-            return str(id(idmvehicle))[-3:]
-        return None
+    def Id(self):
+        return str(id(self))[-3:]
 
     def randomize_behavior(self):
         pass
@@ -81,7 +78,7 @@ class IDMVehicle(ControlledVehicle):
             return
         action = {}
         
-
+        self.front_vehicle, self.rear_vehicle = self.road.neighbour_vehicles(self)
         # Lateral: MOBIL
         self.follow_road()
         if self.enable_lane_change:
@@ -284,19 +281,14 @@ class IDMVehicle(ControlledVehicle):
 
     def __str__(self):
         str = ""
-        str = "idmvehicle = " + IDMVehicle.Id(self) 
+        str = "vehicle = " + self.Id() 
         if self.front_vehicle is not None:
-            if isinstance(self.front_vehicle,IDMVehicle):            
-                str += " front_vehicle = " + IDMVehicle.Id(self.front_vehicle)
-            elif isinstance(self.front_vehicle,MDPVehicle): 
-                str += " front_vehicle = " + MDPVehicle.Id(self.front_vehicle)            
+            str += " front_vehicle = " + self.front_vehicle.Id()          
         if self.rear_vehicle is not None: 
-            if isinstance(self.rear_vehicle,IDMVehicle):            
-                str += " rear_vehicle = " + IDMVehicle.Id(self.rear_vehicle)
-            elif isinstance(self.rear_vehicle,MDPVehicle): 
-                str += " rear_vehicle = " + MDPVehicle.Id(self.rear_vehicle)
+            str += " rear_vehicle = " + self.rear_vehicle.Id()
         return str
-        
+
+
 class LinearVehicle(IDMVehicle):
     """
         A Vehicle whose longitudinal and lateral controllers are linear with respect to parameters
