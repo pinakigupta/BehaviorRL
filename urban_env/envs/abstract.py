@@ -178,7 +178,6 @@ class AbstractEnv(gym.Env):
         if close_vehicles:
             for v in close_vehicles:
                 extra_obs.append(v.__str__())
-        
         for _ in  range(len(extra_obs),6):
             extra_obs.append(None)
 

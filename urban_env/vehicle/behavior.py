@@ -35,12 +35,20 @@ class IDMVehicle(ControlledVehicle):
     def __init__(self, road, position,
                  heading=0,
                  velocity=0,
+                 lane_index = None,
                  target_lane_index=None,
                  target_velocity=None,
                  route=None,
                  enable_lane_change=True,
                  timer=None):
-        super(IDMVehicle, self).__init__(road, position, heading, velocity, target_lane_index, target_velocity, route)
+        super(IDMVehicle, self).__init__(road = road, 
+                                         position = position, 
+                                         heading = heading, 
+                                         velocity = velocity, 
+                                         lane_index = lane_index,
+                                         target_lane_index = target_lane_index, 
+                                         target_velocity = target_velocity, 
+                                         route = route)
         self.enable_lane_change = enable_lane_change
         self.timer = timer or (np.sum(self.position)*np.pi) % self.LANE_CHANGE_DELAY
 
@@ -123,16 +131,21 @@ class IDMVehicle(ControlledVehicle):
             return 0
 
         if self.target_velocity is not None:
-            if (self.target_velocity == 0):
+            if (self.target_velocity == 0) and (self.velocity==0):
                 return 0
         acceleration = self.COMFORT_ACC_MAX * (
                 1 - np.power(ego_vehicle.velocity / utils.not_zero(ego_vehicle.target_velocity), self.DELTA))
         if front_vehicle:
             d = ego_vehicle.lane_distance_to(front_vehicle)
-            acceleration -= self.COMFORT_ACC_MAX * \
-                np.power(self.desired_gap(ego_vehicle, front_vehicle) / utils.not_zero(d), 2)
-            if (self.velocity==0):
-                acceleration = max(acceleration,0)
+            d_star = self.desired_gap(ego_vehicle, front_vehicle) 
+            min_d = 50.0
+            if d < min_d:
+                rel_vel = ego_vehicle.velocity - front_vehicle.velocity
+                acceleration = - (rel_vel*rel_vel)/(2.0*min_d) # + front_vehicle.acceleration
+            else:
+                acceleration -= self.COMFORT_ACC_MAX * np.power(d_star/ utils.not_zero(d), 2)
+            #if (self.velocity==0):
+            #    acceleration = max(acceleration,0)
         return acceleration
 
     def desired_gap(self, ego_vehicle, front_vehicle=None):

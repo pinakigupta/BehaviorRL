@@ -50,20 +50,30 @@ class RoadNetwork(object):
         _from, _to, _id = index
         return self.graph[_from][_to][_id]
 
-    def get_closest_lane_index(self, position):
+    def get_closest_lane_index(self, position, heading):
         """
             Get the index of the lane closest to a world position.
 
         :param position: a world position [m].
         :return: the index of the closest lane.
         """
-        indexes, distances = [], []
+        indexes, distances, headings = [], [] , []
         for _from, to_dict in self.graph.items():
             for _to, lanes in to_dict.items():
                 for _id, l in enumerate(lanes):
+                    headings.append(l.heading_at(0))
                     distances.append(l.distance(position))
                     indexes.append((_from, _to, _id))
-        return indexes[int(np.argmin(distances))]
+        arg_mins = np.argwhere(distances == np.amin(distances))
+        arg_mins = arg_mins.flatten().tolist()
+        if len(arg_mins) == 1:
+             return indexes[arg_mins[0]]
+        min_heading_diff = 1e6
+        for idx in arg_mins:
+            if abs(heading-headings[idx])<min_heading_diff:
+                min_heading_diff = abs(heading-headings[idx])
+                min_idx = idx
+        return indexes[min_idx]
 
     def next_lane(self, current_index, route=None, position=None, np_random=np.random):
         """
@@ -261,7 +271,6 @@ class Road(Loggable):
         :param dt: timestep [s]
         """
         for vehicle in self.vehicles:
-            vehicle.act()
             vehicle.step(dt)
 
         for vehicle in self.vehicles:

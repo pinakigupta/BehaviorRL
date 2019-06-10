@@ -145,6 +145,7 @@ class TwoWayEnv(AbstractEnv):
                               .position( x0, 0),
                               heading=road.network.get_lane(("a", "b", 1)).heading_at(100),
                               velocity=max(0,10 + 2*self.np_random.randn()),
+                              target_lane_index = ("a", "b", 1), lane_index = ("a", "b", 1),                             
                               enable_lane_change=False)
             )
         
@@ -158,6 +159,7 @@ class TwoWayEnv(AbstractEnv):
                               .position(x0, 1),
                               heading=road.network.get_lane(("a", "b", 1)).heading_at(100),
                               velocity=0,target_velocity = 0,
+                              target_lane_index = ("a", "b", 1), lane_index = ("a", "b", 1),                             
                               enable_lane_change=False)
             )
 
@@ -166,14 +168,16 @@ class TwoWayEnv(AbstractEnv):
             x0 = self.ROAD_LENGTH-self.ego_x0-20-120*i + 10*self.np_random.randn()
             v = vehicles_type(road,
                               position=road.network.get_lane(("b", "a", 0))
-                              .position(x0, 0),
+                              .position(x0, 0.1),
                               heading=road.network.get_lane(("b", "a", 0)).heading_at(100),
                               velocity=max(0,20 + 5*self.np_random.randn()),
+                              target_lane_index = ("b", "a", 0), lane_index = ("b", "a", 0),
                               enable_lane_change=False)
             v.target_lane_index = ("b", "a", 0)
+            v.lane_index = ("b", "a", 0)
             self.road.vehicles.append(v)
 
-        
+        '''
         # stationary vehicles Left Lane
         for i in range(np.random.randint(low=0,high=5)):
             x0 = self.ROAD_LENGTH-self.ego_x0-100-120*i + 10*self.np_random.randn()
@@ -182,9 +186,11 @@ class TwoWayEnv(AbstractEnv):
                               .position(x0 , 1),
                               heading=road.network.get_lane(("b", "a", 0)).heading_at(x0),
                               velocity=0,target_velocity = 0,
+                              target_lane_index = ("b", "a", 0), lane_index = ("b", "a", 0),
                               enable_lane_change=False)
             v.target_lane_index = ("b", "a", 0)
-            self.road.vehicles.append(v)
+            v.lane_index = ("b", "a", 0)
+            self.road.vehicles.append(v)'''
 
 
 
