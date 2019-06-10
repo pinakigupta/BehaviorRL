@@ -39,7 +39,8 @@ class AbstractEnv(gym.Env):
                3: 'FASTER',
                4: 'SLOWER',
                5: 'LANE_LEFT_AGGRESSIVE',
-               6: 'LANE_RIGHT_AGGRESSIVE'}
+               6: 'LANE_RIGHT_AGGRESSIVE'
+               }
     
     """ Which Actions are Allowed for the current Agent """
     ACTION_MASKS = [True,True,True,True,True,True,True] 

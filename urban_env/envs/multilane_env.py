@@ -62,7 +62,7 @@ class MultilaneEnv(AbstractEnv):
     def __init__(self):
         config = self.DEFAULT_CONFIG.copy()
         config.update(self.DIFFICULTY_LEVELS["HARD"])
-        super(HighwayEnv, self).__init__(config)
+        super(MultilaneEnv, self).__init__(config)
         self.steps = 0
         self.reset()
 
@@ -70,11 +70,11 @@ class MultilaneEnv(AbstractEnv):
         self._create_road()
         self._create_vehicles()
         self.steps = 0
-        return super(HighwayEnv, self).reset()
+        return super(MultilaneEnv, self).reset()
 
     def step(self, action):
         self.steps += 1
-        return super(HighwayEnv, self).step(action)
+        return super(MultilaneEnv, self).step(action)
 
     def _create_road(self):
         """
@@ -100,7 +100,15 @@ class MultilaneEnv(AbstractEnv):
         :param action: the last action performed
         :return: the corresponding reward
         """
-        action_reward = {0: self.LANE_CHANGE_REWARD, 1: 0, 2: self.LANE_CHANGE_REWARD, 3: 0, 4: 0}
+        action_lookup = dict(map(reversed, AbstractEnv.ACTIONS.items()))
+        action_reward = {action_lookup['LANE_LEFT']: self.LANE_CHANGE_REWARD, 
+                         action_lookup['IDLE']: 0, 
+                         action_lookup['LANE_RIGHT']: self.LANE_CHANGE_REWARD, 
+                         action_lookup['FASTER']: 0, 
+                         action_lookup['SLOWER']: 0,
+                         action_lookup['LANE_LEFT_AGGRESSIVE']: self.LANE_CHANGE_REWARD,
+                         action_lookup['LANE_RIGHT_AGGRESSIVE']: self.LANE_CHANGE_REWARD
+                         }
         neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
         state_reward = \
             + self.config["collision_reward"] * self.vehicle.crashed \

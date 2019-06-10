@@ -172,7 +172,7 @@ class TwoWayEnv(AbstractEnv):
 
     
 
-        
+        '''
         # stationary vehicles Left Lane
         for i in range(np.random.randint(low=0,high=5)):
             x0 = self.ROAD_LENGTH-self.ego_x0-100-120*i + 10*self.np_random.randn()
@@ -185,7 +185,7 @@ class TwoWayEnv(AbstractEnv):
                               enable_lane_change=False)
             v.target_lane_index = ("b", "a", 0)
             v.lane_index = ("b", "a", 0)
-            self.road.vehicles.append(v)
+            self.road.vehicles.append(v)'''
 
 
         for i in range(np.random.randint(low=0,high=5)):

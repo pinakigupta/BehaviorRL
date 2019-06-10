@@ -57,8 +57,8 @@ warnings.filterwarnings("ignore")
 ###############################################################
 #        DEFINE YOUR "BASELINE" (AGENT) PARAMETERS HERE
 ###############################################################
-train_env_id = 'two-way-v0'
-play_env_id = 'two-way-v0'
+train_env_id = 'multilane-v0'
+play_env_id = 'multilane-v0'
 alg = 'ppo2'
 network = 'mlp'
 num_timesteps = '1e0'
@@ -264,6 +264,7 @@ def play(env, policy):
 
     episode_rew = 0 
     episode_len = 0
+    ego_x0 = None
     while True:
         if state is not None:
             actions, _, state, _ = policy.step(obs, S=state, M=dones)
@@ -271,7 +272,9 @@ def play(env, policy):
             actions, _, _, _ = policy.step(obs)
 
         obs, rew, done, info = env.step(actions[0])
-        episode_travel = env.vehicle.position[0]-env.ego_x0
+        if ego_x0 is None:
+            ego_x0 = env.vehicle.position[0]
+        episode_travel = env.vehicle.position[0]-ego_x0
         if episode_len%10 ==0 and is_predict_only():
             print_action_and_obs()  
        # print(env._max_episode_step)

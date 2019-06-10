@@ -8,6 +8,7 @@ from __future__ import division, print_function
 import numpy as np
 import pandas as pd
 from gym import logger
+import math
 
 from urban_env.logger import Loggable
 from urban_env.road.lane import LineType, StraightLane
@@ -249,10 +250,11 @@ class Road(Loggable):
         return [v for v in self.vehicles if (distances[0] < vehicle.lane_distance_to(v) < distances[1]
                                              and v is not vehicle)]
 
-    def closest_vehicles_to(self, vehicle, count):
+    def closest_vehicles_to(self, vehicle, count, perception_distance = math.inf):
         sorted_v = sorted([v for v in self.vehicles
                            if v is not vehicle
-                           and -2*vehicle.LENGTH < vehicle.lane_distance_to(v)],
+                           and -2*vehicle.LENGTH < vehicle.lane_distance_to(v) and
+                           vehicle.lane_distance_to(v) < perception_distance],
                           key=lambda v: abs(vehicle.lane_distance_to(v)))
         return sorted_v[:count]
 
