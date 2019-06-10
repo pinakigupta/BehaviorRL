@@ -152,7 +152,8 @@ class AbstractEnv(gym.Env):
         :return: the observation of the reset state
         """
         self.define_spaces()
-        return self.observation.observe()
+        obs = self.observation.observe()
+        return obs
 
     def step(self, action, is_training = True):
         """
@@ -172,8 +173,17 @@ class AbstractEnv(gym.Env):
         reward = self._reward(action)
         terminal = self._is_terminal()
 
+        close_vehicles = self.road.closest_vehicles_to(self.vehicle, 5 )
+        extra_obs = [self.vehicle.__str__()]
+        if close_vehicles:
+            for v in close_vehicles:
+                extra_obs.append(v.__str__())
+        
+        for _ in  range(len(extra_obs),6):
+            extra_obs.append(None)
+
         constraint = self._constraint(action)
-        info = {'constraint': constraint, "c_": constraint}
+        info = {'constraint': constraint, "c_": constraint, "extra_obs": extra_obs}
 
         return obs, reward, terminal, info
 

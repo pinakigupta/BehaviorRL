@@ -119,7 +119,7 @@ class IDMVehicle(ControlledVehicle):
         :param rear_vehicle: the vehicle following the ego-vehicle
         :return: the acceleration command for the ego-vehicle [m/s2]
         """
-        if  ego_vehicle:
+        if not ego_vehicle:
             return 0
 
         if self.target_velocity is not None:

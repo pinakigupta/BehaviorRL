@@ -251,11 +251,14 @@ def play(env, policy):
 
     def print_action_and_obs():
         print('episode_rew={}'.format(episode_rew), '  episode_len={}'.format(episode_len),\
-                'episode travel = ', env.vehicle.position[0]-env.ego_x0)
+                'episode_travel = ', episode_travel)
         print("obs space ")
-        pp.pprint(np.round(np.reshape(obs,(6, 5)),3))
-        for idmvehicle in env.road.vehicles:
-            print(idmvehicle)
+        obs_format = pp.pformat(np.round(np.reshape(obs,(6, 5)),3))
+        obs_format = obs_format.rstrip("\n")
+        extra_obs = pp.pformat(info["extra_obs"])
+        print(obs_format)
+        print(extra_obs)
+
                 
         print("Optimal action ",AbstractEnv.ACTIONS[actions[0]], "\n" )
 
@@ -267,15 +270,16 @@ def play(env, policy):
         else:
             actions, _, _, _ = policy.step(obs)
 
-        obs, rew, done, _ = env.step(actions[0])
-        
+        obs, rew, done, info = env.step(actions[0])
+        episode_travel = env.vehicle.position[0]-env.ego_x0
+        if episode_len%10 ==0 and is_predict_only():
+            print_action_and_obs()  
        # print(env._max_episode_step)
         episode_rew += rew
         episode_len += 1
         env.render()
         done = done.any() if isinstance(done, np.ndarray) else done
-        if episode_len%10 ==0 and is_predict_only():
-            print_action_and_obs()    
+  
         if done:
             print_action_and_obs()
             episode_rew = 0

@@ -93,7 +93,7 @@ class KinematicObservation(ObservationType):
         df['vx'] = utils.remap(df['vx'] , [-velocity_range, velocity_range], [-1, 1])
         df['vy'] = utils.remap(df['vy'], [-velocity_range, velocity_range], [-1, 1])
         #df['length_'] = df['length_']/10
-        #df['psi'] = df['psi']/np.pi
+        df['psi'] = df['psi']/(2*np.pi)
         return df
 
     def observe(self):
@@ -101,14 +101,14 @@ class KinematicObservation(ObservationType):
         df = pandas.DataFrame.from_records([self.env.vehicle.to_dict(self.env.vehicle)])[self.features]
         # Add nearby traffic
         close_vehicles = self.env.road.closest_vehicles_to(self.env.vehicle, self.vehicles_count - 1)
-        #extra_obs = [self.env.vehicle.__str__()]
+        
         if close_vehicles:
             df = df.append(pandas.DataFrame.from_records(
                 [v.to_dict(self.env.vehicle)
                  for v in close_vehicles[-self.vehicles_count + 1:]])[self.features],
                            ignore_index=True)
 
-        #    extra_obs = extra_obs.append([v.__str__() for v in close_vehicles[-self.vehicles_count + 1:])
+            
         # Normalize
         #df = df.iloc[1:]
         df = self.normalize(df)
