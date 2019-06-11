@@ -57,13 +57,13 @@ warnings.filterwarnings("ignore")
 ###############################################################
 #        DEFINE YOUR "BASELINE" (AGENT) PARAMETERS HERE
 ###############################################################
-train_env_id = 'merge-v0'
-play_env_id = 'merge-v0'
+train_env_id = 'two-way-v0'
+play_env_id = 'two-way-v0' 
 alg = 'ppo2'
 network = 'mlp'
 num_timesteps = '1e0'
 #################################################################
-first_MPI_call  = True
+first_default_args_call  = True
 LOAD_PREV_MODEL = True
 
 def create_dirs(req_dirs):
@@ -94,25 +94,27 @@ gym.Env.metadata['_predict_only'] = is_predict_only()
 def default_args(save_in_sub_folder=None):
     create_dirs(req_dirs)
     currentDT = time.strftime("%Y%m%d-%H%M%S")
-    global first_MPI_call 
+    global first_default_args_call 
     ####################################################################
     # DEFINE YOUR SAVE FILE, LOAD FILE AND LOGGING FILE PARAMETERS HERE
     ####################################################################
     save_folder = pathname + '/' + models_folder + \
         '/' + train_env_id + '/' + alg + '/' + network
+    load_folder = pathname + '/' + models_folder + \
+        '/' + train_env_id + '/' + alg + '/' + network
 
-    if first_MPI_call :
-        list_of_file = glob.glob(save_folder+'/*')
+    if first_default_args_call :
+        list_of_file = glob.glob(load_folder+'/*')
         if save_in_sub_folder is not None:
             save_folder += '/' + str(save_in_sub_folder)
         save_file = save_folder + '/' + str(currentDT)
-        first_MPI_call_Trigger  = True
+        first_default_args_call_Trigger  = True
     else:
         if save_in_sub_folder is not None:
             save_folder += '/' + str(save_in_sub_folder)
         save_file = save_folder + '/' + str(currentDT)
         list_of_file = glob.glob(save_folder+'/*')
-        first_MPI_call_Trigger = False
+        first_default_args_call_Trigger = False
 
     # Specifiy log directories for open AI
     '''logger_path = save_folder + '/log/'
@@ -166,7 +168,7 @@ def default_args(save_in_sub_folder=None):
 
     def load_model(load_file=None):
         if load_file is not None:
-           if (not LOAD_PREV_MODEL) and first_MPI_call :
+           if (not LOAD_PREV_MODEL) and first_default_args_call :
               return
            DEFAULT_ARGUMENTS.append('--load_path=' + load_file)
            print("Loading file", load_file)
@@ -218,7 +220,7 @@ def default_args(save_in_sub_folder=None):
        if save_in_sub_folder is  None:
           load_last_model = LOAD_PREV_MODEL
        else:
-          load_last_model = LOAD_PREV_MODEL or not first_MPI_call 
+          load_last_model = LOAD_PREV_MODEL or not first_default_args_call 
 
        if load_last_model:
           latest_file = latest_model_file_from_list_of_files_and_folders(list_of_files=list_of_file)
@@ -227,13 +229,13 @@ def default_args(save_in_sub_folder=None):
        else:
           save_model(save_file=save_file)
     else:
-        print(" list_of_file empty in load path ", save_folder)
+        print(" list_of_file empty in load path ", load_folder)
         save_model(save_file=save_file)
 
     # print(" DEFAULT_ARGUMENTS ", DEFAULT_ARGUMENTS)
 
-    if first_MPI_call_Trigger:
-        first_MPI_call = False
+    if first_default_args_call_Trigger:
+        first_default_args_call = False
 
     return DEFAULT_ARGUMENTS
 
