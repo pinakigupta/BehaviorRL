@@ -295,19 +295,20 @@ def play(env, policy):
 
 if __name__ == "__main__":
 
-    itr = 1
+    mega_batch_itr = 1
     sys_args = sys.argv
 
     policy = None
     play_env = None
     max_iteration = 1
     if not is_predict_only():
-        while itr <= max_iteration:
+        while mega_batch_itr <= max_iteration:
             sess = tf_util.get_session()
             sess.close()
             tf.reset_default_graph()
             play_env = gym.make(play_env_id)
-            print(" Batch iteration ", itr)
+            print(" Batch iteration ", mega_batch_itr)
+            gym.Env.metadata['_mega_batch_itr'] = mega_batch_itr
             print("(rank , size) = ",mpi_util.get_local_rank_size(MPI.COMM_WORLD))
             if len(sys_args) <= 1:
                 save_in_sub_folder = None
@@ -319,7 +320,7 @@ if __name__ == "__main__":
             MPI.COMM_WORLD.barrier()
 
             # print("policy training args ", args,"\n\n")
-            itr += 1
+            mega_batch_itr += 1
             print()
 
             '''try:
