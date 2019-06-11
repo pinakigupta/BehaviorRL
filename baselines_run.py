@@ -57,8 +57,8 @@ warnings.filterwarnings("ignore")
 ###############################################################
 #        DEFINE YOUR "BASELINE" (AGENT) PARAMETERS HERE
 ###############################################################
-train_env_id = 'multilane-v0'
-play_env_id = 'multilane-v0'
+train_env_id = 'merge-v0'
+play_env_id = 'merge-v0'
 alg = 'ppo2'
 network = 'mlp'
 num_timesteps = '1e0'

@@ -49,11 +49,15 @@ class MergeEnv(AbstractEnv):
         :param action: the action performed
         :return: the reward of the state-action transition
         """
-        action_reward = {0: self.LANE_CHANGE_REWARD,
-                         1: 0,
-                         2: self.LANE_CHANGE_REWARD,
-                         3: 0,
-                         4: 0}
+        action_lookup = dict(map(reversed, AbstractEnv.ACTIONS.items()))
+        action_reward = {action_lookup['LANE_LEFT']: self.LANE_CHANGE_REWARD, 
+                         action_lookup['IDLE']: 0, 
+                         action_lookup['LANE_RIGHT']: self.LANE_CHANGE_REWARD, 
+                         action_lookup['FASTER']: 0, 
+                         action_lookup['SLOWER']: 0,
+                         action_lookup['LANE_LEFT_AGGRESSIVE']: self.LANE_CHANGE_REWARD,
+                         action_lookup['LANE_RIGHT_AGGRESSIVE']: self.LANE_CHANGE_REWARD
+                         }
         reward = self.COLLISION_REWARD * self.vehicle.crashed \
                  + self.RIGHT_LANE_REWARD * self.vehicle.lane_index[2] / 1 \
                  + self.HIGH_VELOCITY_REWARD * self.vehicle.velocity_index / (self.vehicle.SPEED_COUNT - 1)

@@ -5,6 +5,7 @@
 #######################################################################
 
 from __future__ import division, print_function
+import abc
 import numpy as np
 import pandas as pd
 
@@ -254,6 +255,10 @@ class Vehicle(Loggable):
     def __repr__(self):
         return self.__str__()
 
+    @abc.abstractmethod
+    def Id(self):
+        raise NotImplementedError()
+
 
 class Obstacle(Vehicle):
     """
@@ -265,3 +270,6 @@ class Obstacle(Vehicle):
             road, position, velocity=0, heading=heading)
         self.target_velocity = 0
         self.LENGTH = self.WIDTH
+
+    def Id(self):
+        return str(id(self))[-3:]
