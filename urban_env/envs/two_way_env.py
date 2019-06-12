@@ -66,7 +66,7 @@ class TwoWayEnv(AbstractEnv):
         #print("self.vehicle.position  ",self.vehicle.position)
         if self.ego_x0 is not None:
             if not gym.Env.metadata['_predict_only']:
-                if gym.Env.metadata['_mega_batch_itr']:
+                if '_mega_batch_itr' in gym.Env.metadata:
                     low = 60*gym.Env.metadata['_mega_batch_itr']
                     high = low + 20*gym.Env.metadata['_mega_batch_itr']
                 else:
@@ -142,8 +142,12 @@ class TwoWayEnv(AbstractEnv):
         #print("ego_x",self.ego_x0)
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
         scene_complexity = 1
-        if gym.Env.metadata['_mega_batch_itr']:
+        if '_mega_batch_itr' in gym.Env.metadata:
             scene_complexity = gym.Env.metadata['_mega_batch_itr']
+
+        if '_predict_only' in gym.Env.metadata:
+            if gym.Env.metadata['_predict_only']:
+                scene_complexity = 3
         
         # stationary vehicles
         for i in range(np.random.randint(low=0,high=scene_complexity)):
@@ -176,10 +180,6 @@ class TwoWayEnv(AbstractEnv):
             self.road.vehicles.append(v)
         
         
-
-
-    
-
         
         # stationary vehicles Left Lane
         for i in range(np.random.randint(low=0,high=2*scene_complexity)):
