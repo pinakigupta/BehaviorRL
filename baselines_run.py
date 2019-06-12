@@ -13,9 +13,9 @@ import pprint
 pp = pprint.PrettyPrinter(indent=4)
 ####################
 pathname = os.getcwd()
-# print("current directory is : " + pathname)
-foldername = os.path.basename(pathname)
-# print("Directory name is : " + foldername)
+homepath = os.path.expanduser("~")
+s3pathname = homepath+'/s3-drive/groups/Behavior/Pinaki'
+
 ####################
 
 urban_AD_env_path = pathname + '/urban_env/envs'
@@ -98,9 +98,16 @@ def default_args(save_in_sub_folder=None):
     ####################################################################
     # DEFINE YOUR SAVE FILE, LOAD FILE AND LOGGING FILE PARAMETERS HERE
     ####################################################################
-    save_folder = pathname + '/' + models_folder + \
+    modelpath = pathname
+    try:
+        if os.path.exists(s3pathname):
+            modelpath = s3pathname
+    except:
+        print("s3 pathname doesn't exist")
+
+    save_folder = modelpath + '/' + models_folder + \
         '/' + train_env_id + '/' + alg + '/' + network
-    load_folder = pathname + '/' + models_folder + \
+    load_folder = modelpath + '/' + models_folder + \
         '/' + train_env_id + '/' + alg + '/' + network
 
     if first_default_args_call :
@@ -300,7 +307,7 @@ if __name__ == "__main__":
 
     policy = None
     play_env = None
-    max_iteration = 1
+    max_iteration = 2
     if not is_predict_only():
         while mega_batch_itr <= max_iteration:
             sess = tf_util.get_session()
