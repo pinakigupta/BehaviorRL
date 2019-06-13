@@ -8,16 +8,6 @@ if [ $# > 0 ]
     worker_numbers=1 
 fi
 
-'''
-if [ $# > 1 ]
-  then
-     conda_env=$2
-     eval "$(conda shell.bash hook)"
-     conda activate $conda_env
-  else
-     echo "Conda env not automatically updated"
-fi'''
-
 outputfile="output.txt"
 runfile="./baselines_run.py"
 pdb_commands="-m pdb -c continue"
@@ -28,7 +18,9 @@ echo "Running all planning modules ... " &
 export OMP_NUM_THREADS=1;
 export USE_SIMPLE_THREADED_LEVEL=1;
 
-if [ $worker_numbers -eq 1 ]
+one=1
+
+if [ $worker_numbers -eq $one ]
   then
     python -W ignore  $runfile  2>&1 | tee  $outputfile
   else

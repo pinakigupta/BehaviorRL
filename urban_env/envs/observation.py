@@ -87,7 +87,7 @@ class KinematicObservation(ObservationType):
         side_lanes = self.env.road.network.all_side_lanes(self.env.vehicle.lane_index)
         x_position_range = 7.0 * MDPVehicle.SPEED_MAX
         y_position_range = AbstractLane.DEFAULT_WIDTH * len(side_lanes)
-        velocity_range = 2*MDPVehicle.SPEED_MAX
+        velocity_range = 1.5*MDPVehicle.SPEED_MAX
         df['x'] = utils.remap(df['x']  , [-x_position_range, x_position_range], [-1, 1])
         df['y'] = utils.remap(df['y'], [-y_position_range, y_position_range], [-1, 1])
         df['vx'] = utils.remap(df['vx'] , [-velocity_range, velocity_range], [-1, 1])

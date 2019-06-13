@@ -14,7 +14,7 @@ pp = pprint.PrettyPrinter(indent=4)
 ####################
 pathname = os.getcwd()
 homepath = os.path.expanduser("~")
-s3pathname = homepath+'/s3-drive/groups/Behavior/Pinaki'
+#s3pathname = homepath+'/s3-drive/groups/Behavior/Pinaki'
 
 ####################
 
@@ -61,10 +61,10 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0' 
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e0'
+num_timesteps = '1e3'
 #################################################################
 first_default_args_call  = True
-LOAD_PREV_MODEL = True
+LOAD_PREV_MODEL = False
 
 def create_dirs(req_dirs):
     for dirName in req_dirs:
@@ -307,7 +307,7 @@ if __name__ == "__main__":
 
     policy = None
     play_env = None
-    max_iteration = 2
+    max_iteration = 1
     if not is_predict_only():
         while mega_batch_itr <= max_iteration:
             sess = tf_util.get_session()
@@ -315,7 +315,7 @@ if __name__ == "__main__":
             tf.reset_default_graph()
             play_env = gym.make(play_env_id)
             print(" Batch iteration ", mega_batch_itr)
-            gym.Env.metadata['_mega_batch_itr'] = mega_batch_itr
+            #gym.Env.metadata['_mega_batch_itr'] = mega_batch_itr
             print("(rank , size) = ",mpi_util.get_local_rank_size(MPI.COMM_WORLD))
             if len(sys_args) <= 1:
                 save_in_sub_folder = None
