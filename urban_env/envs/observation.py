@@ -13,7 +13,7 @@ from gym.utils import seeding
 import numpy as np
 
 from urban_env import utils
-from urban_env.envs.finite_mdp import finite_mdp, compute_ttc_grid
+from urban_env.envs.finite_mdp import  compute_ttc_grid
 from urban_env.envs.graphics import EnvViewer
 from urban_env.road.lane import AbstractLane
 from urban_env.vehicle.behavior import IDMVehicle
@@ -62,7 +62,7 @@ class KinematicObservation(ObservationType):
     """
         Observe the kinematics of nearby vehicles.
     """
-    FEATURES = ['presence', 'x', 'y', 'vx', 'vy']
+    FEATURES = ['presence', 'x', 'y', 'vx', 'vy', 'psi']
 
     def __init__(self, env, features=FEATURES, vehicles_count=5, **kwargs):
         """
@@ -85,31 +85,38 @@ class KinematicObservation(ObservationType):
         :param Dataframe df: observation data
         """
         side_lanes = self.env.road.network.all_side_lanes(self.env.vehicle.lane_index)
-        x_position_range = 5.0 * MDPVehicle.SPEED_MAX
+        x_position_range = 7.0 * MDPVehicle.SPEED_MAX
         y_position_range = AbstractLane.DEFAULT_WIDTH * len(side_lanes)
-        velocity_range = 2*MDPVehicle.SPEED_MAX
-        df['x'] = utils.remap(df['x'], [-x_position_range, x_position_range], [-1, 1])
+        velocity_range = 1.5*MDPVehicle.SPEED_MAX
+        df['x'] = utils.remap(df['x']  , [-x_position_range, x_position_range], [-1, 1])
         df['y'] = utils.remap(df['y'], [-y_position_range, y_position_range], [-1, 1])
-        df['vx'] = utils.remap(df['vx'], [-velocity_range, velocity_range], [-1, 1])
+        df['vx'] = utils.remap(df['vx'] , [-velocity_range, velocity_range], [-1, 1])
         df['vy'] = utils.remap(df['vy'], [-velocity_range, velocity_range], [-1, 1])
+        #df['length_'] = df['length_']/10
+        df['psi'] = df['psi']/(2*np.pi)
         return df
 
     def observe(self):
         # Add ego-vehicle
-        df = pandas.DataFrame.from_records([self.env.vehicle.to_dict()])[self.features]
+        df = pandas.DataFrame.from_records([self.env.vehicle.to_dict(self.env.vehicle)])[self.features]
         # Add nearby traffic
-        close_vehicles = self.env.road.closest_vehicles_to(self.env.vehicle, self.vehicles_count - 1)
+        close_vehicles = self.env.road.closest_vehicles_to(self.env.vehicle, self.vehicles_count - 1,7.0 * MDPVehicle.SPEED_MAX)
+        
         if close_vehicles:
             df = df.append(pandas.DataFrame.from_records(
                 [v.to_dict(self.env.vehicle)
                  for v in close_vehicles[-self.vehicles_count + 1:]])[self.features],
                            ignore_index=True)
+
+            
         # Normalize
+        #df = df.iloc[1:]
         df = self.normalize(df)
         # Fill missing rows
         if df.shape[0] < self.vehicles_count:
             rows = -np.ones((self.vehicles_count - df.shape[0], len(self.features)))
             df = df.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
+            
         # Reorder
         df = df[self.features]
         # Clip

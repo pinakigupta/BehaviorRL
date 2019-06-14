@@ -6,7 +6,7 @@
 
 from __future__ import division, print_function
 import numpy as np
-from urban_env.vehicle.control import ControlledVehicle
+from urban_env.vehicle.control import ControlledVehicle, MDPVehicle
 from urban_env import utils
 
 
@@ -35,14 +35,26 @@ class IDMVehicle(ControlledVehicle):
     def __init__(self, road, position,
                  heading=0,
                  velocity=0,
+                 lane_index = None,
                  target_lane_index=None,
                  target_velocity=None,
                  route=None,
                  enable_lane_change=True,
                  timer=None):
-        super(IDMVehicle, self).__init__(road, position, heading, velocity, target_lane_index, target_velocity, route)
+        super(IDMVehicle, self).__init__(road = road, 
+                                         position = position, 
+                                         heading = heading, 
+                                         velocity = velocity, 
+                                         lane_index = lane_index,
+                                         target_lane_index = target_lane_index, 
+                                         target_velocity = target_velocity, 
+                                         route = route)
         self.enable_lane_change = enable_lane_change
         self.timer = timer or (np.sum(self.position)*np.pi) % self.LANE_CHANGE_DELAY
+
+
+    def Id(self):
+        return str(id(self))[-3:]
 
     def randomize_behavior(self):
         pass
@@ -73,8 +85,8 @@ class IDMVehicle(ControlledVehicle):
         if self.crashed:
             return
         action = {}
-        front_vehicle, rear_vehicle = self.road.neighbour_vehicles(self)
-
+        
+        self.front_vehicle, self.rear_vehicle = self.road.neighbour_vehicles(self)
         # Lateral: MOBIL
         self.follow_road()
         if self.enable_lane_change:
@@ -83,8 +95,8 @@ class IDMVehicle(ControlledVehicle):
 
         # Longitudinal: IDM
         action['acceleration'] = self.acceleration(ego_vehicle=self,
-                                                   front_vehicle=front_vehicle,
-                                                   rear_vehicle=rear_vehicle)
+                                                   front_vehicle=self.front_vehicle,
+                                                   rear_vehicle=self.rear_vehicle)
         # action['acceleration'] = self.recover_from_stop(action['acceleration'])
         action['acceleration'] = np.clip(action['acceleration'], -self.ACC_MAX, self.ACC_MAX)
         super(ControlledVehicle, self).act(action)
@@ -117,12 +129,26 @@ class IDMVehicle(ControlledVehicle):
         """
         if not ego_vehicle:
             return 0
+
+        if self.target_velocity is not None:
+            if (self.target_velocity == 0) and (self.velocity==0):
+                return 0
         acceleration = self.COMFORT_ACC_MAX * (
                 1 - np.power(ego_vehicle.velocity / utils.not_zero(ego_vehicle.target_velocity), self.DELTA))
         if front_vehicle:
-            d = ego_vehicle.lane_distance_to(front_vehicle)
-            acceleration -= self.COMFORT_ACC_MAX * \
-                np.power(self.desired_gap(ego_vehicle, front_vehicle) / utils.not_zero(d), 2)
+            buffer = ego_vehicle.LENGTH /3
+            d = ego_vehicle.lane_distance_to(front_vehicle) - (ego_vehicle.LENGTH + front_vehicle.LENGTH)/2 - buffer
+            d = max(d,0)
+            d_star = self.desired_gap(ego_vehicle, front_vehicle) 
+            min_d = 30.0
+            min_d = min(min_d,d)
+            numerator = front_vehicle.velocity * front_vehicle.velocity - ego_vehicle.velocity * ego_vehicle.velocity 
+            min_acceleration = numerator/(2.0*utils.not_zero(min_d)) # + front_vehicle.acceleration
+            acceleration -= self.COMFORT_ACC_MAX * np.power(d_star/ utils.not_zero(d), 2)
+            acceleration = min(acceleration, min_acceleration)
+            if (self.velocity <0):
+                acceleration = max(acceleration,0.1)
+
         return acceleration
 
     def desired_gap(self, ego_vehicle, front_vehicle=None):
@@ -268,6 +294,15 @@ class IDMVehicle(ControlledVehicle):
                 # Reverse
                 return -self.COMFORT_ACC_MAX / 2
         return acceleration
+
+    def __str__(self):
+        str = ""
+        str = "vehicle = " + self.Id() 
+        if self.front_vehicle is not None:
+            str += " front_vehicle = " + self.front_vehicle.Id()          
+        if self.rear_vehicle is not None: 
+            str += " rear_vehicle = " + self.rear_vehicle.Id()
+        return str
 
 
 class LinearVehicle(IDMVehicle):

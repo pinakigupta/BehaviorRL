@@ -5,7 +5,7 @@
 #######################################################################
 
 
-run_folder = './run/'
+run_folder = 'run/'
 logs_folder = run_folder + 'logs'
 models_folder = run_folder + 'models'
 

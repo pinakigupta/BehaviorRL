@@ -5,12 +5,14 @@
 #######################################################################
 
 from __future__ import division, print_function
+import abc
 import numpy as np
 import pandas as pd
 
+import gym
+
 from urban_env import utils
 from urban_env.logger import Loggable
-
 
 class Vehicle(Loggable):
     """
@@ -21,22 +23,27 @@ class Vehicle(Loggable):
     """
     COLLISIONS_ENABLED = True
     """ Enable collision detection between vehicles """
-
     LENGTH = 5.0
     """ Vehicle length [m] """
     WIDTH = 2.0
     """ Vehicle width [m] """
+
     DEFAULT_VELOCITIES = [23, 25]
     """ Range for random initial velocities [m/s] """
     MAX_VELOCITY = 40
     """ Maximum reachable velocity [m/s] """
 
-    def __init__(self, road, position, heading=0, velocity=0):
+    def __init__(self, road, position, lane_index = None , heading=0, velocity=0, length=5.0, width=2.0):
+        self.LENGTH = length
+        self.WIDTH = width
         self.road = road
         self.position = np.array(position).astype('float')
         self.heading = heading
         self.velocity = velocity
-        self.lane_index = self.road.network.get_closest_lane_index(self.position) if self.road else np.nan
+        if lane_index is None:
+            self.lane_index = self.road.network.get_closest_lane_index(self.position, self.heading) if self.road else np.nan
+        else:
+            self.lane_index = lane_index
         self.lane = self.road.network.get_lane(self.lane_index) if self.road else None
         self.action = {'steering': 0, 'acceleration': 0}
         self.crashed = False
@@ -70,15 +77,19 @@ class Vehicle(Loggable):
         :return: A vehicle with random position and/or velocity
         """
         if velocity is None:
-            velocity = road.np_random.uniform(Vehicle.DEFAULT_VELOCITIES[0], Vehicle.DEFAULT_VELOCITIES[1])
+            velocity = road.np_random.uniform(
+                Vehicle.DEFAULT_VELOCITIES[0], Vehicle.DEFAULT_VELOCITIES[1])
         default_spacing = 1.5*velocity
         _from = road.np_random.choice(list(road.network.graph.keys()))
         _to = road.np_random.choice(list(road.network.graph[_from].keys()))
         _id = road.np_random.choice(len(road.network.graph[_from][_to]))
-        offset = spacing * default_spacing * np.exp(-5 / 30 * len(road.network.graph[_from][_to]))
-        x0 = np.max([v.position[0] for v in road.vehicles]) if len(road.vehicles) else 3*offset
+        offset = spacing * default_spacing * \
+            np.exp(-5 / 30 * len(road.network.graph[_from][_to]))
+        x0 = np.max([v.position[0] for v in road.vehicles]
+                    ) if len(road.vehicles) else 3*offset
         x0 += offset * road.np_random.uniform(0.9, 1.1)
-        v = cls(road, road.network.get_lane((_from, _to, _id)).position(x0, 0), 0, velocity)
+        v = cls(road, road.network.get_lane(
+            (_from, _to, _id)).position(x0, 0), 0, velocity)
         return v
 
     @classmethod
@@ -90,7 +101,8 @@ class Vehicle(Loggable):
         :param vehicle: a vehicle
         :return: a new vehicle at the same dynamical state
         """
-        v = cls(vehicle.road, vehicle.position, vehicle.heading, vehicle.velocity)
+        v = cls(vehicle.road, vehicle.position,
+                vehicle.heading, vehicle.velocity)
         return v
 
     def act(self, action=None):
@@ -116,17 +128,21 @@ class Vehicle(Loggable):
             self.action['steering'] = 0
             self.action['acceleration'] = -1.0*self.velocity
         if self.velocity > self.MAX_VELOCITY:
-            self.action['acceleration'] = min(self.action['acceleration'], 1.0*(self.MAX_VELOCITY - self.velocity))
+            self.action['acceleration'] = min(
+                self.action['acceleration'], 1.0*(self.MAX_VELOCITY - self.velocity))
         elif self.velocity < -self.MAX_VELOCITY:
-            self.action['acceleration'] = max(self.action['acceleration'], 1.0*(self.MAX_VELOCITY - self.velocity))
+            self.action['acceleration'] = max(
+                self.action['acceleration'], 1.0*(self.MAX_VELOCITY - self.velocity))
 
-        v = self.velocity * np.array([np.cos(self.heading), np.sin(self.heading)])
+        v = self.velocity * \
+            np.array([np.cos(self.heading), np.sin(self.heading)])
         self.position += v * dt
-        self.heading += self.velocity * np.tan(self.action['steering']) / self.LENGTH * dt
+        self.heading += self.velocity * \
+            np.tan(self.action['steering']) / self.LENGTH * dt
         self.velocity += self.action['acceleration'] * dt
 
         if self.road:
-            self.lane_index = self.road.network.get_closest_lane_index(self.position)
+            self.lane_index = self.road.network.get_closest_lane_index(self.position, self.heading)
             self.lane = self.road.network.get_lane(self.lane_index)
 
     def lane_distance_to(self, vehicle):
@@ -140,12 +156,18 @@ class Vehicle(Loggable):
             return np.nan
         return self.lane.local_coordinates(vehicle.position)[0] - self.lane.local_coordinates(self.position)[0]
 
-    def check_collision(self, other):
+    def check_collision(self, other ):
         """
             Check for collision with another vehicle.
 
         :param other: the other vehicle
         """
+
+        if gym.Env.metadata['_predict_only']:
+            SCALE_= 0.9
+        else:
+            SCALE_=1.1
+
         if not self.COLLISIONS_ENABLED or not other.COLLISIONS_ENABLED or self.crashed or other is self:
             return
 
@@ -154,8 +176,8 @@ class Vehicle(Loggable):
             return
 
         # Accurate rectangular check
-        if utils.rotated_rectangles_intersect((self.position, 0.9*self.LENGTH, 0.9*self.WIDTH, self.heading),
-                                              (other.position, 0.9*other.LENGTH, 0.9*other.WIDTH, other.heading)):
+        if utils.rotated_rectangles_intersect((self.position, SCALE_*self.LENGTH, SCALE_*self.WIDTH, self.heading),
+                                              (other.position, SCALE_*other.LENGTH, SCALE_*other.WIDTH, other.heading)):
             self.velocity = other.velocity = min(self.velocity, other.velocity)
             self.crashed = other.crashed = True
 
@@ -171,11 +193,14 @@ class Vehicle(Loggable):
             'vx': self.velocity * self.direction[0],
             'vy': self.velocity * self.direction[1],
             'cos_h': self.direction[0],
-            'sin_h': self.direction[1]
+            'sin_h': self.direction[1],
+            'length_': self.LENGTH,
+            'width_': self.WIDTH,
+            'psi': self.heading
         }
         if origin_vehicle:
             origin_dict = origin_vehicle.to_dict()
-            for key in ['x', 'y', 'vx', 'vy']:
+            for key in ['x']:
                 d[key] -= origin_dict[key]
         return d
 
@@ -197,12 +222,12 @@ class Vehicle(Loggable):
 
         if self.road:
             for lane_index in self.road.network.side_lanes(self.lane_index):
-                lane_coords = self.road.network.get_lane(lane_index).local_coordinates(self.position)
+                lane_coords = self.road.network.get_lane(
+                    lane_index).local_coordinates(self.position)
                 data.update({
                     'dy_lane_{}'.format(lane_index): lane_coords[1],
                     'psi_lane_{}'.format(lane_index): self.road.network.get_lane(lane_index).heading_at(lane_coords[0])
                 })
-            front_vehicle, rear_vehicle = self.road.neighbour_vehicles(self)
             if front_vehicle:
                 data.update({
                     'front_v': front_vehicle.velocity,
@@ -230,6 +255,10 @@ class Vehicle(Loggable):
     def __repr__(self):
         return self.__str__()
 
+    @abc.abstractmethod
+    def Id(self):
+        raise NotImplementedError()
+
 
 class Obstacle(Vehicle):
     """
@@ -237,6 +266,10 @@ class Obstacle(Vehicle):
     """
 
     def __init__(self, road, position, heading=0):
-        super(Obstacle, self).__init__(road, position, velocity=0, heading=heading)
+        super(Obstacle, self).__init__(
+            road, position, velocity=0, heading=heading)
         self.target_velocity = 0
         self.LENGTH = self.WIDTH
+
+    def Id(self):
+        return str(id(self))[-3:]

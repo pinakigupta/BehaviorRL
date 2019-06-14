@@ -3,11 +3,13 @@ from gym.envs.registration import register
 register(
     id='multilane-v0',
     entry_point='urban_env.envs:MultilaneEnv',
+    tags={'wrapper_config.TimeLimit.max_episode_steps': 250}
 )
 
 register(
     id='merge-v0',
     entry_point='urban_env.envs:MergeEnv',
+    tags={'wrapper_config.TimeLimit.max_episode_steps': 250}
 )
 
 register(
@@ -18,7 +20,7 @@ register(
 register(
     id='two-way-v0',
     entry_point='urban_env.envs:TwoWayEnv',
-    tags={'wrapper_config.TimeLimit.max_episode_steps': 15}
+    tags={'wrapper_config.TimeLimit.max_episode_steps': 500}
 )
 
 register(

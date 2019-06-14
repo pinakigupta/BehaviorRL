@@ -30,13 +30,21 @@ class AbstractEnv(gym.Env):
         velocity. The action space is fixed, but the observation space and reward function must be defined in the
         environment implementations.
     """
-    metadata = {'render.modes': ['human', 'rgb_array']}
+    metadata = {'render.modes': ['human', 'rgb_array'],
+                '_predict_only': 'False'}
 
     ACTIONS = {0: 'LANE_LEFT',
                1: 'IDLE',
                2: 'LANE_RIGHT',
                3: 'FASTER',
-               4: 'SLOWER'}
+               4: 'SLOWER',
+               5: 'LANE_LEFT_AGGRESSIVE',
+               6: 'LANE_RIGHT_AGGRESSIVE'
+               }
+    
+    """ Which Actions are Allowed for the current Agent """
+    ACTION_MASKS = [True,True,True,True,True,True,True] 
+
     """
         A mapping of action indexes to action labels
     """
@@ -57,12 +65,14 @@ class AbstractEnv(gym.Env):
     """
         The maximum distance of any vehicle present in the observation [m]
     """
-
+    
     DEFAULT_CONFIG = {
         "observation": {
             "type": "TimeToCollision"
         }
     }
+
+    #_predict_only = False
 
     def __init__(self, config=None):
         # Configuration
@@ -92,6 +102,8 @@ class AbstractEnv(gym.Env):
         self.should_update_rendering = True
         self.rendering_mode = 'human'
         self.enable_auto_render = False
+
+        
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -141,9 +153,10 @@ class AbstractEnv(gym.Env):
         :return: the observation of the reset state
         """
         self.define_spaces()
-        return self.observation.observe()
+        obs = self.observation.observe()
+        return obs
 
-    def step(self, action):
+    def step(self, action, is_training = True):
         """
             Perform an action and step the environment dynamics.
 
@@ -161,8 +174,16 @@ class AbstractEnv(gym.Env):
         reward = self._reward(action)
         terminal = self._is_terminal()
 
+        close_vehicles = self.road.closest_vehicles_to(self.vehicle, 5 )
+        extra_obs = [self.vehicle.__str__()]
+        if close_vehicles:
+            for v in close_vehicles:
+                extra_obs.append(v.__str__())
+        for _ in  range(len(extra_obs),6):
+            extra_obs.append(None)
+
         constraint = self._constraint(action)
-        info = {'constraint': constraint, "c_": constraint}
+        info = {'constraint': constraint, "c_": constraint, "extra_obs": extra_obs}
 
         return obs, reward, terminal, info
 
@@ -171,11 +192,11 @@ class AbstractEnv(gym.Env):
             Perform several steps of simulation with constant action
         """
         for k in range(int(self.SIMULATION_FREQUENCY // self.POLICY_FREQUENCY)):
-            if action is not None and self.time % int(self.SIMULATION_FREQUENCY // self.POLICY_FREQUENCY) == 0:
+            if action is not None : # and self.time % int(self.SIMULATION_FREQUENCY // self.POLICY_FREQUENCY) == 0:
                 # Forward action to the vehicle
                 self.vehicle.act(self.ACTIONS[action])
 
-            self.road.act()
+            self.road.act(ego_MDPVehicle = self.vehicle)
             self.road.step(1 / self.SIMULATION_FREQUENCY)
             self.time += 1
 
@@ -238,9 +259,11 @@ class AbstractEnv(gym.Env):
             if l_index[2] < self.vehicle.lane_index[2] \
                     and self.road.network.get_lane(l_index).is_reachable_from(self.vehicle.position):
                 actions.append(self.ACTIONS_INDEXES['LANE_LEFT'])
+                actions.append(self.ACTIONS_INDEXES['LANE_LEFT_AGGRESSIVE'])
             if l_index[2] > self.vehicle.lane_index[2] \
                     and self.road.network.get_lane(l_index).is_reachable_from(self.vehicle.position):
                 actions.append(self.ACTIONS_INDEXES['LANE_RIGHT'])
+                actions.append(self.ACTIONS_INDEXES['LANE_RIGHT_AGGRESSIVE'])
         if self.vehicle.velocity_index < self.vehicle.SPEED_COUNT - 1:
             actions.append(self.ACTIONS_INDEXES['FASTER'])
         if self.vehicle.velocity_index > 0:

@@ -21,7 +21,8 @@ class VehicleGraphics(object):
     BLACK = (60, 60, 60)
     PURPLE = (200, 0, 150)
     DEFAULT_COLOR = YELLOW
-    EGO_COLOR = GREEN
+    EGO_COLOR = PURPLE
+    WHITE = (255,255,255)
 
     @classmethod
     def display(cls, vehicle, surface, transparent=False):
@@ -64,7 +65,7 @@ class VehicleGraphics(object):
         #     x = v.position[0] + length / 2
         #     y = v.position[1] - width
         #######################################################
-
+        
         s = pygame.Surface((surface.pix(v.LENGTH), surface.pix(v.LENGTH)), pygame.SRCALPHA)  # per-pixel alpha
         rect = (0, surface.pix(v.LENGTH) / 2 - surface.pix(v.WIDTH) / 2, surface.pix(v.LENGTH), surface.pix(v.WIDTH))        
         pygame.draw.rect(s, cls.get_color(v, transparent), rect, 0)        
@@ -73,8 +74,20 @@ class VehicleGraphics(object):
         s = pygame.Surface.convert_alpha(s)
         h = v.heading if abs(v.heading) > 2 * np.pi / 180 else 0
         sr = pygame.transform.rotate(s, -h * 180 / np.pi)
-        surface.blit(sr, (surface.pos2pix(v.position[0] - v.LENGTH / 2, v.position[1] - v.LENGTH / 2)))      
-            
+        surface.blit(sr, (surface.pos2pix(v.position[0] - v.LENGTH / 2, v.position[1] - v.LENGTH / 2))) 
+
+        font_type = 'freesansbold.ttf'
+        size = 12
+        color = cls.WHITE
+        font = pygame.font.Font(font_type, size) 
+
+        text = ""
+        text = font.render(v.Id(), False, color) 
+        
+        textRect = text.get_rect() 
+        textRect.center = (surface.pos2pix(v.position[0] , v.position[1] ))
+        surface.blit(text, textRect)
+                
 
     @classmethod
     def display_Ego_params(cls, vehicle, surface, transparent=False):

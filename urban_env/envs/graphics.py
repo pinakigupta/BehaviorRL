@@ -19,7 +19,7 @@ class EnvViewer(object):
     """
         A viewer to render a urban driving environment.
     """
-    SCREEN_WIDTH = 600
+    SCREEN_WIDTH = 2000
     SCREEN_HEIGHT = 150
     SAVE_IMAGES = False
 

@@ -3,8 +3,8 @@
 #                  Created/Modified on: February 5, 2019
 #                      Author: Munir Jojo-Verge
 #######################################################################
-
 from __future__ import division, print_function
+import abc
 import numpy as np
 import copy
 from urban_env import utils
@@ -35,13 +35,20 @@ class ControlledVehicle(Vehicle):
                  position,
                  heading=0,
                  velocity=0,
+                 lane_index = None,
                  target_lane_index=None,
                  target_velocity=None,
                  route=None):
-        super(ControlledVehicle, self).__init__(road, position, heading, velocity)
+        super(ControlledVehicle, self).__init__(road = road, 
+                                                position = position, 
+                                                lane_index = lane_index, 
+                                                heading = heading, 
+                                                velocity =velocity)
         self.target_lane_index = target_lane_index or self.lane_index
         self.target_velocity = target_velocity or self.velocity
         self.route = route
+        self.front_vehicle = None
+        self.rear_vehicle = None
 
     @classmethod
     def create_from(cls, vehicle):
@@ -70,7 +77,7 @@ class ControlledVehicle(Vehicle):
             self.route = [self.lane_index]
         return self
 
-    def act(self, action=None):
+    def act(self, action):
         """
             Perform a high-level action to change the desired lane or velocity.
 
@@ -79,23 +86,40 @@ class ControlledVehicle(Vehicle):
 
         :param action: a high-level action
         """
+        self.front_vehicle, self.rear_vehicle = self.road.neighbour_vehicles(self)
+        is_aggressive_lcx = False
         self.follow_road()
-        if action == "FASTER":
+        #print("action : ",action)
+        '''if action == "FASTER":
             self.target_velocity += self.DELTA_VELOCITY
         elif action == "SLOWER":
             self.target_velocity -= self.DELTA_VELOCITY
-        elif action == "LANE_RIGHT":
+        el'''
+        if action == "LANE_RIGHT" :
             _from, _to, _id = self.target_lane_index
             target_lane_index = _from, _to, np.clip(_id + 1, 0, len(self.road.network.graph[_from][_to]) - 1)
             if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
                 self.target_lane_index = target_lane_index
-        elif action == "LANE_LEFT":
+        elif action == "LANE_LEFT" :
             _from, _to, _id = self.target_lane_index
             target_lane_index = _from, _to, np.clip(_id - 1, 0, len(self.road.network.graph[_from][_to]) - 1)
             if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
                 self.target_lane_index = target_lane_index
-
-        action = {'steering': self.steering_control(self.target_lane_index),
+        elif action ==  "LANE_RIGHT_AGGRESSIVE":
+            _from, _to, _id = self.target_lane_index
+            target_lane_index = _from, _to, np.clip(_id + 1, 0, len(self.road.network.graph[_from][_to]) - 1)
+            if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
+                self.target_lane_index = target_lane_index
+                is_aggressive_lcx = True
+            # print("LANE_RIGHT_AGGRESSIVE")
+        elif action == "LANE_LEFT_AGGRESSIVE":
+            _from, _to, _id = self.target_lane_index
+            target_lane_index = _from, _to, np.clip(_id - 1, 0, len(self.road.network.graph[_from][_to]) - 1)
+            if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
+                self.target_lane_index = target_lane_index
+                is_aggressive_lcx = True
+            # print("LANE_LEFT_AGGRESSIVE")
+        action = {'steering': self.steering_control(self.target_lane_index,is_aggressive_lcx),
                   'acceleration': self.velocity_control(self.target_velocity)}
         super(ControlledVehicle, self).act(action)
 
@@ -109,7 +133,7 @@ class ControlledVehicle(Vehicle):
                                                                  position=self.position,
                                                                  np_random=self.road.np_random)
 
-    def steering_control(self, target_lane_index):
+    def steering_control(self, target_lane_index, is_agressive = False ):
         """
             Steer the vehicle to follow the center of an given lane.
 
@@ -127,12 +151,14 @@ class ControlledVehicle(Vehicle):
         lane_future_heading = target_lane.heading_at(lane_next_coords)
 
         # Lateral position control
-        lateral_velocity_command = - self.KP_LATERAL * lane_coords[1]
+        lateral_velocity_command = (- 2* self.KP_LATERAL * lane_coords[1]) if is_agressive else (- self.KP_LATERAL * lane_coords[1])
+
         # Lateral velocity to heading
         heading_command = np.arcsin(np.clip(lateral_velocity_command/utils.not_zero(self.velocity), -1, 1))
         heading_ref = lane_future_heading + np.clip(heading_command, -np.pi/4, np.pi/4)
         # Heading control
         heading_rate_command = self.KP_HEADING * utils.wrap_to_pi(heading_ref - self.heading)
+        heading_rate_command = (2*heading_rate_command)  if is_agressive else heading_rate_command
         # Heading rate to steering angle
         steering_angle = self.LENGTH / utils.not_zero(self.velocity) * np.arctan(heading_rate_command)
         steering_angle = np.clip(steering_angle, -self.MAX_STEERING_ANGLE, self.MAX_STEERING_ANGLE)
@@ -174,14 +200,21 @@ class ControlledVehicle(Vehicle):
         self.route = self.route[0:index+1] + \
                      [(self.route[index][1], next_destinations_from[next_index], self.route[index][2])]
 
+    @abc.abstractmethod
+    def Id(self):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def __str__(self):
+        raise NotImplementedError()
 
 class MDPVehicle(ControlledVehicle):
     """
         A controlled vehicle with a specified discrete range of allowed target velocities.
     """
 
-    SPEED_COUNT = 3  # []
-    SPEED_MIN = 20  # [m/s]
+    SPEED_COUNT = 5  # []
+    SPEED_MIN = 0  # [m/s]
     SPEED_MAX = 30  # [m/s]
 
     def __init__(self,
@@ -189,12 +222,21 @@ class MDPVehicle(ControlledVehicle):
                  position,
                  heading=0,
                  velocity=0,
+                 lane_index = None,
                  target_lane_index=None,
                  target_velocity=None,
                  route=None):
-        super(MDPVehicle, self).__init__(road, position, heading, velocity, target_lane_index, target_velocity, route)
+        super(MDPVehicle, self).__init__(road = road, 
+                                         position = position, 
+                                         heading = heading, 
+                                         velocity = velocity, 
+                                         lane_index = lane_index,
+                                         target_lane_index = target_lane_index, 
+                                         target_velocity = target_velocity, 
+                                         route = route)
         self.velocity_index = self.speed_to_index(self.target_velocity)
         self.target_velocity = self.index_to_speed(self.velocity_index)
+
 
     def act(self, action=None):
         """
@@ -207,14 +249,18 @@ class MDPVehicle(ControlledVehicle):
         """
         if action == "FASTER":
             self.velocity_index = self.speed_to_index(self.velocity) + 1
+            self.velocity_index = np.clip(self.velocity_index, 0, self.SPEED_COUNT - 1)
+            self.target_velocity = self.index_to_speed(self.velocity_index)
+            super(MDPVehicle, self).act(action)
         elif action == "SLOWER":
             self.velocity_index = self.speed_to_index(self.velocity) - 1
+            self.velocity_index = np.clip(self.velocity_index, 0, self.SPEED_COUNT - 1)
+            self.target_velocity = self.index_to_speed(self.velocity_index)
+            super(MDPVehicle, self).act(action)
         else:
             super(MDPVehicle, self).act(action)
-            return
-        self.velocity_index = np.clip(self.velocity_index, 0, self.SPEED_COUNT - 1)
-        self.target_velocity = self.index_to_speed(self.velocity_index)
-        super(MDPVehicle, self).act()
+        return
+
 
     @classmethod
     def index_to_speed(cls, index):
@@ -266,3 +312,15 @@ class MDPVehicle(ControlledVehicle):
                 if (t % int(trajectory_timestep / dt)) == 0:
                     states.append(copy.deepcopy(v))
         return states
+
+    def Id(self):
+        return str(id(self))[-3:]
+
+    def __str__(self):
+        str = ""
+        str = "vehicle = " + self.Id() 
+        if self.front_vehicle is not None:
+            str += " front_vehicle = " + self.front_vehicle.Id()          
+        if self.rear_vehicle is not None: 
+            str += " rear_vehicle = " + self.rear_vehicle.Id()
+        return str    
