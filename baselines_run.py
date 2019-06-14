@@ -52,7 +52,7 @@ train_env_id =  'multilane-v0'
 play_env_id = ''
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e5'
+num_timesteps = '1e0'
 load_file_name = '' # 'merge-v0'
 #load_file_name = '20190510-100005' # 'roundabout-v0'
 #load_file_name = '' # 'two-way-v0'
@@ -89,7 +89,7 @@ def default_args():
         '--alg=' + alg,
         '--network=' + network,
         '--num_timesteps=' + num_timesteps,    
-        '--num_env=4',
+        #'--num_env=4',
         '--save_path=' + save_file,
         #'--logger_path=' + logger_path,
         '--play'

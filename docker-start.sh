@@ -35,5 +35,9 @@ else
     git clone --recurse-submodules https://github.com/openai/gym.git
 fi
 
+
+
+
 # We are ready to run the main docker container
-sudo docker run -it --runtime=nvidia -v $HOST_DIR:/rl_baselines_ad --name PEPE munirjojoverge/rl_baselines /bin/bash
+xhost +
+sudo docker run -it --runtime=nvidia -v $HOST_DIR:/rl_baselines_ad -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix --name PEPE munirjojoverge/rl_baselines /bin/bash

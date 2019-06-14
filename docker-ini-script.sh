@@ -13,7 +13,7 @@ pip install -r requirements.txt
 echo "###########################################"
 echo "## Running rl_baselines (Crtl+c to stop) ##"
 echo "###########################################"
-mpirun -bind-to none -np 4 --allow-run-as-root python baselines_run.py
+mpirun -bind-to none -np 1 --allow-run-as-root python baselines_run.py
 
 # Create a Volume where we will clone all the code
 #sudo docker volume create --name rl_baselines_v
