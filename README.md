@@ -177,6 +177,9 @@ DEFAULT_ARGUMENTS = [
 ​    ]
 ```
 
+if you have a s3 Drive mounted uncomment the s3pathname with the full path to the mounted drive. The load model method would automatically prioritize this path.
+
+
 ## How to Run
 
 On the command prompt run:
@@ -184,4 +187,7 @@ On the command prompt run:
 ```bash
 python baselines_run.py
 ```
-If you are using VS Code (Which I recommned) you can just press "F5" to run and debug.
+OR 
+
+./run_baseline.sh 70 (= number of workers/environments you want to parallely process. The parallelization uses MPI calls, which the baseline code supports)
+
