@@ -9,3 +9,4 @@ scipy==1.2.1
 pandas==0.24.2
 pygame==1.9.4
 joblib==0.13.2
+mpi4py==3.0.2

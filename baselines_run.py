@@ -49,7 +49,7 @@ from urban_env.envs.abstract import AbstractEnv
 
 
 from baselines.common.cmd_util import common_arg_parser, parse_unknown_args
-from baselines.results_plotter import plot_results
+#from baselines.results_plotter import plot_results
 from baselines.common.vec_env import VecEnv
 from baselines.common import tf_util,mpi_util
 from baselines import logger
@@ -68,7 +68,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0' 
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e3'
+num_timesteps = '1e0'
 #################################################################
 first_default_args_call  = True
 LOAD_PREV_MODEL = False
