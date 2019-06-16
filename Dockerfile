@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:latest-gpu-py3
+FROM tensorflow/tensorflow:latest
 MAINTAINER Munir Jojo-Verge <munir-jojoverge@havalus.com>
 
 RUN apt-get update && apt-get install -y \
