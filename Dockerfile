@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:latest
+FROM tensorflow/tensorflow:latest-py3
 MAINTAINER Munir Jojo-Verge <munir-jojoverge@havalus.com>
 
 RUN apt-get update && apt-get install -y \
