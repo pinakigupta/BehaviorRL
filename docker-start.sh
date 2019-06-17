@@ -84,10 +84,10 @@ fi
 # We are ready to run the main docker container
 if [ "$DISTRO" == "AmazonAMI" ]; then
         echo "docker run Amazon AMI version"
-	sudo docker run -it --runtime=nvidia -v $HOST_DIR:/rl_baselines_ad  munirjojoverge/rl_baselines /bin/bash docker-ini-script.sh
+	sudo docker run -it --runtime=nvidia -v $HOST_DIR:/rl_baselines_ad -v /tmp/.X11-unix:/tmp/.X11-unix munirjojoverge/rl_baselines /bin/bash
 else
         echo "docker run Ubuntu version"
 	xhost +
-	sudo docker run -it --runtime=nvidia -v $HOST_DIR:/rl_baselines_ad -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix  munirjojoverge/rl_baselines /bin/bash docker-ini-script.sh
+	sudo docker run -it --runtime=nvidia -v $HOST_DIR:/rl_baselines_ad -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix  munirjojoverge/rl_baselines /bin/bash
 fi
 
