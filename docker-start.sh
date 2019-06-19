@@ -22,6 +22,7 @@ unset UNAME
 echo $DISTRO
 
 if [ "$DISTRO" == "AmazonAMI" ]; then # Can also support Centos
+        echo "yum install into AmazonAMI DISTRO"
 	# If you have nvidia-docker 1.0 installed: we need to remove it and all existing GPU containers
 	docker volume ls -q -f driver=nvidia-docker | xargs -r -I{} -n1 docker ps -q -a -f volume={} | xargs -r docker rm -f
 	sudo yum remove nvidia-docker
@@ -41,7 +42,9 @@ if [ "$DISTRO" == "AmazonAMI" ]; then # Can also support Centos
     libosmesa6-dev patchelf ffmpeg xvfb
 
 else  # Ubuntu 
+        echo "sudo install into Ubuntu DISTRO"
 	# Add the package repositories
+        sudo apt-get install curl
 	curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | \
 	  sudo apt-key add -
 	distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
@@ -60,7 +63,7 @@ fi
 
 
 HOST_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-echo $HOST_DIR
+echo "HOST_DIR = " $HOST_DIR
 
 # Clone all
 
@@ -94,15 +97,15 @@ elif [ -r /sys/devices/virtual/dmi/id/product_uuid ]; then
   fi
 fi
 
-
-
-# We are ready to run the main docker container
-if [ $EC2Instance ]; then
-        echo "docker run Amazon AMI version"
-	sudo docker run -it --runtime=nvidia -v $HOST_DIR:/rl_baselines_ad munirjojoverge/rl_baselines /bin/bash
+echo "We are ready to run the main docker container"
+if [ $EC2Instance == true ]; then
+        echo "docker run EC2Instance version"
+	sudo docker run -it  pinakigupta/rl_baselines /bin/bash
 else
         echo "docker run Ubuntu version"
 	xhost +
-	sudo docker run -it --runtime=nvidia -v $HOST_DIR:/rl_baselines_ad -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix  munirjojoverge/rl_baselines /bin/bash
+	sudo docker run -it --runtime=nvidia -v $HOST_DIR:/rl_baselines_ad -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix  pinakigupta/rl_baselines /bin/bash
 fi
+
+
 
