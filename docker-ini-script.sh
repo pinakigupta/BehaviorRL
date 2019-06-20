@@ -15,7 +15,16 @@ echo "###########################################"
 echo "## Running rl_baselines (Crtl+c to stop) ##"
 echo "###########################################"
 
-mpirun -bind-to none -np $numprocessors --allow-run-as-root python baselines_run.py
+if [ $# > 0 ]
+  then
+    worker_numbers=$1
+  else
+    worker_numbers=$numprocessors
+fi
+
+
+#mpirun -bind-to none -np $numprocessors --allow-run-as-root python baselines_run.py
+./run_baseline.sh $worker_numbers
 
 # Create a Volume where we will clone all the code
 #sudo docker volume create --name rl_baselines_v

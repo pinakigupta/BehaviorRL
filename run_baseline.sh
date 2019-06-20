@@ -1,11 +1,12 @@
 #!/bin/sh
 
 
+
 if [ $# > 0 ]
   then
     worker_numbers=$1
   else
-    worker_numbers=1 
+    worker_numbers=1
 fi
 
 outputfile="output.txt"
