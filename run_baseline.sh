@@ -2,7 +2,7 @@
 
 
 
-if [ $# > 0 ]
+if [ $# \> 0 ]
   then
     worker_numbers=$1
   else
@@ -23,11 +23,11 @@ export USE_SIMPLE_THREADED_LEVEL=1;
 
 one=1
 
-if [ $worker_numbers==$one ]
-  then
-    python -W ignore  $runfile  2>&1 | tee  $outputfile
-  else
+if [ $worker_numbers > 1 ];  then
     mpirun  -bind-to none -np $worker_numbers --allow-run-as-root  python -W ignore $runfile  2>&1 | tee  $outputfile
+  else
+    echo "only one worker present"
+    python -W ignore  $runfile  2>&1 | tee  $outputfile
 fi
 
 

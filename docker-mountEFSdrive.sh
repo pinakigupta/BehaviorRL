@@ -1,12 +1,14 @@
 #!/bin/bash
 
-if [ $# > 0 ]
-  then
+if [ $# \> 0 ]; then
     extpath=$1
+    echo "extpath:" 
+    echo $extpath
+    echo $#
   else
     extpath="/groups/behavior/Pinaki/RL/rl_baselines_ad"
 fi
-
+echo "external path = " $extpath
 mountdir="/rl_baselines_ad"
 sudo apt-get install -y nfs-common autofs
 sudo mkdir $mountdir

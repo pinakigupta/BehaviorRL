@@ -13,6 +13,11 @@ RUN apt-get update && apt install -y python3-dev zlib1g-dev libjpeg-dev cmake sw
     libosmesa6-dev patchelf ffmpeg xvfb nfs-common autofs
 RUN apt-get update && apt-get install -y python-pip
 RUN pip3 install tensorflow  
+COPY ./requirements.txt /
+RUN pip install -r requirements.txt
+
+
+RUN pip install --ignore-installed gym
 
 FROM base AS intermediate
 # stage 2
@@ -24,6 +29,7 @@ FROM intermediate
 COPY ./docker-ini-script.sh /
 COPY ./docker-start.sh /
 COPY ./docker-mountEFSdrive.sh /
+
 
 
 
