@@ -42,7 +42,7 @@ Older versions of Docker were called docker, docker.io , or docker-engine. If th
 
 1) Clone this repository and make sure you include the openai baselines submodules by typing the following command
 ```bash
-git clone --recurse-submodules -j8 https://gitlab.com/havalus-gemini/behavior/rl_baselines_ad.git
+git clone --recurse-submodules  https://gitlab.com/havalus-gemini/behavior/rl_baselines_ad.git
 ```
 2) Navigate to the folder where you cloned this repo. 
 ```bash
