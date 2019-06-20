@@ -23,8 +23,8 @@ RUN mkdir /mnt/datastore &&  touch /root/fstab  && echo "LABEL=cloudimg-rootfs /
 FROM intermediate
 COPY ./docker-ini-script.sh /
 COPY ./docker-start.sh /
-COPY ./mountEFSdrive.sh /
-COPY ./run_baseline.sh /
+COPY ./docker-mountEFSdrive.sh /
+
 
 
 #ENTRYPOINT ["/docker-start.sh"]

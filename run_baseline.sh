@@ -9,6 +9,8 @@ if [ $# > 0 ]
     worker_numbers=1
 fi
 
+echo "number of workers are " "$worker_numbers"
+
 outputfile="output.txt"
 runfile="./baselines_run.py"
 pdb_commands="-m pdb -c continue"
@@ -21,11 +23,11 @@ export USE_SIMPLE_THREADED_LEVEL=1;
 
 one=1
 
-if [ $worker_numbers == $one ]
+if [ $worker_numbers==$one ]
   then
     python -W ignore  $runfile  2>&1 | tee  $outputfile
   else
-    mpirun  -np $worker_numbers --allow-run-as-root  python -W ignore $runfile  2>&1 | tee  $outputfile
+    mpirun  -bind-to none -np $worker_numbers --allow-run-as-root  python -W ignore $runfile  2>&1 | tee  $outputfile
 fi
 
 
