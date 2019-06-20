@@ -24,7 +24,7 @@ if [ $worker_numbers -eq $one ]
   then
     python -W ignore  $runfile  2>&1 | tee  $outputfile
   else
-    mpirun  -np $worker_numbers  python -W ignore $runfile  2>&1 | tee  $outputfile
+    mpirun  -np $worker_numbers --allow-run-as-root  python -W ignore $runfile  2>&1 | tee  $outputfile
 fi
 
 
