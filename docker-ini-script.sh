@@ -24,6 +24,7 @@ fi
 
 
 #mpirun -bind-to none -np $numprocessors --allow-run-as-root python baselines_run.py
+./mountEFSdrive.sh
 ./run_baseline.sh $worker_numbers
 
 # Create a Volume where we will clone all the code
