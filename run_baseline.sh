@@ -21,7 +21,7 @@ export USE_SIMPLE_THREADED_LEVEL=1;
 
 one=1
 
-if [ $worker_numbers -eq $one ]
+if [ $worker_numbers == $one ]
   then
     python -W ignore  $runfile  2>&1 | tee  $outputfile
   else

@@ -24,8 +24,13 @@ fi
 
 
 #mpirun -bind-to none -np $numprocessors --allow-run-as-root python baselines_run.py
-./mountEFSdrive.sh
-./run_baseline.sh $worker_numbers
+mount_FILENAME=mountEFSdrive.sh
+if [ -f $mount_FILENAME ]
+   then
+      sudo chmod a+x mountEFSdrive.sh
+      ./mountEFSdrive.sh
+fi
+bash ./run_baseline.sh $worker_numbers
 
 # Create a Volume where we will clone all the code
 #sudo docker volume create --name rl_baselines_v
