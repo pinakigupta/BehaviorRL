@@ -19,14 +19,17 @@ RUN pip install -r requirements.txt
 
 RUN pip install --ignore-installed gym
 
+
 FROM base AS intermediate
 # stage 2
+#RUN apt-get update && apt-get install -y software-properties-common apt-transport-https wget
+#RUN mkdir /mnt/datastore &&  touch /root/fstab  && echo "LABEL=cloudimg-rootfs / ext4 defaults,discard 0 0" >> /etc/fstab \
+#&& echo "fs-137189bb.efs.us-west-2.amazonaws.com:/ /mnt/datastore/ nfs4 auto,nofail,noatime,nolock,intr,tcp,actimeo=1800,nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport 0 0 #ls /mnt/datastore/" >> /etc/fstab
 
-RUN mkdir /mnt/datastore &&  touch /root/fstab  && echo "LABEL=cloudimg-rootfs / ext4 defaults,discard 0 0" >> /etc/fstab \
-&& echo "fs-137189bb.efs.us-west-2.amazonaws.com:/ /mnt/datastore/ nfs4 auto,nofail,noatime,nolock,intr,tcp,actimeo=1800,nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport 0 0 ls /mnt/datastore/" >> /etc/fstab
+
+
 
 FROM intermediate
-COPY ./docker-ini-script.sh /
 COPY ./docker-start.sh /
 COPY ./docker-mountEFSdrive.sh /
 

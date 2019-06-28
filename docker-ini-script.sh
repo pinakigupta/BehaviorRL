@@ -20,33 +20,18 @@ fi
 
 
 #mpirun -bind-to none -np $numprocessors --allow-run-as-root python baselines_run.py
-mount_FILENAME=docker-mountEFSdrive.sh
-if [ -f $mount_FILENAME ];   then
-      sudo chmod a+x $mount_FILENAME
-      bash ./$mount_FILENAME
-fi
-cd rl_baselines_ad
-
-#pip install --ignore-installed -e ./gym/
-
-
-#pip install -r requirements.txt
-
-
-bash ./run_baseline.sh $worker_numbers
-
-# Create a Volume where we will clone all the code
-#sudo docker volume create --name rl_baselines_v
+#mount_FILENAME=docker-mountEFSdrive.s
+#if [ -f $mount_FILENAME ];   then
+#      sudo chmod a+x $mount_FILENAME
+#      bash ./$mount_FILENAME
+#fi
+cd open_ai_baselines
+pip install --ignore-installed -e .
+cd ..
 
 
 
-#docker volume create my-vol
-# if [ "$1" != "" ]; then
-#     echo "Docker Image ID is:" $1
-#     docker cp docker-script.sh $1:/docker-script.sh
-#     docker run --entrypoint "/bin/bash" -it munirjojoverge/rl_baselines
-# else
-#     echo "Docker Image ID is empty"
-# fi
+EXECDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+bash $EXECDIR/run_baseline.sh $worker_numbers
 
 

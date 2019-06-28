@@ -64,11 +64,11 @@ warnings.filterwarnings("ignore")
 ###############################################################
 #        DEFINE YOUR "BASELINE" (AGENT) PARAMETERS HERE
 ###############################################################
-train_env_id = 'two-way-v0'
-play_env_id = 'two-way-v0' 
-alg = 'ppo2'
+train_env_id = 'parking_2outs-v0'
+play_env_id = 'parking_2outs-v0' 
+alg = 'ddpg'
 network = 'mlp'
-num_timesteps = '1e5'
+num_timesteps = '1e4'
 #################################################################
 first_default_args_call  = True
 LOAD_PREV_MODEL = False
