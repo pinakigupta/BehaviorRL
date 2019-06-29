@@ -87,6 +87,7 @@ class VehicleGraphics(object):
         textRect = text.get_rect() 
         textRect.center = (surface.pos2pix(v.position[0] , v.position[1] ))
         surface.blit(text, textRect)
+        print("Unable to render text", text)
                 
 
     @classmethod

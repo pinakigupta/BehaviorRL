@@ -64,14 +64,25 @@ warnings.filterwarnings("ignore")
 ###############################################################
 #        DEFINE YOUR "BASELINE" (AGENT) PARAMETERS HERE
 ###############################################################
+
 train_env_id = 'parking_2outs-v0'
 play_env_id = 'parking_2outs-v0' 
-alg = 'ddpg'
+alg = 'her'
 network = 'mlp'
-num_timesteps = '1e4'
+num_timesteps = '1e0'
+
+'''
+train_env_id = 'two-way-v0'
+play_env_id = 'two-way-v0' 
+alg = 'ppo2'
+network = 'mlp'
+num_timesteps = '1e0'
+
+'''
 #################################################################
-first_default_args_call  = True
-LOAD_PREV_MODEL = False
+first_default_args_call = True
+LOAD_PREV_MODEL = True
+
 
 def create_dirs(req_dirs):
     for dirName in req_dirs:
@@ -80,7 +91,6 @@ def create_dirs(req_dirs):
             # print("Directory " , dirName ,  " Created ")
         # else:
             # print("Directory " , dirName ,  " already exists")
-
 
 
 def is_master():
@@ -94,9 +104,11 @@ else:
 
 InceptcurrentDT = MPI.COMM_WORLD.bcast(InceptcurrentDT, root=0)
 
+
 def is_predict_only():
     return float(num_timesteps) == 1
 gym.Env.metadata['_predict_only'] = is_predict_only()
+
 
 def default_args(save_in_sub_folder=None):
     create_dirs(req_dirs)
@@ -118,12 +130,12 @@ def default_args(save_in_sub_folder=None):
     load_folder = modelpath + '/' + models_folder + \
         '/' + train_env_id + '/' + alg + '/' + network
 
-    if first_default_args_call :
+    if first_default_args_call:
         list_of_file = glob.glob(load_folder+'/*')
         if save_in_sub_folder is not None:
             save_folder += '/' + str(save_in_sub_folder)
         save_file = save_folder + '/' + str(currentDT)
-        first_default_args_call_Trigger  = True
+        first_default_args_call_Trigger = True
     else:
         if save_in_sub_folder is not None:
             save_folder += '/' + str(save_in_sub_folder)
@@ -139,8 +151,6 @@ def default_args(save_in_sub_folder=None):
 
     ###############################################################
 
-
-
     DEFAULT_ARGUMENTS = [
         '--env=' + train_env_id,
         '--alg=' + alg,
@@ -152,7 +162,6 @@ def default_args(save_in_sub_folder=None):
         #    '--play'
         #    '--num_env=8'
     ]
-
 
     def copy_terminal_output_file():
         src = os.getcwd() + '/' + terminal_output_file_name
@@ -183,19 +192,19 @@ def default_args(save_in_sub_folder=None):
 
     def load_model(load_file=None):
         if load_file is not None:
-           if (not LOAD_PREV_MODEL) and first_default_args_call :
-              return
-           DEFAULT_ARGUMENTS.append('--load_path=' + load_file)
-           print("Loading file", load_file)
+            if (not LOAD_PREV_MODEL) and first_default_args_call:
+                return
+            DEFAULT_ARGUMENTS.append('--load_path=' + load_file)
+            print("Loading file", load_file)
         return
 
     terminal_output_file_name = 'output.txt'
 
     def is_empty_directory(directorypath):
         if not os.path.isdir(directorypath):
-               return False
+            return False
         if not os.listdir(directorypath):
-               return True
+            return True
         return False
 
     def filetonum(filename):
@@ -209,40 +218,42 @@ def default_args(save_in_sub_folder=None):
             return None
         for fileorfoldername in list_of_file_or_folders:
             if '.' in fileorfoldername:
-               list_of_file_or_folders.remove(fileorfoldername)
+                list_of_file_or_folders.remove(fileorfoldername)
             elif is_empty_directory(directorypath=fileorfoldername): # remove empty directories
-                 list_of_file_or_folders.remove(fileorfoldername)
+                list_of_file_or_folders.remove(fileorfoldername)
         return list_of_file_or_folders
 
-
     def latest_model_file_from_list_of_files_and_folders(list_of_files):
-        list_of_file_or_folders = purge_names_not_matching_pattern(list_of_file_or_folders =list_of_files )
-        if not list_of_file_or_folders :
+        list_of_file_or_folders = purge_names_not_matching_pattern\
+                            (list_of_file_or_folders=list_of_files )
+        if not list_of_file_or_folders:
             return None
         latest_file_or_folder = max(list_of_file_or_folders, key=filetonum)
-        if os.path.isdir(latest_file_or_folder) :
+        if os.path.isdir(latest_file_or_folder):
             list_of_files_and_folders_in_subdir = glob.glob(latest_file_or_folder+'/*')
             latest_model_file_in_subdir = \
-                    latest_model_file_from_list_of_files_and_folders(list_of_files_and_folders_in_subdir)
+                                        latest_model_file_from_list_of_files_and_folders\
+                                        (list_of_files_and_folders_in_subdir)
             if latest_model_file_in_subdir is None:
                 list_of_file_or_folders.remove(latest_file_or_folder)
                 return latest_model_file_from_list_of_files_and_folders(list_of_file_or_folders)
             else:
                 return latest_model_file_in_subdir
-        return latest_file_or_folder # must be a file
+        return  latest_file_or_folder # must be a file
 
     if list_of_file:  # is there anything in the save directory
-       if save_in_sub_folder is  None:
-          load_last_model = LOAD_PREV_MODEL
-       else:
-          load_last_model = LOAD_PREV_MODEL or not first_default_args_call 
+        if save_in_sub_folder is None:
+            load_last_model = LOAD_PREV_MODEL
+        else:
+            load_last_model = LOAD_PREV_MODEL or not first_default_args_call
 
-       if load_last_model:
-          latest_file = latest_model_file_from_list_of_files_and_folders(list_of_files=list_of_file)
-          load_model(load_file=latest_file)
-          save_model(save_file=save_file)
-       else:
-          save_model(save_file=save_file)
+        if load_last_model:
+            latest_file = latest_model_file_from_list_of_files_and_folders\
+                        (list_of_files=list_of_file)
+            load_model(load_file=latest_file)
+            save_model(save_file=save_file)
+        else:
+            save_model(save_file=save_file)
     else:
         print(" list_of_file empty in load path ", load_folder)
         save_model(save_file=save_file)
@@ -277,7 +288,7 @@ def play(env, policy):
         print(extra_obs)
 
                 
-        print("Optimal action ",AbstractEnv.ACTIONS[actions[0]], "\n" )
+        print("Optimal action ",AbstractEnv.ACTIONS[actions[0]], "\n")
 
     episode_rew = 0 
     episode_len = 0
@@ -288,12 +299,14 @@ def play(env, policy):
         else:
             actions, _, _, _ = policy.step(obs)
 
-        obs, rew, done, info = env.step(actions[0])
+        if len(actions)==1 :
+            actions = actions[0]
+        obs, rew, done, info = env.step(actions)
         if ego_x0 is None:
             ego_x0 = env.vehicle.position[0]
         episode_travel = env.vehicle.position[0]-ego_x0
-        if episode_len%10 ==0 and is_predict_only():
-            print_action_and_obs()  
+        #if episode_len%10 ==0 and is_predict_only():
+        #    print_action_and_obs()  
        # print(env._max_episode_step)
         episode_rew += rew
         episode_len += 1
@@ -321,7 +334,6 @@ if __name__ == "__main__":
             sess = tf_util.get_session()
             sess.close()
             tf.reset_default_graph()
-            play_env = gym.make(play_env_id)
             print(" Batch iteration ", mega_batch_itr)
             #gym.Env.metadata['_mega_batch_itr'] = mega_batch_itr
             print("(rank , size) = ",mpi_util.get_local_rank_size(MPI.COMM_WORLD))
@@ -338,6 +350,7 @@ if __name__ == "__main__":
             mega_batch_itr += 1
             print()
 
+            play_env = gym.make(play_env_id)            
             '''try:
                 play(play_env, policy)
             except Exception as e:
@@ -348,8 +361,8 @@ if __name__ == "__main__":
     else:
         DFLT_ARGS = default_args()
         loaded_file_correctly = ('load_path' in stringarg for stringarg in DFLT_ARGS)
-        policy = run.main(DFLT_ARGS)
         play_env = gym.make(play_env_id)
+        policy = run.main(DFLT_ARGS)
         # Just try to Play
         while loaded_file_correctly:
             play(play_env, policy)

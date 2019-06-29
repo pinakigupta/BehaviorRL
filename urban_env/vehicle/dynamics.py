@@ -257,7 +257,7 @@ class Vehicle(Loggable):
 
     @abc.abstractmethod
     def Id(self):
-        raise NotImplementedError()
+        return "V"+str(id(self))[-3:]
 
 
 class Obstacle(Vehicle):

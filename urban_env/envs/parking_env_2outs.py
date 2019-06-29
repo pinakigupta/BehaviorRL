@@ -309,7 +309,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             Create some new random vehicles of a given type, and add them on the road.
         """
         ##### ADDING EGO #####
-        self.vehicle = Vehicle(self.road, [0, 0], 2*np.pi*self.np_random.rand(), velocity=0)
+        self.vehicle = Vehicle(self.road, [0, 0], heading=2*np.pi*self.np_random.rand(), velocity=0)
         self.vehicle.MAX_VELOCITY = self.PARKING_MAX_VELOCITY
         self.road.vehicles.append(self.vehicle)
         

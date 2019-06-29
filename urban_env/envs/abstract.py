@@ -102,6 +102,7 @@ class AbstractEnv(gym.Env):
         self.should_update_rendering = True
         self.rendering_mode = 'human'
         self.enable_auto_render = False
+        self._max_episode_steps = None
 
         
 
