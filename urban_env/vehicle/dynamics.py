@@ -200,7 +200,7 @@ class Vehicle(Loggable):
         }
         if origin_vehicle:
             origin_dict = origin_vehicle.to_dict()
-            for key in ['x']:
+            for key in []:
                 d[key] -= origin_dict[key]
         return d
 

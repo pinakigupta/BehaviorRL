@@ -76,7 +76,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0' 
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e0'
+num_timesteps = '1e5'
 
 '''
 #################################################################
@@ -280,15 +280,13 @@ def play(env, policy):
     def print_action_and_obs():
         print('episode_rew={}'.format(episode_rew), '  episode_len={}'.format(episode_len),\
                 'episode_travel = ', episode_travel)
-        print("obs space ")
-        obs_format = pp.pformat(np.round(np.reshape(obs,(6, 5)),3))
-        obs_format = obs_format.rstrip("\n")
-        extra_obs = pp.pformat(info["extra_obs"])
-        print(obs_format)
-        print(extra_obs)
+        env.print_obs_space()
+        if "extra_obs" in info:
+            extra_obs = pp.pformat(info["extra_obs"])
+            print(extra_obs)
 
                 
-        print("Optimal action ",AbstractEnv.ACTIONS[actions[0]], "\n")
+        #print("Optimal action ",AbstractEnv.ACTIONS[actions[0]], "\n")
 
     episode_rew = 0 
     episode_len = 0
@@ -305,8 +303,8 @@ def play(env, policy):
         if ego_x0 is None:
             ego_x0 = env.vehicle.position[0]
         episode_travel = env.vehicle.position[0]-ego_x0
-        #if episode_len%10 ==0 and is_predict_only():
-        #    print_action_and_obs()  
+        if (episode_len % 10 == 0) and is_predict_only():
+            print_action_and_obs()  
        # print(env._max_episode_step)
         episode_rew += rew
         episode_len += 1
