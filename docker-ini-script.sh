@@ -26,6 +26,12 @@ fi
 #      bash ./$mount_FILENAME
 #fi
 cd open_ai_baselines
+if cd baselines; then
+	git pull; 
+	cd ..;
+else 
+	git clone https://github.com/openai/baselines.git;
+fi
 pip install --ignore-installed -e .
 cd ..
 
