@@ -29,7 +29,7 @@ cd open_ai_baselines
 pip install --ignore-installed -e .
 cd ..
 
-
+sudo apt-get -y install tmux
 
 EXECDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 bash $EXECDIR/run_baseline.sh $worker_numbers

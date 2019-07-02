@@ -76,7 +76,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0' 
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e5'
+num_timesteps = '1e0'
 
 '''
 #################################################################
@@ -239,7 +239,7 @@ def default_args(save_in_sub_folder=None):
                 return latest_model_file_from_list_of_files_and_folders(list_of_file_or_folders)
             else:
                 return latest_model_file_in_subdir
-        return  latest_file_or_folder # must be a file
+        return latest_file_or_folder # must be a file
 
     if list_of_file:  # is there anything in the save directory
         if save_in_sub_folder is None:

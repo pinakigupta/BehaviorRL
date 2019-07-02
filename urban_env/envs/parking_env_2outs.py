@@ -77,7 +77,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         "other_vehicles_type": "urban_AD_env.vehicle.behavior.IDMVehicle",
         "centering_position": [0.5, 0.5],
         "parking_spots": 15, #'random', # Parking Spots Per side
-        "vehicles_count": 10, #'random', # Total number of cars in the parking (apart from Ego)
+        "vehicles_count": 'random', # Total number of cars in the parking (apart from Ego)
         "screen_width": 600 * 2,
         "screen_height": 300 * 2 
     }    
@@ -394,5 +394,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         print(self.previous_obs["achieved_goal"])
         print("desired_goal")
         print(self.previous_obs["desired_goal"])
+        print("actions")
+        print("Optimal action ",self.previous_action, "\n")
 
                 
