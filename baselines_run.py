@@ -45,17 +45,19 @@ warnings.filterwarnings("ignore")
 ###############################################################
 #train_env_id =  'merge-v0'
 #train_env_id =  'roundabout-v0'
-train_env_id =  'two-way-v0'
+#train_env_id =  'two-way-v0'
 #train_env_id =  'parking_2outs-v0'
+train_env_id =  'multilane-v0'
 
 play_env_id = ''
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e5'
+num_timesteps = '2e3'
 #load_file_name = '20190511-121635' # 'merge-v0'
 #load_file_name = '20190510-100005' # 'roundabout-v0'
-load_file_name = '20190511-180238' # 'two-way-v0'
+#load_file_name = '20190511-180238' # 'two-way-v0'
 #load_file_name = '20190506-082121' # 'parking_2outs-v0'
+load_file_name = 'empty' # 'multilane-v0'
 #################################################################
 
 def create_dirs(req_dirs):
@@ -94,18 +96,18 @@ def default_args():
         '--play'
     ]
 
-    if list_of_file:
-        latest_file = max( list_of_file, key=os.path.getctime)
-        load_path = latest_file 
-        print("load_path",load_path)
-        DEFAULT_ARGUMENTS.append('--load_path=' + load_path) 
+    if load_file_name == 'empty':
+        print(" list_of_file empty in load path ", save_folder)
+        print('We will train from scratch')       
     elif load_file_name != '':
         load_path = load_file_name
         print("load_path",load_path)
         DEFAULT_ARGUMENTS.append('--load_path=' + load_path) 
     else:
-        print(" list_of_file empty in load path ", save_folder)
-        print('We will train from scratch')        
+        latest_file = max( list_of_file, key=os.path.getctime)
+        load_path = latest_file 
+        print("load_path",load_path)
+        DEFAULT_ARGUMENTS.append('--load_path=' + load_path)       
 
     return DEFAULT_ARGUMENTS
 
