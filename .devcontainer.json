@@ -16,7 +16,7 @@
 
         "settings": {
             "remote.extensionKind": {
-                "peterjausovec.vscode-docker": "workspace"
+                "pinakigupta.vscode-docker": "workspace"
             }
         },
 }

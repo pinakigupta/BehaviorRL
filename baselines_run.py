@@ -10,6 +10,9 @@ import os
 from os.path import dirname, abspath
 import time
 import pprint
+import ray
+from ray.tune import run_experiments
+from ray.rllib.agents import a3c
 pp = pprint.PrettyPrinter(indent=4)
 ####################
 pathname = os.getcwd()
