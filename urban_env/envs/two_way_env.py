@@ -53,7 +53,11 @@ class TwoWayEnv(AbstractEnv):
 
     def step(self, action):
         self.steps += 1
-        return super(TwoWayEnv, self).step(action)
+        self.previous_action = action
+        obs, rew, done, info = super(TwoWayEnv, self).step(action)
+        self.previous_obs = obs
+        return (obs, rew, done, info)
+
 
     def _reward(self, action):
         """
@@ -216,5 +220,14 @@ class TwoWayEnv(AbstractEnv):
                 v.velocity = max(0,4 + self.np_random.randn())
             self.road.vehicles.append(v)
 
-
+    def print_obs_space(self):
+        print("obs space ")
+        import pprint
+        pp = pprint.PrettyPrinter(indent=4)
+        obs_format = pp.pformat(np.round(np.reshape(self.previous_obs,(6, 5)),3))
+        obs_format = obs_format.rstrip("\n")
+        print(obs_format)
+        print(self.previous_obs)
+        print("actions")
+        print("Optimal action ", AbstractEnv.ACTIONS[self.previous_action], "\n")
 

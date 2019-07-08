@@ -11,7 +11,7 @@ from os.path import dirname, abspath
 import time
 import pprint
 import ray
-from ray.tune import run_experiments
+from ray.tune import run_experiments,register_env
 from ray.rllib.agents import a3c
 pp = pprint.PrettyPrinter(indent=4)
 ####################
@@ -67,7 +67,7 @@ warnings.filterwarnings("ignore")
 ###############################################################
 #        DEFINE YOUR "BASELINE" (AGENT) PARAMETERS HERE
 ###############################################################
-
+'''
 train_env_id = 'parking_2outs-v0'
 play_env_id = 'parking_2outs-v0' 
 alg = 'her'
@@ -81,7 +81,7 @@ alg = 'ppo2'
 network = 'mlp'
 num_timesteps = '1e0'
 
-'''
+
 #################################################################
 first_default_args_call = True
 LOAD_PREV_MODEL = True
