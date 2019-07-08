@@ -322,13 +322,13 @@ def ray_train():
     run_experiments({
                         "pygame-a3c": {
                                         "run": "A3C",
-                                        "env": train_env_id,
+                                        "env": TwoWayEnv,
                                         "stop": {"training_iteration": 50000},
                                         "checkpoint_at_end": True,
                                         "checkpoint_freq": 100,
                                         "config": {
                                                     # "env_config": env_config,
-                                                    "num_gpus_per_worker": 0.2,
+                                                    "num_gpus_per_worker": 0,
                                                     "num_cpus_per_worker": 2,
                                                     "gamma": 0.85,
                                                     "num_workers": 5,
@@ -381,8 +381,8 @@ if __name__ == "__main__":
         DFLT_ARGS = default_args()
         loaded_file_correctly = (
             'load_path' in stringarg for stringarg in DFLT_ARGS)
-        play_env = gym.make(play_env_id)
-        policy = run.main(DFLT_ARGS)
+        #play_env = gym.make(play_env_id)
+        #policy = run.main(DFLT_ARGS)
         # Just try to Play
         ray_train()
         while loaded_file_correctly:

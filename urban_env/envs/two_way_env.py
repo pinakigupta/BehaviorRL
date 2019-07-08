@@ -43,12 +43,13 @@ class TwoWayEnv(AbstractEnv):
         "centering_position": [0.3, 0.5]
     }
 
-    def __init__(self):
+    def __init__(self, config=None):
         super(TwoWayEnv, self).__init__()
         self.steps = 0
         self.reset()
         self.goal_achieved = False
         self.ego_x0 = None
+
         
 
     def step(self, action):
@@ -70,7 +71,7 @@ class TwoWayEnv(AbstractEnv):
 
         #print("self.vehicle.position  ",self.vehicle.position)
         if self.ego_x0 is not None:
-            if not gym.Env.metadata['_predict_only']:
+            if ('_predict_only', False) in gym.Env.metadata.items():
                 if '_mega_batch_itr' in gym.Env.metadata:
                     low = 60*gym.Env.metadata['_mega_batch_itr']
                     high = low + 20*gym.Env.metadata['_mega_batch_itr']
