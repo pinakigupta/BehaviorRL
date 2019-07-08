@@ -3,6 +3,18 @@
 #                  Created/Modified on: February 5, 2019
 #                      Author: Munir Jojo-Verge
 #######################################################################
+from settings import req_dirs, models_folder
+from urban_env.envs.two_way_env import TwoWayEnv
+from urban_env.envs.abstract import AbstractEnv
+from mpi4py import MPI
+from shutil import copyfile
+import subprocess
+import warnings
+import glob
+import numpy as np
+import urban_env
+import gym
+import tensorflow as tf
 
 from settings import req_dirs, models_folder
 import sys
@@ -11,7 +23,7 @@ from os.path import dirname, abspath
 import time
 import pprint
 import ray
-from ray.tune import run_experiments,register_env
+from ray.tune import run_experiments, register_env
 from ray.rllib.agents import a3c
 pp = pprint.PrettyPrinter(indent=4)
 ####################
@@ -19,9 +31,7 @@ pathname = os.getcwd()
 homepath = os.path.expanduser("~")
 #s3pathname = homepath+'/s3-drive/groups/Behavior/Pinaki'
 
-####################
 
-####################
 
 urban_AD_env_path = pathname + '/urban_env/envs'
 # print(urban_AD_env_path)
@@ -32,33 +42,15 @@ open_ai_baselines_dir = pathname + '/open_ai_baselines'
 sys.path.append(open_ai_baselines_dir)
 sys.path.append(urban_AD_env_path)
 
-import baselines.run as run
-from baselines import logger
-from baselines.common.vec_env import  VecEnv
-from baselines.common import tf_util
-import tensorflow as tf
 
-import gym
-import urban_env
-import numpy as np
-import glob
-import warnings
-import subprocess
+####################
 
-import tensorflow as tf
-from shutil import copyfile
-from mpi4py import MPI
-from urban_env.envs.abstract import AbstractEnv
-
-
-from baselines.common.cmd_util import common_arg_parser, parse_unknown_args
-#from baselines.results_plotter import plot_results
+from baselines.common import tf_util, mpi_util
 from baselines.common.vec_env import VecEnv
-from baselines.common import tf_util,mpi_util
 from baselines import logger
 import baselines.run as run
 
-
+####################
 
 #os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 warnings.filterwarnings("ignore")
@@ -76,12 +68,13 @@ num_timesteps = '1e0'
 
 '''
 train_env_id = 'two-way-v0'
-play_env_id = 'two-way-v0' 
+play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
 num_timesteps = '1e0'
 
-
+ray.init()
+register_env(train_env_id, lambda _: TwoWayEnv)
 #################################################################
 first_default_args_call = True
 LOAD_PREV_MODEL = True
@@ -97,7 +90,7 @@ def create_dirs(req_dirs):
 
 
 def is_master():
-    return MPI.COMM_WORLD.Get_rank()==0
+    return MPI.COMM_WORLD.Get_rank() == 0
 
 
 if is_master():
@@ -110,6 +103,8 @@ InceptcurrentDT = MPI.COMM_WORLD.bcast(InceptcurrentDT, root=0)
 
 def is_predict_only():
     return float(num_timesteps) == 1
+
+
 gym.Env.metadata['_predict_only'] = is_predict_only()
 
 
@@ -117,7 +112,7 @@ def default_args(save_in_sub_folder=None):
     create_dirs(req_dirs)
 
     currentDT = time.strftime("%Y%m%d-%H%M%S")
-    global first_default_args_call 
+    global first_default_args_call
     ####################################################################
     # DEFINE YOUR SAVE FILE, LOAD FILE AND LOGGING FILE PARAMETERS HERE
     ####################################################################
@@ -170,7 +165,7 @@ def default_args(save_in_sub_folder=None):
         src = os.getcwd() + '/' + terminal_output_file_name
         dst = save_folder + '/' + terminal_output_file_name
         if not os.path.exists(save_folder):
-           os.mkdir(save_folder)
+            os.mkdir(save_folder)
         copyfile(src, dst)
 
     def create_save_folder(save_folder):
@@ -212,7 +207,7 @@ def default_args(save_in_sub_folder=None):
 
     def filetonum(filename):
         try:
-            return int(filename.split('/')[-1].replace('-',''))
+            return int(filename.split('/')[-1].replace('-', ''))
         except:
             return -1
 
@@ -222,27 +217,29 @@ def default_args(save_in_sub_folder=None):
         for fileorfoldername in list_of_file_or_folders:
             if '.' in fileorfoldername:
                 list_of_file_or_folders.remove(fileorfoldername)
-            elif is_empty_directory(directorypath=fileorfoldername): # remove empty directories
+            # remove empty directories
+            elif is_empty_directory(directorypath=fileorfoldername):
                 list_of_file_or_folders.remove(fileorfoldername)
         return list_of_file_or_folders
 
     def latest_model_file_from_list_of_files_and_folders(list_of_files):
-        list_of_file_or_folders = purge_names_not_matching_pattern\
-                            (list_of_file_or_folders=list_of_files )
+        list_of_file_or_folders = purge_names_not_matching_pattern(
+            list_of_file_or_folders=list_of_files)
         if not list_of_file_or_folders:
             return None
         latest_file_or_folder = max(list_of_file_or_folders, key=filetonum)
         if os.path.isdir(latest_file_or_folder):
-            list_of_files_and_folders_in_subdir = glob.glob(latest_file_or_folder+'/*')
+            list_of_files_and_folders_in_subdir = glob.glob(
+                latest_file_or_folder+'/*')
             latest_model_file_in_subdir = \
-                                        latest_model_file_from_list_of_files_and_folders\
-                                        (list_of_files_and_folders_in_subdir)
+                latest_model_file_from_list_of_files_and_folders(
+                    list_of_files_and_folders_in_subdir)
             if latest_model_file_in_subdir is None:
                 list_of_file_or_folders.remove(latest_file_or_folder)
                 return latest_model_file_from_list_of_files_and_folders(list_of_file_or_folders)
             else:
                 return latest_model_file_in_subdir
-        return latest_file_or_folder # must be a file
+        return latest_file_or_folder  # must be a file
 
     if list_of_file:  # is there anything in the save directory
         if save_in_sub_folder is None:
@@ -251,8 +248,8 @@ def default_args(save_in_sub_folder=None):
             load_last_model = LOAD_PREV_MODEL or not first_default_args_call
 
         if load_last_model:
-            latest_file = latest_model_file_from_list_of_files_and_folders\
-                        (list_of_files=list_of_file)
+            latest_file = latest_model_file_from_list_of_files_and_folders(
+                list_of_files=list_of_file)
             load_model(load_file=latest_file)
             save_model(save_file=save_file)
         else:
@@ -281,17 +278,16 @@ def play(env, policy):
     dones = np.zeros((1,))
 
     def print_action_and_obs():
-        print('episode_rew={}'.format(episode_rew), '  episode_len={}'.format(episode_len),\
-                'episode_travel = ', episode_travel)
+        print('episode_rew={}'.format(episode_rew), '  episode_len={}'.format(episode_len),
+              'episode_travel = ', episode_travel)
         env.print_obs_space()
         if "extra_obs" in info:
             extra_obs = pp.pformat(info["extra_obs"])
             print(extra_obs)
 
-                
         #print("Optimal action ",AbstractEnv.ACTIONS[actions[0]], "\n")
 
-    episode_rew = 0 
+    episode_rew = 0
     episode_len = 0
     ego_x0 = None
     while True:
@@ -300,26 +296,48 @@ def play(env, policy):
         else:
             actions, _, _, _ = policy.step(obs)
 
-        if len(actions)==1 :
+        if len(actions) == 1:
             actions = actions[0]
         obs, rew, done, info = env.step(actions)
         if ego_x0 is None:
             ego_x0 = env.vehicle.position[0]
         episode_travel = env.vehicle.position[0]-ego_x0
         if (episode_len % 10 == 0) and is_predict_only():
-            print_action_and_obs()  
+            print_action_and_obs()
        # print(env._max_episode_step)
         episode_rew += rew
         episode_len += 1
         env.render()
         done = done.any() if isinstance(done, np.ndarray) else done
-  
+
         if done:
             print_action_and_obs()
             episode_rew = 0
             episode_len = 0
             env.close()
             break
+
+
+def ray_train():
+    run_experiments({
+                        "pygame-a3c": {
+                                        "run": "A3C",
+                                        "env": train_env_id,
+                                        "stop": {"training_iteration": 50000},
+                                        "checkpoint_at_end": True,
+                                        "checkpoint_freq": 100,
+                                        "config": {
+                                                    # "env_config": env_config,
+                                                    "num_gpus_per_worker": 0.2,
+                                                    "num_cpus_per_worker": 2,
+                                                    "gamma": 0.85,
+                                                    "num_workers": 5,
+                                                  },
+                                      },
+                     },
+        resume=False,
+        reuse_actors=False,
+                   )
 
 
 if __name__ == "__main__":
@@ -337,7 +355,7 @@ if __name__ == "__main__":
             tf.reset_default_graph()
             print(" Batch iteration ", mega_batch_itr)
             #gym.Env.metadata['_mega_batch_itr'] = mega_batch_itr
-            print("(rank , size) = ",mpi_util.get_local_rank_size(MPI.COMM_WORLD))
+            print("(rank , size) = ", mpi_util.get_local_rank_size(MPI.COMM_WORLD))
             if len(sys_args) <= 1:
                 save_in_sub_folder = None
                 if max_iteration > 1:
@@ -351,7 +369,7 @@ if __name__ == "__main__":
             mega_batch_itr += 1
             print()
 
-            play_env = gym.make(play_env_id)            
+            play_env = gym.make(play_env_id)
             '''try:
                 play(play_env, policy)
             except Exception as e:
@@ -361,13 +379,11 @@ if __name__ == "__main__":
 
     else:
         DFLT_ARGS = default_args()
-        loaded_file_correctly = ('load_path' in stringarg for stringarg in DFLT_ARGS)
+        loaded_file_correctly = (
+            'load_path' in stringarg for stringarg in DFLT_ARGS)
         play_env = gym.make(play_env_id)
         policy = run.main(DFLT_ARGS)
         # Just try to Play
+        ray_train()
         while loaded_file_correctly:
             play(play_env, policy)
-
-
-    
-
