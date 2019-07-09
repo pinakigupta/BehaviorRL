@@ -73,7 +73,10 @@ alg = 'ppo2'
 network = 'mlp'
 num_timesteps = '10000'
 
-ray.init()
+
+redis_addr = "172.17.0.3:6379"
+print("ray.services.get_node_ip_address",redis_addr)
+ray.init(redis_address=redis_addr)
 register_env(train_env_id, lambda _: TwoWayEnv)
 #################################################################
 first_default_args_call = True
@@ -173,7 +176,10 @@ def default_args(save_in_sub_folder=None):
         dst = save_folder + '/' + terminal_output_file_name
         if not os.path.exists(save_folder):
             os.mkdir(save_folder)
-        copyfile(src, dst)
+        if os.path.exists(src):
+            copyfile(src, dst)
+        else:
+            print("out put file ",terminal_output_file_name,"doesn't exist")
 
     def create_save_folder(save_folder):
         try:
@@ -337,10 +343,10 @@ def ray_train(save_in_sub_folder=None):
                                         "checkpoint_freq": 100,
                                         "config": {
                                                     # "env_config": env_config,
-                                                    "num_gpus_per_worker": 0.2,
+                                                    "num_gpus_per_worker": 0,
                                                     "num_cpus_per_worker": 2,
                                                     "gamma": 0.85,
-                                                    "num_workers": 5,
+                                                    "num_workers": 35,
                                                   },
                                         "local_dir": save_in_sub_folder,
                                       },
