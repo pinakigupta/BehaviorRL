@@ -24,7 +24,7 @@ import time
 import pprint
 import ray
 from ray.tune import run_experiments, register_env
-from ray.rllib.agents import a3c
+#from ray.rllib.agents import a3c
 pp = pprint.PrettyPrinter(indent=4)
 ####################
 pathname = os.getcwd()
@@ -71,7 +71,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1e0'
+num_timesteps = '10000'
 
 ray.init()
 register_env(train_env_id, lambda _: TwoWayEnv)
@@ -161,6 +161,13 @@ def default_args(save_in_sub_folder=None):
         #    '--num_env=8'
     ]
 
+    DEFAULT_ARGUMENTS_DICT = {
+        'env': train_env_id,
+        'alg': alg,
+        'network': network,
+        'num_timesteps': num_timesteps
+    }
+
     def copy_terminal_output_file():
         src = os.getcwd() + '/' + terminal_output_file_name
         dst = save_folder + '/' + terminal_output_file_name
@@ -183,6 +190,7 @@ def default_args(save_in_sub_folder=None):
                 if MPI is None or is_master():
                     create_save_folder(save_folder=save_folder)
                     DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
+                    DEFAULT_ARGUMENTS_DICT['save_path'] = save_file
                     print("Saving file", save_file)
                     copy_terminal_output_file()
                     # DEFAULT_ARGUMENTS.append('--tensorboard --logdir=' + tb_logger_path)
@@ -193,6 +201,7 @@ def default_args(save_in_sub_folder=None):
             if (not LOAD_PREV_MODEL) and first_default_args_call:
                 return
             DEFAULT_ARGUMENTS.append('--load_path=' + load_file)
+            DEFAULT_ARGUMENTS_DICT['load_path'] = load_file
             print("Loading file", load_file)
         return
 
@@ -263,7 +272,7 @@ def default_args(save_in_sub_folder=None):
     if first_default_args_call_Trigger:
         first_default_args_call = False
 
-    return DEFAULT_ARGUMENTS
+    return DEFAULT_ARGUMENTS, DEFAULT_ARGUMENTS_DICT
 
 
 def play(env, policy):
@@ -318,21 +327,22 @@ def play(env, policy):
             break
 
 
-def ray_train():
+def ray_train(save_in_sub_folder=None):
     run_experiments({
-                        "pygame-a3c": {
-                                        "run": "A3C",
+                        "pygame-ray": {
+                                        "run": "PPO",
                                         "env": TwoWayEnv,
-                                        "stop": {"training_iteration": 50000},
+                                        "stop": {"training_iteration": int(num_timesteps)},
                                         "checkpoint_at_end": True,
                                         "checkpoint_freq": 100,
                                         "config": {
                                                     # "env_config": env_config,
-                                                    "num_gpus_per_worker": 0,
+                                                    "num_gpus_per_worker": 0.2,
                                                     "num_cpus_per_worker": 2,
                                                     "gamma": 0.85,
                                                     "num_workers": 5,
                                                   },
+                                        "local_dir": save_in_sub_folder,
                                       },
                      },
         resume=False,
@@ -345,6 +355,7 @@ if __name__ == "__main__":
     mega_batch_itr = 1
     sys_args = sys.argv
 
+    TRAIN_WITH_RAY = True
     policy = None
     play_env = None
     max_iteration = 1
@@ -356,18 +367,24 @@ if __name__ == "__main__":
             print(" Batch iteration ", mega_batch_itr)
             #gym.Env.metadata['_mega_batch_itr'] = mega_batch_itr
             print("(rank , size) = ", mpi_util.get_local_rank_size(MPI.COMM_WORLD))
-            if len(sys_args) <= 1:
-                save_in_sub_folder = None
-                if max_iteration > 1:
-                    save_in_sub_folder = InceptcurrentDT
-                args = default_args(save_in_sub_folder=save_in_sub_folder)
 
-            policy = run.main(args)
-            MPI.COMM_WORLD.barrier()
+            if TRAIN_WITH_RAY:
+                save_in_sub_folder = InceptcurrentDT
+                args, args_dict = default_args(save_in_sub_folder=save_in_sub_folder)
+                ray_train(save_in_sub_folder=args_dict['save_path'])
+            else:
+                print("(rank , size) = ", mpi_util.get_local_rank_size(MPI.COMM_WORLD))
+                if len(sys_args) <= 1:
+                    save_in_sub_folder = None
+                    if max_iteration > 1:
+                        save_in_sub_folder = InceptcurrentDT
+                    args, args_dict = default_args(save_in_sub_folder=save_in_sub_folder)
+                policy = run.main(args)
+                MPI.COMM_WORLD.barrier()
+
 
             # print("policy training args ", args,"\n\n")
             mega_batch_itr += 1
-            print()
 
             play_env = gym.make(play_env_id)
             '''try:
@@ -384,6 +401,5 @@ if __name__ == "__main__":
         #play_env = gym.make(play_env_id)
         #policy = run.main(DFLT_ARGS)
         # Just try to Play
-        ray_train()
         while loaded_file_correctly:
             play(play_env, policy)
