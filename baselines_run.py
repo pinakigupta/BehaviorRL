@@ -73,6 +73,7 @@ alg = 'ppo2'
 network = 'mlp'
 num_timesteps = '10000'
 
+redis_add = ray.services.get_node_ip_address() + ":6379"
 ray.init()
 register_env(train_env_id, lambda _: TwoWayEnv)
 #################################################################

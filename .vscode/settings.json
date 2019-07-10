@@ -3,5 +3,10 @@
     "python.pythonPath": "/usr/bin/python3",
     "python.linting.pep8Enabled": true,
     "python.linting.enabled": true,
-    "terminal.integrated.shell.linux": "/bin/bash"
+    "terminal.integrated.shell.linux": "/bin/bash",
+    "remote.SSH.defaultExtensions": [
+        "ms-python.python",
+        "Pylint",
+        "elken.mux"
+    ]
 }
