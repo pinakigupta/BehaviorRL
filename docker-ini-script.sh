@@ -26,12 +26,20 @@ fi
 #      bash ./$mount_FILENAME
 #fi
 cd open_ai_baselines
+if cd baselines; then
+	git pull; 
+	cd ..;
+else 
+  git clone https://github.com/openai/baselines.git .;
+fi
+
+
 pip install --ignore-installed -e .
 cd ..
 
 sudo apt-get -y install tmux
 
 EXECDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-bash $EXECDIR/run_baseline.sh $worker_numbers
+#bash $EXECDIR/run_baseline.sh $worker_numbers
 
 

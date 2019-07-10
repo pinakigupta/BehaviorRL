@@ -174,7 +174,10 @@ def default_args(save_in_sub_folder=None):
         dst = save_folder + '/' + terminal_output_file_name
         if not os.path.exists(save_folder):
             os.mkdir(save_folder)
-        copyfile(src, dst)
+        if os.path.exists(src):
+            copyfile(src, dst)
+        else:
+            print("out put file ",terminal_output_file_name,"doesn't exist")
 
     def create_save_folder(save_folder):
         try:
