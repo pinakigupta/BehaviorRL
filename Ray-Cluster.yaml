@@ -26,7 +26,7 @@ docker:
     image: "pinakigupta/rl_baselines" # e.g., tensorflow/tensorflow:1.5.0-py3
     container_name: "ray_docker" # e.g. ray_docker
     run_options:   # Extra options to pass into "docker run"
-         - --runtime=nvidia
+         - --volume /mnt/datastore/groups/behavior/Pinaki/RL/rl_baselines_ad:/rl_baselines_ad
 
     # Example of running a GPU head with CPU workers
     # head_image: "tensorflow/tensorflow:1.13.1-py3"

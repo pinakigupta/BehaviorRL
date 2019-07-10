@@ -74,7 +74,7 @@ network = 'mlp'
 num_timesteps = '10000'
 
 redis_add = ray.services.get_node_ip_address() + ":6379"
-ray.init()
+ray.init(redis_add)
 register_env(train_env_id, lambda _: TwoWayEnv)
 #################################################################
 first_default_args_call = True
