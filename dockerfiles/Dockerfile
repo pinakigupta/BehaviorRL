@@ -1,6 +1,5 @@
 FROM tensorflow/tensorflow:latest-py3 AS base 
 # stage 1. Multi stage docker build
-#MAINTAINER Munir Jojo-Verge <munir-jojoverge@havalus.com>
 LABEL authors="first Munir Jojo-Verge <munir-jojoverge@havalus.com>,second Pinaki Gupta <pinaki.gupta@havalus.com>"
 
 RUN apt-get update && apt-get install -y \
@@ -12,9 +11,8 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get update && apt install -y python3-dev zlib1g-dev libjpeg-dev cmake swig python-pyglet python3-opengl libboost-all-dev libsdl2-dev \
     libosmesa6-dev patchelf ffmpeg xvfb nfs-common autofs gedit 
 RUN apt-get update && apt-get install -y python-pip
-RUN pip3 install tensorflow  
-RUN pip install -U ray pep8
-RUN pip install requests setproctitle psutil lz4
+RUN pip3 install tensorflow pillow requests setproctitle psutil lz4
+RUN pip install -U ray ray[debug] 
 COPY ./requirements.txt /
 RUN pip install -r requirements.txt
 
@@ -36,12 +34,6 @@ COPY ./docker-start.sh /
 COPY ./docker-mountEFSdrive.sh /
 
 
-
-
-
-#ENTRYPOINT ["/docker-start.sh"]
-# ENTRYPOINT ["/bin/bash", "-c", "echo Hello, $name! Welcome to RL in Autonomous Driving by Munir Jojo-Verge"]
-# CMD [ "/bin/bash" ]
 
 
 
