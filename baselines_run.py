@@ -350,7 +350,7 @@ def ray_train(save_in_sub_folder=None):
                                                     "gamma": 0.85,
                                                     "num_workers": 5,
                                                   },
-                                        "local_dir": save_in_sub_folder,
+                                        #"local_dir": save_in_sub_folder,
                                       },
                      },
         resume=False,
@@ -378,8 +378,9 @@ if __name__ == "__main__":
 
             if TRAIN_WITH_RAY:
                 save_in_sub_folder = InceptcurrentDT
-                args, args_dict = default_args(save_in_sub_folder=save_in_sub_folder)
-                ray_train(save_in_sub_folder=args_dict['save_path'])
+                #args, args_dict = default_args(save_in_sub_folder=save_in_sub_folder)
+                #ray_train(save_in_sub_folder=args_dict['save_path'])
+                ray_train()
             else:
                 print("(rank , size) = ", mpi_util.get_local_rank_size(MPI.COMM_WORLD))
                 if len(sys_args) <= 1:
