@@ -77,6 +77,7 @@ redis_add = ray.services.get_node_ip_address() + ":6379"
 try:
     ray.init(redis_add)
 except:
+    ray.shutdown()
     ray.init()
 register_env(train_env_id, lambda _: TwoWayEnv)
 #################################################################
