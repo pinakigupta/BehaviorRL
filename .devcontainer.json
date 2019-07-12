@@ -16,7 +16,12 @@
 
         "settings": {
             "remote.extensionKind": {
-                "pinakigupta.vscode-docker": "workspace"
-            }
+                "pinakigupta.vscode-docker": "workspace",
+                "ms-python.python": "workspace",
+            },
+            "remote.SSH.defaultExtensions": [
+                "ms-python.python",
+                "Pylint"
+            ]
         },
 }

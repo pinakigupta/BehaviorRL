@@ -71,7 +71,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '10000'
+num_timesteps = '1'
 
 redis_add = ray.services.get_node_ip_address() + ":6379"
 try:
@@ -345,10 +345,10 @@ def ray_train(save_in_sub_folder=None):
                                         "checkpoint_freq": 100,
                                         "config": {
                                                     # "env_config": env_config,
-                                                    "num_gpus_per_worker": 0.2,
-                                                    "num_cpus_per_worker": 2,
+                                                    "num_gpus_per_worker": 0,
+                                                    "num_cpus_per_worker": 1,
                                                     "gamma": 0.85,
-                                                    "num_workers": 5,
+                                                    "num_workers": 200,
                                                   },
                                         #"local_dir": save_in_sub_folder,
                                       },
@@ -404,11 +404,13 @@ if __name__ == "__main__":
             # tb.main()
 
     else:
-        DFLT_ARGS = default_args()
-        loaded_file_correctly = (
-            'load_path' in stringarg for stringarg in DFLT_ARGS)
-        #play_env = gym.make(play_env_id)
-        #policy = run.main(DFLT_ARGS)
+        if TRAIN_WITH_RAY:
+            subprocess.run(["rllib", "rollout","~/ray_results/pygame-ray/PPO_TwoWayEnv_0_2019-07-11_21-05-40kjpg437d/checkpoint_500","--run","PPO","--env","two-way-v0","--steps","10000"])
+        else:
+            DFLT_ARGS = default_args()
+            loaded_file_correctly = ('load_path' in stringarg for stringarg in DFLT_ARGS)
+            play_env = gym.make(play_env_id)
+            policy = run.main(DFLT_ARGS)
         # Just try to Play
-        while loaded_file_correctly:
-            play(play_env, policy)
+            while loaded_file_correctly:
+                play(play_env, policy)

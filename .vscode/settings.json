@@ -6,7 +6,9 @@
     "terminal.integrated.shell.linux": "/bin/bash",
     "remote.SSH.defaultExtensions": [
         "ms-python.python",
-        "Pylint",
-        "elken.mux"
-    ]
+        "Pylint"
+    ],
+    "remote.extensionKind": {
+        "ms-python.python": "workspace",
+    }
 }
