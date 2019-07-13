@@ -14,11 +14,6 @@
         "-v", "/tmp/.X11-unix:/tmp/.X11-unix",
         "-v","/var/run/docker.sock:/var/run/docker.sock"    ],
 
-        "settings": {
-            "remote.extensionKind": {
-                "pinakigupta.vscode-docker": "workspace",
-                "ms-python.python": "workspace",
-            },
             "remote.SSH.defaultExtensions": [
                 "ms-python.python",
                 "Pylint"
