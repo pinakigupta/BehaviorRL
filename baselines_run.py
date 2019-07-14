@@ -48,7 +48,7 @@ import baselines.run as run
 
 
 from handle_model_files import create_dirs, is_master, is_predict_only, default_args
-from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps
+from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, homepath
 
 gym.Env.metadata['_predict_only'] = is_predict_only()
 
@@ -127,7 +127,7 @@ def ray_train(save_in_sub_folder=None):
                         "pygame-ray": {
                                         "run": "PPO",
                                         "env": train_env_id,
-                                        "stop": {"training_iteration": int(100)},
+                                        "stop": {"training_iteration": int(num_timesteps)},
                                         "checkpoint_at_end": True,
                                         "checkpoint_freq": 1,
                                         "config": {
@@ -191,11 +191,13 @@ if __name__ == "__main__":
             # tb.main()
 
     else:
-        play_env = gym.make(play_env_id)
         if TRAIN_WITH_RAY:
-            subprocess.run(["rllib", "rollout", homepath+"/ray_results/pygame-ray/PPO_TwoWayEnv_0_2019-07-12_21-57-55a2nhe7zt/checkpoint_1/checkpoint-1",\
-                     "--run", "PPO", "--env", play_env_id, "--steps", "10000"])
+            results_folder = "PPO_two-way-v0_0_2019-07-14_16-08-501h5rclte"
+            results_folder =  homepath+"/ray_results/pygame-ray/"+results_folder+ "/checkpoint_1/checkpoint-1"
+            print("results_folder = ",results_folder)
+            subprocess.run(["rllib", "rollout",results_folder, "--run", "PPO", "--env", play_env_id, "--steps", "10000"])
         else:
+            play_env = gym.make(play_env_id)
             DFLT_ARGS = default_args()
             loaded_file_correctly = ('load_path' in stringarg for stringarg in DFLT_ARGS)
             policy = run.main(DFLT_ARGS)
