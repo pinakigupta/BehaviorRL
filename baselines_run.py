@@ -45,6 +45,8 @@ import baselines.run as run
 
 ####################
 
+
+
 from handle_model_files import create_dirs, is_master, is_predict_only, default_args
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps
 
@@ -53,10 +55,7 @@ gym.Env.metadata['_predict_only'] = is_predict_only()
 #os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 warnings.filterwarnings("ignore")
 
-
-
-
-register_env(train_env_id, lambda _: TwoWayEnv)
+register_env(train_env_id, lambda config: TwoWayEnv(config))
 redis_add = ray.services.get_node_ip_address() + ":6379"
 try:
     ray.init(redis_add)
@@ -127,7 +126,7 @@ def ray_train(save_in_sub_folder=None):
     run_experiments({
                         "pygame-ray": {
                                         "run": "PPO",
-                                        "env": TwoWayEnv,
+                                        "env": train_env_id,
                                         "stop": {"training_iteration": int(100)},
                                         "checkpoint_at_end": True,
                                         "checkpoint_freq": 1,
