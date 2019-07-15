@@ -15,6 +15,7 @@ import glob
 import numpy as np
 import urban_env
 import gym
+from gym.envs.registration import registry
 import tensorflow as tf
 
 from settings import req_dirs, models_folder
@@ -135,7 +136,7 @@ def ray_train(save_in_sub_folder=None):
                                                     "num_gpus_per_worker": 0,
                                                     "num_cpus_per_worker": 1,
                                                     "gamma": 0.85,
-                                                    "num_workers": 2,
+                                                    "num_workers": 1,
                                                   },
                                         #"local_dir": save_in_sub_folder,
                                       },
@@ -193,9 +194,9 @@ if __name__ == "__main__":
     else:
         if TRAIN_WITH_RAY:
             results_folder = "PPO_two-way-v0_0_2019-07-14_16-08-501h5rclte"
-            results_folder =  homepath+"/ray_results/pygame-ray/"+results_folder+ "/checkpoint_1/checkpoint-1"
-            print("results_folder = ",results_folder)
-            subprocess.run(["rllib", "rollout",results_folder, "--run", "PPO", "--env", play_env_id, "--steps", "10000"])
+            results_folder = homepath+"/ray_results/pygame-ray/"+results_folder+ "/checkpoint_1/checkpoint-1"
+            print("results_folder = ", results_folder)
+            subprocess.run(["rllib", "rollout", results_folder, "--run", "PPO", "--env", play_env_id, "--steps", "10000"])
         else:
             play_env = gym.make(play_env_id)
             DFLT_ARGS = default_args()

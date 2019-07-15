@@ -26,6 +26,9 @@ num_timesteps = '1'
 
 urban_AD_env_path = pathname + '/urban_env/envs'
 sys.path.append(urban_AD_env_path)
+import site
+site.addsitedir(urban_AD_env_path)
+
 
 
 
