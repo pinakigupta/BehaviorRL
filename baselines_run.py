@@ -4,7 +4,6 @@
 #                      Author: Munir Jojo-Verge
 #######################################################################
 import urban_env
-from settings import req_dirs, models_folder
 from urban_env.envs.two_way_env import TwoWayEnv
 from urban_env.envs.abstract import AbstractEnv
 from mpi4py import MPI
@@ -48,7 +47,7 @@ import baselines.run as run
 
 
 
-from handle_model_files import create_dirs, is_master, is_predict_only, default_args
+from handle_model_files import create_dirs, req_dirs, models_folder, is_master, is_predict_only, default_args
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, homepath
 
 gym.Env.metadata['_predict_only'] = is_predict_only()
@@ -64,8 +63,6 @@ except:
     ray.shutdown()
     ray.init()
 #################################################################
-first_default_args_call = True
-LOAD_PREV_MODEL = True
 
 
 
@@ -151,7 +148,7 @@ if __name__ == "__main__":
     mega_batch_itr = 1
     sys_args = sys.argv
 
-    TRAIN_WITH_RAY = True
+    TRAIN_WITH_RAY = False
     policy = None
     play_env = None
     max_iteration = 1
@@ -199,7 +196,7 @@ if __name__ == "__main__":
             subprocess.run(["rllib", "rollout", results_folder, "--run", "PPO", "--env", play_env_id, "--steps", "10000"])
         else:
             play_env = gym.make(play_env_id)
-            DFLT_ARGS = default_args()
+            DFLT_ARGS, _ = default_args()
             loaded_file_correctly = ('load_path' in stringarg for stringarg in DFLT_ARGS)
             policy = run.main(DFLT_ARGS)
         # Just try to Play

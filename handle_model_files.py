@@ -1,9 +1,14 @@
 import os, sys, glob, time
 from mpi4py import MPI
+from settings import req_dirs, models_folder
 
 pathname = os.getcwd()
 homepath = os.path.expanduser("~")
 #s3pathname = homepath+'/s3-drive/groups/Behavior/Pinaki'
+
+first_default_args_call = True
+LOAD_PREV_MODEL = True
+
 
 ###############################################################
 #        DEFINE YOUR "BASELINE" (AGENT) PARAMETERS HERE
