@@ -189,8 +189,9 @@ if __name__ == "__main__":
 
     else:
         if RUN_WITH_RAY:
-            checkpt = 1 # which checkpoint file to play
-            results_folder = "PPO_two-way-v0_0_2019-07-15_14-39-008_cvcwwf"
+            subprocess.run(["sudo", "chmod", "-R", "a+rwx", ray_folder + "/"])
+            checkpt = 100 # which checkpoint file to play
+            results_folder = "PPO_two-way-v0_0_2019-07-15_17-11-45avp2pc6k"
             results_folder = pathname + "/" + ray_folder + "/" + "pygame-ray/" + results_folder + \
                 "/checkpoint_" + str(checkpt) +"/checkpoint-" + str(checkpt)
             print("results_folder = ", results_folder)
