@@ -7,7 +7,6 @@ import urban_env
 from urban_env.envs.two_way_env import TwoWayEnv
 from urban_env.envs.abstract import AbstractEnv
 from mpi4py import MPI
-from shutil import copyfile
 import subprocess
 import warnings
 import glob
@@ -17,7 +16,7 @@ import gym
 from gym.envs.registration import registry
 import tensorflow as tf
 
-from settings import req_dirs, models_folder
+from settings import req_dirs, models_folder, ray_folder
 import sys
 import os
 from os.path import dirname, abspath
@@ -48,7 +47,7 @@ import baselines.run as run
 
 
 from handle_model_files import create_dirs, req_dirs, models_folder, is_master, is_predict_only, default_args
-from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, homepath
+from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, homepath, RUN_WITH_RAY, InceptcurrentDT
 
 gym.Env.metadata['_predict_only'] = is_predict_only()
 
@@ -135,7 +134,7 @@ def ray_train(save_in_sub_folder=None):
                                                     "gamma": 0.85,
                                                     "num_workers": 1,
                                                   },
-                                        #"local_dir": save_in_sub_folder,
+                                        "local_dir": save_in_sub_folder,
                                       },
                      },
         resume=False,
@@ -148,7 +147,7 @@ if __name__ == "__main__":
     mega_batch_itr = 1
     sys_args = sys.argv
 
-    TRAIN_WITH_RAY = False
+    
     policy = None
     play_env = None
     max_iteration = 1
@@ -161,11 +160,11 @@ if __name__ == "__main__":
             #gym.Env.metadata['_mega_batch_itr'] = mega_batch_itr
             print("(rank , size) = ", mpi_util.get_local_rank_size(MPI.COMM_WORLD))
 
-            if TRAIN_WITH_RAY:
+            if RUN_WITH_RAY:
                 #save_in_sub_folder = InceptcurrentDT
                 #args, args_dict = default_args(save_in_sub_folder=save_in_sub_folder)
                 #ray_train(save_in_sub_folder=args_dict['save_path'])
-                ray_train()
+                ray_train(save_in_sub_folder=pathname + "/" + ray_folder)
             else:
                 print("(rank , size) = ", mpi_util.get_local_rank_size(MPI.COMM_WORLD))
                 if len(sys_args) <= 1:
@@ -189,9 +188,11 @@ if __name__ == "__main__":
             # tb.main()
 
     else:
-        if TRAIN_WITH_RAY:
-            results_folder = "PPO_two-way-v0_0_2019-07-14_16-08-501h5rclte"
-            results_folder = homepath+"/ray_results/pygame-ray/"+results_folder+ "/checkpoint_1/checkpoint-1"
+        if RUN_WITH_RAY:
+            checkpt = 1 # which checkpoint file to play
+            results_folder = "PPO_two-way-v0_0_2019-07-15_14-39-008_cvcwwf"
+            results_folder = pathname + "/" + ray_folder + "/" + "pygame-ray/" + results_folder + \
+                "/checkpoint_" + str(checkpt) +"/checkpoint-" + str(checkpt)
             print("results_folder = ", results_folder)
             subprocess.run(["rllib", "rollout", results_folder, "--run", "PPO", "--env", play_env_id, "--steps", "10000"])
         else:

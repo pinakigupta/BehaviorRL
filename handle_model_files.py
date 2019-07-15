@@ -1,6 +1,7 @@
 import os, sys, glob, time
 from mpi4py import MPI
-from settings import req_dirs, models_folder
+from settings import req_dirs, models_folder, ray_folder
+from shutil import copyfile
 
 pathname = os.getcwd()
 homepath = os.path.expanduser("~")
@@ -8,7 +9,7 @@ homepath = os.path.expanduser("~")
 
 first_default_args_call = True
 LOAD_PREV_MODEL = True
-
+RUN_WITH_RAY = True
 
 ###############################################################
 #        DEFINE YOUR "BASELINE" (AGENT) PARAMETERS HERE
@@ -77,6 +78,8 @@ def default_args(save_in_sub_folder=None):
     # DEFINE YOUR SAVE FILE, LOAD FILE AND LOGGING FILE PARAMETERS HERE
     ####################################################################
     modelpath = pathname
+    if RUN_WITH_RAY:
+        modelpath += '/' + ray_folder 
     try:
         if os.path.exists(s3pathname):
             modelpath = s3pathname
