@@ -1,7 +1,8 @@
 #!/bin/bash
 
 #HOST_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-sudo bash ./docker-PreStart.sh ${HOST_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"}
+sudo bash ./dockerfiles/docker-PreStart.sh ${HOST_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"}
+HOST_DIR="$(dirname "$HOST_DIR")"
 
 EC2Instance=false
 # This first, simple check will work for many older instance types.
