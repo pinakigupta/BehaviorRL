@@ -5,7 +5,19 @@ from shutil import copyfile
 
 pathname = os.getcwd()
 homepath = os.path.expanduser("~")
-#s3pathname = homepath+'/s3-drive/groups/Behavior/Pinaki'
+s3pathname = homepath+'/s3-drive/groups/Behavior/Pinaki'
+
+
+def makedirpath(pathname=None):
+    if pathname is None:
+        print("No path provided for creation.")
+        return
+    if not os.path.exists(pathname):
+        try:
+            os.makedirs(pathname, exist_ok=True)
+        except:
+            print("Failed to created s3 drive at", pathname)
+            pass
 
 first_default_args_call = True
 LOAD_PREV_MODEL = True
@@ -83,11 +95,11 @@ def default_args(save_in_sub_folder=None):
     modelpath = pathname
     if RUN_WITH_RAY:
         modelpath += '/' + ray_folder 
-    try:
+    '''try:
         if os.path.exists(s3pathname):
             modelpath = s3pathname
     except:
-        print("s3 pathname doesn't exist")
+        print("s3 pathname doesn't exist")'''
 
     save_folder = modelpath + '/' + models_folder + \
         '/' + train_env_id + '/' + alg + '/' + network

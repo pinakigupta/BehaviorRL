@@ -46,7 +46,7 @@ import baselines.run as run
 
 
 
-from handle_model_files import create_dirs, req_dirs, models_folder, is_master, is_predict_only, default_args
+from handle_model_files import create_dirs, req_dirs, models_folder, makedirpath, is_master, is_predict_only, default_args
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, homepath, RUN_WITH_RAY, InceptcurrentDT
 
 gym.Env.metadata['_predict_only'] = is_predict_only()
@@ -148,13 +148,16 @@ def ray_train(save_in_sub_folder=None):
                                                              },
                                         custom_explore_fn=explore
                                       )
-
+    s3pathname = 's3://groups/Behavior/Pinaki'                                 
+    upload_dir_path = s3pathname + "/" + ray_folder
+    makedirpath(upload_dir_path)
     ray_experiment = Experiment(name="pygame-ray",
                                 run="PPO",
                                 stop={"training_iteration": int(num_timesteps)},
                                 checkpoint_at_end=True,
                                 checkpoint_freq=1,
                                 local_dir=save_in_sub_folder,
+                                upload_dir=upload_dir_path,
                                 config={
                                             "num_gpus_per_worker": 0,
                                             "num_cpus_per_worker": 1,
