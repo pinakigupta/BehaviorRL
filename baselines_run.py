@@ -135,7 +135,7 @@ def ray_train(save_in_sub_folder=None):
                                         time_attr="time_total_s",
                                         metric="episode_reward_mean",
                                         mode="max",
-                                        perturbation_interval=120,
+                                        perturbation_interval=20,
                                         resample_probability=0.25,
                                         # Specifies the mutations of these hyperparams
                                         hyperparam_mutations={
@@ -148,9 +148,9 @@ def ray_train(save_in_sub_folder=None):
                                                              },
                                         custom_explore_fn=explore
                                       )
-    s3pathname = 's3://groups/Behavior/Pinaki'                                 
-    upload_dir_path = s3pathname + "/" + ray_folder
-    makedirpath(upload_dir_path)
+    s3pathname = 's3://datastore-s3/groups/Behavior/Pinaki'                                 
+    upload_dir_path = s3pathname + "/" + ray_folder + '/' + InceptcurrentDT
+    #makedirpath(upload_dir_path)
     ray_experiment = Experiment(name="pygame-ray",
                                 run="PPO",
                                 stop={"training_iteration": int(num_timesteps)},

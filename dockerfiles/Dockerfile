@@ -11,14 +11,12 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get update && apt install -y python3-dev zlib1g-dev libjpeg-dev cmake swig python-pyglet python3-opengl libboost-all-dev libsdl2-dev \
     libosmesa6-dev patchelf ffmpeg xvfb nfs-common autofs gedit 
 RUN apt-get update && apt-get install -y python-pip
-RUN pip3 install tensorflow pillow requests setproctitle psutil lz4
 RUN pip install -U ray ray[debug] 
+RUN mkdir /root/.aws
 COPY ./requirements.txt /
 RUN pip install -r requirements.txt
-
-
 RUN pip install --ignore-installed gym
-
+RUN pip3 install tensorflow pillow requests setproctitle psutil lz4 awscli
 
 FROM base AS intermediate
 # stage 2
