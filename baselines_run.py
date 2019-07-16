@@ -15,7 +15,7 @@ import urban_env
 import gym
 from gym.envs.registration import registry
 import tensorflow as tf
-
+import random
 from settings import req_dirs, models_folder, ray_folder
 import sys
 import os
@@ -23,8 +23,8 @@ from os.path import dirname, abspath
 import time
 import pprint
 import ray
-from ray.tune import run_experiments, register_env
-#from ray.rllib.agents import a3c
+from ray.tune import Experiment, run_experiments, register_env, sample_from
+from ray.tune.schedulers import PopulationBasedTraining
 pp = pprint.PrettyPrinter(indent=4)
 ####################
 
@@ -120,26 +120,62 @@ def play(env, policy):
 
 
 def ray_train(save_in_sub_folder=None):
-    run_experiments({
-                        "pygame-ray": {
-                                        "run": "PPO",
-                                        "env": train_env_id,
-                                        "stop": {"training_iteration": int(num_timesteps)},
-                                        "checkpoint_at_end": True,
-                                        "checkpoint_freq": 1,
-                                        "config": {
-                                                    # "env_config": env_config,
-                                                    "num_gpus_per_worker": 0,
-                                                    "num_cpus_per_worker": 1,
-                                                    "gamma": 0.85,
-                                                    "num_workers": 1,
-                                                  },
-                                        "local_dir": save_in_sub_folder,
-                                      },
-                     },
-        resume=False,
-        reuse_actors=False,
-                   )
+    subprocess.run(["sudo", "chmod", "-R", "a+rwx", ray_folder + "/"])
+    # Postprocess the perturbed config to ensure it's still valid
+    def explore(config):
+        # ensure we collect enough timesteps to do sgd
+        if config["train_batch_size"] < config["sgd_minibatch_size"] * 2:
+            config["train_batch_size"] = config["sgd_minibatch_size"] * 2
+        # ensure we run at least one sgd iter
+        if config["num_sgd_iter"] < 1:
+            config["num_sgd_iter"] = 1
+        return config
+
+    pbt = PopulationBasedTraining(
+                                        time_attr="time_total_s",
+                                        metric="episode_reward_mean",
+                                        mode="max",
+                                        perturbation_interval=120,
+                                        resample_probability=0.25,
+                                        # Specifies the mutations of these hyperparams
+                                        hyperparam_mutations={
+                                                                "lambda": lambda: random.uniform(0.9, 1.0),
+                                                                "clip_param": lambda: random.uniform(0.01, 0.5),
+                                                                "lr": [1e-3, 5e-4, 1e-4, 5e-5, 1e-5],
+                                                                "num_sgd_iter": lambda: random.randint(1, 30),
+                                                                "sgd_minibatch_size": lambda: random.randint(128, 16384),
+                                                                "train_batch_size": lambda: random.randint(2000, 160000),
+                                                             },
+                                        custom_explore_fn=explore
+                                      )
+
+    ray_experiment = Experiment(name="pygame-ray",
+                                run="PPO",
+                                stop={"training_iteration": int(num_timesteps)},
+                                checkpoint_at_end=True,
+                                checkpoint_freq=1,
+                                local_dir=save_in_sub_folder,
+                                config={
+                                            "num_gpus_per_worker": 0,
+                                            "num_cpus_per_worker": 1,
+                                            "gamma": 0.85,
+                                            "num_workers": 8,
+                                            "env": train_env_id,
+                                            # These params are tuned from a fixed starting value.
+                                            "lambda": 0.95,
+                                            "clip_param": 0.2,
+                                            "lr": 1e-4,
+                                            # These params start off randomly drawn from a set.
+                                            "num_sgd_iter": sample_from(lambda spec: random.choice([10, 20, 30])),
+                                            "sgd_minibatch_size": sample_from(lambda spec: random.choice([128, 512, 2048])),
+                                            "train_batch_size": sample_from(lambda spec: random.choice([10000, 20000, 40000])),
+                                       },
+                                )
+    run_experiments(ray_experiment,
+                    resume=False,
+                    reuse_actors=False,
+                    scheduler=pbt,
+                    )                          
 
 
 if __name__ == "__main__":
