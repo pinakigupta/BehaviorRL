@@ -26,7 +26,7 @@ one=1
 if [ $worker_numbers > 1 ];  then
     mpirun  -bind-to none -np $worker_numbers --allow-run-as-root  python -W ignore $runfile  2>&1 | tee  $outputfile
   else
-    echo "only one worker present"
+    echo "MPI not running. This can be because Ray is running or there is only 1 cpu allocated to this machine"
     python -W ignore  $runfile  2>&1 | tee  $outputfile
 fi
 
