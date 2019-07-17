@@ -182,32 +182,34 @@ def ray_train(save_in_sub_folder=None):
                                             #"train_batch_size": sample_from(lambda spec: random.choice([10000, 20000, 40000])),
                                        },
                                 )
-    run_experiments(ray_experiment,
+
+
+    '''run_experiments(ray_experiment,
                     resume=False,
                     reuse_actors=False,
                     scheduler=pbt,
                     verbose=False,
-                    ) 
+                    ) '''
 
-    '''ray.tune.run(
+    ray.tune.run(
                     "PPO",
                     name="pygame-ray",
                     stop={"training_iteration": int(num_timesteps)},
-                    #scheduler=pbt,
+                    scheduler=pbt,
                     checkpoint_freq=0,
                     checkpoint_at_end=True,
                     local_dir=local_dir_path,
                     #upload_dir=upload_dir_path,
                     verbose=True,
-                    queue_trials=True,
+                    queue_trials=False,
                     **{
                         #"env": train_env_id,
-                        "num_samples": 1,
+                        "num_samples": 8,
                         "config" :{
                                     "num_gpus_per_worker": 0,
-                                    "num_cpus_per_worker": 2,
+                                    "num_cpus_per_worker": 1,
                                     "gamma": 0.85,
-                                    "num_workers": 1,
+                                    "num_workers": 10,
                                     "env": train_env_id,
                                     # These params are tuned from a fixed starting value.
                                     "lambda": 0.95,
@@ -221,7 +223,7 @@ def ray_train(save_in_sub_folder=None):
                     }
                     
 
-                ) '''                      
+                )                       
 
 
 if __name__ == "__main__":
