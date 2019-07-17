@@ -25,6 +25,7 @@ import pprint
 import ray
 from ray.tune import Experiment, run_experiments, register_env, sample_from
 from ray.tune.schedulers import PopulationBasedTraining, AsyncHyperBandScheduler
+from ray.tune.ray_trial_executor import RayTrialExecutor
 pp = pprint.PrettyPrinter(indent=4)
 ####################
 
@@ -134,7 +135,7 @@ pbt = PopulationBasedTraining(
                                         time_attr="training_iteration",
                                         metric="episode_reward_mean",
                                         mode="max",
-                                        perturbation_interval=25,
+                                        perturbation_interval=7,
                                         resample_probability=0.25,
                                         # Specifies the mutations of these hyperparams
                                         hyperparam_mutations={
@@ -202,6 +203,8 @@ def ray_train(save_in_sub_folder=None):
                     #upload_dir=upload_dir_path,
                     verbose=True,
                     queue_trials=False,
+                    resume=True,
+                    trial_executor=RayTrialExecutor(),
                     **{
                         #"env": train_env_id,
                         "num_samples": 8,
