@@ -55,11 +55,11 @@ gym.Env.metadata['_predict_only'] = is_predict_only()
 warnings.filterwarnings("ignore")
 
 register_env(train_env_id, lambda config: TwoWayEnv(config))
-subprocess.run(["sudo", "pkill", "redis-server"]) # Kill the redis-server. This seems the surest way to kill it
 redis_add = ray.services.get_node_ip_address() + ":6379"
 try:
     ray.init(redis_add)
 except:
+    subprocess.run(["sudo", "pkill", "redis-server"]) # Kill the redis-server. This seems the surest way to kill it
     ray.shutdown()
     ray.init()
 #################################################################
@@ -134,7 +134,7 @@ pbt = PopulationBasedTraining(
                                         time_attr="training_iteration",
                                         metric="episode_reward_mean",
                                         mode="max",
-                                        perturbation_interval=50,
+                                        perturbation_interval=25,
                                         resample_probability=0.25,
                                         # Specifies the mutations of these hyperparams
                                         hyperparam_mutations={
@@ -149,7 +149,7 @@ pbt = PopulationBasedTraining(
                                       )
 
 def ray_train(save_in_sub_folder=None):
-    subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
+    subprocess.run(["chmod", "-R", "a+rwx", save_in_sub_folder + "/"])
     # Postprocess the perturbed config to ensure it's still valid
 
 
@@ -159,7 +159,7 @@ def ray_train(save_in_sub_folder=None):
     if save_in_sub_folder is not None:
         local_dir_path = save_in_sub_folder
             #makedirpath(upload_dir_path)
-    ray_experiment = Experiment(name=None,
+    '''ray_experiment = Experiment(name=None,
                                 run="PPO",
                                 stop={"training_iteration": int(num_timesteps)},
                                 checkpoint_at_end=True,
@@ -184,7 +184,7 @@ def ray_train(save_in_sub_folder=None):
                                 )
 
 
-    '''run_experiments(ray_experiment,
+    run_experiments(ray_experiment,
                     resume=False,
                     reuse_actors=False,
                     scheduler=pbt,
@@ -196,7 +196,7 @@ def ray_train(save_in_sub_folder=None):
                     name="pygame-ray",
                     stop={"training_iteration": int(num_timesteps)},
                     scheduler=pbt,
-                    checkpoint_freq=0,
+                    checkpoint_freq=20,
                     checkpoint_at_end=True,
                     local_dir=local_dir_path,
                     #upload_dir=upload_dir_path,
@@ -209,7 +209,7 @@ def ray_train(save_in_sub_folder=None):
                                     "num_gpus_per_worker": 0,
                                     "num_cpus_per_worker": 1,
                                     "gamma": 0.85,
-                                    "num_workers": 10,
+                                    "num_workers": 50,
                                     "env": train_env_id,
                                     # These params are tuned from a fixed starting value.
                                     "lambda": 0.95,
