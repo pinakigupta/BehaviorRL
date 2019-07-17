@@ -24,7 +24,7 @@ import time
 import pprint
 import ray
 from ray.tune import Experiment, run_experiments, register_env, sample_from
-from ray.tune.schedulers import PopulationBasedTraining
+from ray.tune.schedulers import PopulationBasedTraining, AsyncHyperBandScheduler
 pp = pprint.PrettyPrinter(indent=4)
 ####################
 
@@ -55,6 +55,7 @@ gym.Env.metadata['_predict_only'] = is_predict_only()
 warnings.filterwarnings("ignore")
 
 register_env(train_env_id, lambda config: TwoWayEnv(config))
+subprocess.run(["sudo", "pkill", "redis-server"]) # Kill the redis-server. This seems the surest way to kill it
 redis_add = ray.services.get_node_ip_address() + ":6379"
 try:
     ray.init(redis_add)
@@ -133,7 +134,7 @@ pbt = PopulationBasedTraining(
                                         time_attr="training_iteration",
                                         metric="episode_reward_mean",
                                         mode="max",
-                                        perturbation_interval=5,
+                                        perturbation_interval=50,
                                         resample_probability=0.25,
                                         # Specifies the mutations of these hyperparams
                                         hyperparam_mutations={
@@ -148,58 +149,60 @@ pbt = PopulationBasedTraining(
                                       )
 
 def ray_train(save_in_sub_folder=None):
-    subprocess.run(["sudo", "chmod", "-R", "a+rwx", ray_folder + "/"])
+    subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
     # Postprocess the perturbed config to ensure it's still valid
 
 
 
     s3pathname = 's3://datastore-s3/groups/Behavior/Pinaki'                                 
     upload_dir_path = s3pathname + "/" + ray_folder + '/' + InceptcurrentDT
-    #makedirpath(upload_dir_path)
-    '''ray_experiment = Experiment(name="pygame-ray",
+    if save_in_sub_folder is not None:
+        local_dir_path = save_in_sub_folder
+            #makedirpath(upload_dir_path)
+    ray_experiment = Experiment(name=None,
                                 run="PPO",
                                 stop={"training_iteration": int(num_timesteps)},
                                 checkpoint_at_end=True,
                                 checkpoint_freq=5,
-                                local_dir=save_in_sub_folder,
-                                upload_dir=upload_dir_path,
+                                local_dir=local_dir_path,
+                                #upload_dir=upload_dir_path,
                                 config={
                                             "num_gpus_per_worker": 0,
-                                            "num_cpus_per_worker": 1,
+                                            "num_cpus_per_worker": 2,
                                             "gamma": 0.85,
-                                            "num_workers": 10,
+                                            "num_workers": 1,
                                             "env": train_env_id,
                                             # These params are tuned from a fixed starting value.
-                                            "lambda": 0.95,
-                                            "clip_param": 0.2,
-                                            "lr": 1e-4,
+                                            #"lambda": 0.95,
+                                            #"clip_param": 0.2,
+                                            #"lr": 1e-4,
                                             # These params start off randomly drawn from a set.
-                                            "num_sgd_iter": sample_from(lambda spec: random.choice([10, 20, 30])),
-                                            "sgd_minibatch_size": sample_from(lambda spec: random.choice([128, 512, 2048])),
-                                            "train_batch_size": sample_from(lambda spec: random.choice([10000, 20000, 40000])),
+                                            #"num_sgd_iter": sample_from(lambda spec: random.choice([10, 20, 30])),
+                                            #"sgd_minibatch_size": sample_from(lambda spec: random.choice([128, 512, 2048])),
+                                            #"train_batch_size": sample_from(lambda spec: random.choice([10000, 20000, 40000])),
                                        },
-                                )'''
-    '''run_experiments(ray_experiment,
+                                )
+    run_experiments(ray_experiment,
                     resume=False,
                     reuse_actors=False,
                     scheduler=pbt,
                     verbose=False,
-                    ) '''
+                    ) 
 
-    ray.tune.run(
+    '''ray.tune.run(
                     "PPO",
                     name="pygame-ray",
                     stop={"training_iteration": int(num_timesteps)},
-                    scheduler=pbt,
+                    #scheduler=pbt,
                     checkpoint_freq=0,
                     checkpoint_at_end=True,
-                    local_dir=save_in_sub_folder,
+                    local_dir=local_dir_path,
                     #upload_dir=upload_dir_path,
                     verbose=True,
                     queue_trials=True,
                     **{
                         #"env": train_env_id,
-                        "num_samples": 4,
+                        "num_samples": 1,
                         "config" :{
                                     "num_gpus_per_worker": 0,
                                     "num_cpus_per_worker": 2,
@@ -218,7 +221,7 @@ def ray_train(save_in_sub_folder=None):
                     }
                     
 
-                )                       
+                ) '''                      
 
 
 if __name__ == "__main__":
@@ -243,7 +246,7 @@ if __name__ == "__main__":
                 #save_in_sub_folder = InceptcurrentDT
                 #args, args_dict = default_args(save_in_sub_folder=save_in_sub_folder)
                 #ray_train(save_in_sub_folder=args_dict['save_path'])
-                ray_train(save_in_sub_folder=pathname + "/" + ray_folder)
+                ray_train(save_in_sub_folder=pathname + "/" + ray_folder + "/" + InceptcurrentDT)
             else:
                 print("(rank , size) = ", mpi_util.get_local_rank_size(MPI.COMM_WORLD))
                 if len(sys_args) <= 1:
@@ -268,7 +271,7 @@ if __name__ == "__main__":
 
     else:
         if RUN_WITH_RAY:
-            subprocess.run(["sudo", "chmod", "-R", "a+rwx", ray_folder + "/"])
+            subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
             checkpt = 100 # which checkpoint file to play
             results_folder = "PPO_two-way-v0_0_2019-07-15_17-11-45avp2pc6k"
             results_folder = pathname + "/" + ray_folder + "/" + "pygame-ray/" + results_folder + \
