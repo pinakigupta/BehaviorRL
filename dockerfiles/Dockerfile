@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
 
 # Install Gym libraries
 RUN apt-get update && apt install -y python3-dev zlib1g-dev libjpeg-dev cmake swig python-pyglet python3-opengl libboost-all-dev libsdl2-dev \
-    libosmesa6-dev patchelf ffmpeg xvfb nfs-common autofs gedit 
+    libosmesa6-dev patchelf ffmpeg xvfb nfs-common autofs gedit rsync
 RUN apt-get update && apt-get install -y python-pip
 RUN pip install -U ray ray[debug] 
 RUN mkdir /root/.aws
