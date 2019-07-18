@@ -10,7 +10,19 @@ from ray.tune.schedulers import PopulationBasedTraining, AsyncHyperBandScheduler
 from ray.tune.ray_trial_executor import RayTrialExecutor
 
 
+
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, homepath, RUN_WITH_RAY, InceptcurrentDT
+from urban_env.envs.two_way_env import TwoWayEnv
+
+from ray.tune import register_env
+register_env(train_env_id, lambda config: TwoWayEnv(config))
+redis_add = ray.services.get_node_ip_address() + ":6379"
+try:
+    ray.init(redis_add)
+except:
+    subprocess.run(["sudo", "pkill", "redis-server"]) # Kill the redis-server. This seems the surest way to kill it
+    ray.shutdown()
+    ray.init()
 
 
 def explore(config):
