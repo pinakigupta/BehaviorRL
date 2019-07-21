@@ -161,6 +161,7 @@ if __name__ == "__main__":
                 "/checkpoint_" + str(checkpt) +"/checkpoint-" + str(checkpt)
             print("results_folder = ", results_folder)
             subprocess.run(["rllib", "rollout", results_folder, "--run", "PPO", "--env", play_env_id, "--steps", "10000"])
+            subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
         else:
             play_env = gym.make(play_env_id)
             DFLT_ARGS, _ = default_args()

@@ -8,8 +8,10 @@ import ray
 from ray.tune import Experiment, Trainable, run_experiments, register_env, sample_from
 from ray.tune.schedulers import PopulationBasedTraining, AsyncHyperBandScheduler
 from ray.tune.ray_trial_executor import RayTrialExecutor
+from ray.rllib.agents.trainer_template import build_trainer
 
-
+import ray.rllib.agents.ppo as ppo
+import ray.rllib.agents.impala as impala
 
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, homepath, RUN_WITH_RAY, InceptcurrentDT
 from urban_env.envs.two_way_env import TwoWayEnv
@@ -96,36 +98,53 @@ def ray_train(save_in_sub_folder=None):
                     verbose=False,
                     ) '''
 
+
+    from ray.rllib.agents.impala.vtrace_policy import VTraceTFPolicy
+
+    impala_config = impala.DEFAULT_CONFIG.copy()
+    impala_config["num_gpus"] = 0
+    ImpalaTrainer = build_trainer(name="IMPALA",
+                                  default_config=impala_config,
+                                  default_policy=VTraceTFPolicy,
+                                  validate_config=impala.impala.validate_config,
+                                  get_policy_class=impala.impala.choose_policy,
+                                  make_workers=impala.impala.defer_make_workers,
+                                  make_policy_optimizer = impala.impala.make_aggregators_and_optimizer,
+                                  mixins=[impala.impala.OverrideDefaultResourceRequest])
+
+
     ray.tune.run(
-                    "PPO",
+                    ImpalaTrainer,
                     name="pygame-ray",
                     stop={"training_iteration": int(num_timesteps)},
-                    scheduler=pbt,
-                    checkpoint_freq=20,
+                    #scheduler=pbt,
+                    checkpoint_freq=50,
                     checkpoint_at_end=True,
                     local_dir=local_dir_path,
                     #upload_dir=upload_dir_path,
                     verbose=True,
                     queue_trials=False,
                     resume=True,
-                    trial_executor=RayTrialExecutor(),
+                    #trial_executor=RayTrialExecutor(),
+                    #resources_per_trial = {"cpu": 216, "gpu": 0},
                     **{
                         #"env": train_env_id,
-                        "num_samples": 8,
+                        "num_samples": 1,
                         "config" :{
                                     "num_gpus_per_worker": 0,
                                     "num_cpus_per_worker": 1,
+                                    #"gpus": 0,
                                     "gamma": 0.85,
-                                    "num_workers": 1,
+                                    "num_workers": 210,
                                     "env": train_env_id,
                                     # These params are tuned from a fixed starting value.
-                                    "lambda": 0.95,
-                                    "clip_param": 0.2,
-                                    "lr": 1e-4,
+                                    #"lambda": 0.95,
+                                    #"clip_param": 0.2,
+                                    #"lr": 1e-4,
                                     # These params start off randomly drawn from a set.
-                                    "num_sgd_iter": sample_from(lambda spec: random.choice([10, 20, 30])),
-                                    "sgd_minibatch_size": sample_from(lambda spec: random.choice([128, 512, 2048])),
-                                    "train_batch_size": sample_from(lambda spec: random.choice([10000, 20000, 40000])),
+                                    #"num_sgd_iter": sample_from(lambda spec: random.choice([10, 20, 30])),
+                                    #"sgd_minibatch_size": sample_from(lambda spec: random.choice([128, 512, 2048])),
+                                    #"train_batch_size": sample_from(lambda spec: random.choice([10000, 20000, 40000])),
                                 },
                     }
                     
