@@ -1,7 +1,7 @@
 ######################################################################
 #          Deep Reinforcement Learning for Autonomous Driving
 #                  Created/Modified on: February 5, 2019
-#                      Author: Munir Jojo-Verge
+#                      Author: Munir Jojo-Verge, Pinaki Gupta
 #######################################################################
 
 from __future__ import division, print_function, absolute_import
@@ -19,7 +19,7 @@ class EnvViewer(object):
     """
         A viewer to render a urban driving environment.
     """
-    SCREEN_WIDTH = 2000
+    SCREEN_WIDTH = 1750
     SCREEN_HEIGHT = 150
     SAVE_IMAGES = False
 
@@ -27,7 +27,7 @@ class EnvViewer(object):
         self.env = env
 
         pygame.init()
-        pygame.display.set_caption("Urban-AD (Munir Jojo-Verge)")
+        pygame.display.set_caption("Urban-AD ")
         panel_size = (self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
         self.screen = pygame.display.set_mode([self.SCREEN_WIDTH, self.SCREEN_HEIGHT])
         self.sim_surface = WorldSurface(panel_size, 0, pygame.Surface(panel_size))
