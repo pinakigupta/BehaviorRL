@@ -155,12 +155,15 @@ if __name__ == "__main__":
     else:
         if RUN_WITH_RAY:
             subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
-            checkpt = 100 # which checkpoint file to play
-            results_folder = "PPO_two-way-v0_0_2019-07-15_17-11-45avp2pc6k"
-            results_folder = pathname + "/" + ray_folder + "/" + "pygame-ray/" + results_folder + \
-                "/checkpoint_" + str(checkpt) +"/checkpoint-" + str(checkpt)
+            algo="IMPALA"
+            checkpt = 2500 # which checkpoint file to play
+            results_folder = pathname + "/" + ray_folder + "/" + "20190721-021730"+"/pygame-ray/"+algo+"_"+play_env_id+ \
+                "_0_"+"2019-07-21_02-17-42lcyu3tu7"+  "/checkpoint_" + str(checkpt) +"/checkpoint-" + str(checkpt)
+            #results_folder = "PPO_two-way-v0_0_2019-07-15_17-11-45avp2pc6k"
+            #results_folder = pathname + "/" + ray_folder + "/" + "pygame-ray/" + results_folder + \
+            #    "/checkpoint_" + str(checkpt) +"/checkpoint-" + str(checkpt)
             print("results_folder = ", results_folder)
-            subprocess.run(["rllib", "rollout", results_folder, "--run", "PPO", "--env", play_env_id, "--steps", "10000"])
+            subprocess.run(["rllib", "rollout", results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])
             subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
         else:
             play_env = gym.make(play_env_id)

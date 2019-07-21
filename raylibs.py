@@ -12,6 +12,7 @@ from ray.rllib.agents.trainer_template import build_trainer
 
 import ray.rllib.agents.ppo as ppo
 import ray.rllib.agents.impala as impala
+import ray.rllib.agents.apex as apex
 
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, homepath, RUN_WITH_RAY, InceptcurrentDT
 from urban_env.envs.two_way_env import TwoWayEnv
