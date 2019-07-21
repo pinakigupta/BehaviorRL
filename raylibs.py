@@ -12,9 +12,10 @@ from ray.rllib.agents.trainer_template import build_trainer
 
 import ray.rllib.agents.ppo as ppo
 import ray.rllib.agents.impala as impala
-import ray.rllib.agents.apex as apex
+
 
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, homepath, RUN_WITH_RAY, InceptcurrentDT
+from handle_model_files import pathname
 from urban_env.envs.two_way_env import TwoWayEnv
 
 from ray.tune import register_env
@@ -104,6 +105,7 @@ def ray_train(save_in_sub_folder=None):
 
     impala_config = impala.DEFAULT_CONFIG.copy()
     impala_config["num_gpus"] = 0
+    algo="IMPALA"
     ImpalaTrainer = build_trainer(name="IMPALA",
                                   default_config=impala_config,
                                   default_policy=VTraceTFPolicy,
@@ -114,12 +116,13 @@ def ray_train(save_in_sub_folder=None):
                                   mixins=[impala.impala.OverrideDefaultResourceRequest])
 
 
+    checkpt = 2500
     ray.tune.run(
                     ImpalaTrainer,
                     name="pygame-ray",
                     stop={"training_iteration": int(num_timesteps)},
                     #scheduler=pbt,
-                    checkpoint_freq=50,
+                    checkpoint_freq=int(num_timesteps)//10,
                     checkpoint_at_end=True,
                     local_dir=local_dir_path,
                     #upload_dir=upload_dir_path,
@@ -128,6 +131,8 @@ def ray_train(save_in_sub_folder=None):
                     resume=True,
                     #trial_executor=RayTrialExecutor(),
                     #resources_per_trial = {"cpu": 216, "gpu": 0},
+                    restore = pathname + "/" + ray_folder + "/" + "20190721-021730"+"/pygame-ray/"+algo+"_"+train_env_id+
+                    "_0_"+"2019-07-21_02-17-42lcyu3tu7"+  "/checkpoint_" + str(checkpt) +"/checkpoint-" + str(checkpt),
                     **{
                         #"env": train_env_id,
                         "num_samples": 1,
