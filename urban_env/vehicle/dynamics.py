@@ -163,9 +163,10 @@ class Vehicle(Loggable):
         :param other: the other vehicle
         """
         SCALE_=1.1
+        '''
         if '_predict_only' in gym.Env.metadata:
             if gym.Env.metadata['_predict_only']:
-                SCALE_= 0.9
+                SCALE_= 0.9'''
             
 
         if not self.COLLISIONS_ENABLED or not other.COLLISIONS_ENABLED or self.crashed or other is self:

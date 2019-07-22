@@ -40,8 +40,8 @@ class TwoWayEnv(AbstractEnv):
             "vehicles_count": 6
         },
         "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
-        "centering_position": [0.3, 0.5],
         "duration": 20,
+
     }
 
     def __init__(self, config=DEFAULT_CONFIG):
@@ -72,10 +72,10 @@ class TwoWayEnv(AbstractEnv):
 
         #print("self.vehicle.position  ",self.vehicle.position)
         if self.ego_x0 is not None:
-            if ('_predict_only', False) in gym.Env.metadata.items():
-                if '_mega_batch_itr' in gym.Env.metadata:
-                    low = 60*gym.Env.metadata['_mega_batch_itr']
-                    high = low + 20*gym.Env.metadata['_mega_batch_itr']
+            if ('_predict_only', False) in self.config.items():
+                if '_mega_batch_itr' in self.config:
+                    low = 60*self.config['_mega_batch_itr']
+                    high = low + 20*self.config['_mega_batch_itr']
                 else:
                     low = 120
                     high = low + 40
@@ -151,11 +151,11 @@ class TwoWayEnv(AbstractEnv):
         #print("ego_x",self.ego_x0)
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
         scene_complexity = 3
-        if '_mega_batch_itr' in gym.Env.metadata:
-            scene_complexity = gym.Env.metadata['_mega_batch_itr']
+        if '_mega_batch_itr' in self.config:
+            scene_complexity = self.config['_mega_batch_itr']
 
-        if '_predict_only' in gym.Env.metadata:
-            if gym.Env.metadata['_predict_only']:
+        if '_predict_only' in self.config:
+            if self.config['_predict_only']:
                 scene_complexity = 3
         
         # stationary vehicles

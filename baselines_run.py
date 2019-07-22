@@ -38,7 +38,7 @@ import baselines.run as run
 from handle_model_files import create_dirs, req_dirs, models_folder, makedirpath, is_master, is_predict_only, default_args
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, homepath, RUN_WITH_RAY, InceptcurrentDT
 import gym
-gym.Env.metadata['_predict_only'] = is_predict_only()
+#gym.Env.metadata['_predict_only'] = is_predict_only()
 
 #os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 warnings.filterwarnings("ignore")
@@ -65,9 +65,6 @@ if __name__ == "__main__":
             print("(rank , size) = ", mpi_util.get_local_rank_size(MPI.COMM_WORLD))
 
             if RUN_WITH_RAY:
-                #save_in_sub_folder = InceptcurrentDT
-                #args, args_dict = default_args(save_in_sub_folder=save_in_sub_folder)
-                #ray_train(save_in_sub_folder=args_dict['save_path'])
                 from raylibs import ray_train
                 ray_train(save_in_sub_folder=pathname + "/" + ray_folder + "/" + InceptcurrentDT)
             else:
