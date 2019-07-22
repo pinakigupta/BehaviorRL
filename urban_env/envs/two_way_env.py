@@ -40,10 +40,11 @@ class TwoWayEnv(AbstractEnv):
             "vehicles_count": 6
         },
         "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
-        "centering_position": [0.3, 0.5]
+        "centering_position": [0.3, 0.5],
+        "duration": 20,
     }
 
-    def __init__(self, config=None):
+    def __init__(self, config=DEFAULT_CONFIG):
         super(TwoWayEnv, self).__init__()
         self.steps = 0
         self.reset()
@@ -76,7 +77,7 @@ class TwoWayEnv(AbstractEnv):
                     low = 60*gym.Env.metadata['_mega_batch_itr']
                     high = low + 20*gym.Env.metadata['_mega_batch_itr']
                 else:
-                    low = 180 
+                    low = 120
                     high = low + 40
                 self.goal_achieved =  (self.vehicle.position[0] > self.ego_x0+np.random.randint(low = low,high=high))
         #neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
@@ -101,7 +102,8 @@ class TwoWayEnv(AbstractEnv):
         """
         lane_ID = self.vehicle.lane_index[2]
         on_road = self.vehicle.position[0] < self.ROAD_LENGTH
-        terminal = self.vehicle.crashed or self.goal_achieved or (not on_road)
+        terminal = self.vehicle.crashed or self.goal_achieved or (not on_road) or (self.steps >= self.config["duration"])
+        #print("self.steps ",self.steps," terminal ",terminal)
         return terminal
 
     def _constraint(self, action):
@@ -140,8 +142,9 @@ class TwoWayEnv(AbstractEnv):
         :return: the ego-vehicle
         """
         road = self.road
-        ego_vehicle = MDPVehicle(road, road.network.get_lane(("a", "b", 1)).position(np.random.randint(low=360,high=420), 0),\
-             velocity=np.random.randint(low=15,high=35))
+        ego_lane = road.network.get_lane(("a", "b", 1))
+        ego_init_position = ego_lane.position(np.random.randint(low=360,high=420), 0)
+        ego_vehicle = MDPVehicle(road, position=ego_init_position, velocity=np.random.randint(low=15,high=35))
         road.vehicles.append(ego_vehicle)
         self.vehicle = ego_vehicle
         self.ego_x0 = ego_vehicle.position[0]
@@ -186,9 +189,9 @@ class TwoWayEnv(AbstractEnv):
             self.road.vehicles.append(v)
         
         
-        '''
+        
         # stationary vehicles Left Lane
-        for i in range(np.random.randint(low=0,high=2*scene_complexity)):
+        '''for i in range(np.random.randint(low=0,high=2*scene_complexity)):
             x0 = self.ROAD_LENGTH-self.ego_x0-100-120*i + 10*self.np_random.randn()
             v = vehicles_type(road,
                               position=road.network.get_lane(("b", "a", 0))

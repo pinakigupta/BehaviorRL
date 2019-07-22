@@ -26,7 +26,7 @@ try:
 except:
     subprocess.run(["sudo", "pkill", "redis-server"]) # Kill the redis-server. This seems the surest way to kill it
     ray.shutdown()
-    ray.init()
+    ray.init(num_gpus=0, local_mode = True)
 
 
 def explore(config):
@@ -116,7 +116,7 @@ def ray_train(save_in_sub_folder=None):
                                   mixins=[impala.impala.OverrideDefaultResourceRequest])
 
 
-    checkpt = 2500
+    checkpt = 2800
     ray.tune.run(
                     ImpalaTrainer,
                     name="pygame-ray",
@@ -126,7 +126,7 @@ def ray_train(save_in_sub_folder=None):
                     checkpoint_at_end=True,
                     local_dir=local_dir_path,
                     #upload_dir=upload_dir_path,
-                    verbose=True,
+                    verbose=False,
                     queue_trials=False,
                     resume=True,
                     #trial_executor=RayTrialExecutor(),
@@ -155,4 +155,20 @@ def ray_train(save_in_sub_folder=None):
                     }
                     
 
-                )                       
+                )   
+
+
+def ray_play():
+            import gym
+            gym.make(play_env_id).reset()
+            subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
+            algo="IMPALA"
+            checkpt = 629 # which checkpoint file to play
+            results_folder = pathname + "/" + ray_folder + "/" + "20190721-021730"+"/pygame-ray/"+algo+"_"+play_env_id+ \
+                "_0_"+"2019-07-21_02-17-42lcyu3tu7"+  "/checkpoint_" + str(checkpt) +"/checkpoint-" + str(checkpt)
+            #results_folder = "PPO_two-way-v0_0_2019-07-15_17-11-45avp2pc6k"
+            #results_folder = pathname + "/" + ray_folder + "/" + "pygame-ray/" + results_folder + \
+            #    "/checkpoint_" + str(checkpt) +"/checkpoint-" + str(checkpt)
+            print("results_folder = ", results_folder)
+            subprocess.run(["rllib", "rollout", results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])
+            subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
