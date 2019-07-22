@@ -34,11 +34,11 @@ DEFAULT_CONFIG = {
 }
 
 
-register_env(train_env_id, lambda config: TwoWayEnv(config=DEFAULT_CONFIG))
-register_env(play_env_id, lambda config: TwoWayEnv(config=DEFAULT_CONFIG))
+register_env(train_env_id, lambda config: TwoWayEnv(config))
+#register_env(play_env_id, lambda config: TwoWayEnv(config))
 redis_add = ray.services.get_node_ip_address() + ":6379"
 
-if is_predict_only() or True:
+if is_predict_only():
     ray.init(num_gpus=0, local_mode=False)
 else:
     try:
