@@ -38,9 +38,7 @@ register_env(train_env_id, lambda config: TwoWayEnv(config=DEFAULT_CONFIG))
 register_env(play_env_id, lambda config: TwoWayEnv(config=DEFAULT_CONFIG))
 redis_add = ray.services.get_node_ip_address() + ":6379"
 
-if is_predict_only():
-    subprocess.run(["sudo", "pkill", "redis-server"])
-    ray.shutdown()
+if is_predict_only() or True:
     ray.init(num_gpus=0, local_mode=False)
 else:
     try:
@@ -138,6 +136,11 @@ def ray_train(save_in_sub_folder=None):
 
     checkpt = 2800
     available_cluster_cpus = int(ray.cluster_resources().get("CPU"))
+    if is_predict_only():
+        delegated_cpus=1
+    else:
+        delegated_cpus=available_cluster_cpus-2
+
     ray.tune.run(
         ImpalaTrainer,
         name="pygame-ray",
@@ -161,7 +164,7 @@ def ray_train(save_in_sub_folder=None):
                 "num_cpus_per_worker": 1,
                 # "gpus": 0,
                 "gamma": 0.85,
-                "num_workers": available_cluster_cpus-2,
+                "num_workers": delegated_cpus,
                 "env": train_env_id,
                 # These params are tuned from a fixed starting value.
                 # "lambda": 0.95,
@@ -173,9 +176,9 @@ def ray_train(save_in_sub_folder=None):
                 # "train_batch_size": sample_from(lambda spec: random.choice([10000, 20000, 40000])),
             },
         }
-
-
     )
+
+    subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
 
 
 def ray_play():
@@ -191,6 +194,5 @@ def ray_play():
     # results_folder = pathname + "/" + ray_folder + "/" + "pygame-ray/" + results_folder + \
     #    "/checkpoint_" + str(checkpt) +"/checkpoint-" + str(checkpt)
     print("results_folder = ", results_folder)
-    subprocess.run(["rllib", "rollout", results_folder, "--run",
-                    algo, "--env", play_env_id, "--steps", "10000"])
+    subprocess.run(["rllib", "rollout", results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])

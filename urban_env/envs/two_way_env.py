@@ -159,7 +159,8 @@ class TwoWayEnv(AbstractEnv):
                 scene_complexity = 3
         
         # stationary vehicles
-        for i in range(np.random.randint(low=0,high=scene_complexity)):
+        rand_stat_veh_count = np.random.randint(low=0,high=scene_complexity)
+        for i in range(rand_stat_veh_count):
             x0 = self.ego_x0+90+90*i + 10*self.np_random.randn()
             self.road.vehicles.append(
                 vehicles_type(road,
@@ -171,7 +172,8 @@ class TwoWayEnv(AbstractEnv):
                               enable_lane_change=False)
             )
             
-        for i in range(np.random.randint(low=0,high=2*scene_complexity)):
+        rand_veh_count = np.random.randint(low=0,high=2*scene_complexity)
+        for i in range(rand_veh_count):
             x0 = self.ego_x0+90+40*i + 10*self.np_random.randn()
             v = vehicles_type(road,
                               position=road.network.get_lane(("a", "b", 1))
@@ -191,7 +193,11 @@ class TwoWayEnv(AbstractEnv):
         
         
         # stationary vehicles Left Lane
-        '''for i in range(np.random.randint(low=0,high=2*scene_complexity)):
+        if (rand_stat_veh_count == 0):
+            rand_stat_veh_count = np.random.randint(low=0,high=2*scene_complexity)
+        else:
+            rand_stat_veh_count = 0
+        for i in range(rand_stat_veh_count):
             x0 = self.ROAD_LENGTH-self.ego_x0-100-120*i + 10*self.np_random.randn()
             v = vehicles_type(road,
                               position=road.network.get_lane(("b", "a", 0))
@@ -202,7 +208,7 @@ class TwoWayEnv(AbstractEnv):
                               enable_lane_change=False)
             v.target_lane_index = ("b", "a", 0)
             v.lane_index = ("b", "a", 0)
-            self.road.vehicles.append(v)'''
+            self.road.vehicles.append(v)
 
         
         for i in range(np.random.randint(low=0,high=2*scene_complexity)):
