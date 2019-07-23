@@ -187,9 +187,12 @@ def ray_play():
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
     algo = "IMPALA"
     checkpt = 629  # which checkpoint file to play
-    results_folder = pathname + "/" + ray_folder + "/" + "20190721-021730"+"/pygame-ray/"+algo+"_"+play_env_id + \
-        "_0_"+"2019-07-21_02-17-42lcyu3tu7" + "/checkpoint_" + \
-        str(checkpt) + "/checkpoint-" + str(checkpt)
+    results_folder = pathname + "/" + ray_folder + "/" + "20190721-021730"+"/pygame-ray/"
+    #+algo+"_"+play_env_id + \
+    #    "_0_"+"2019-07-21_02-17-42lcyu3tu7" + "/checkpoint_" + str(checkpt) + "/checkpoint-" + str(checkpt)
+    subdir = next(os.walk(results_folder))[1][0]
+    results_folder = results_folder + subdir + "/" + \
+         "/checkpoint_" + str(checkpt) + "/checkpoint-" + str(checkpt)
     #results_folder = "PPO_two-way-v0_0_2019-07-15_17-11-45avp2pc6k"
     # results_folder = pathname + "/" + ray_folder + "/" + "pygame-ray/" + results_folder + \
     #    "/checkpoint_" + str(checkpt) +"/checkpoint-" + str(checkpt)
