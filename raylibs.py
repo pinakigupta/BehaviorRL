@@ -7,6 +7,7 @@ import sys
 import os
 import time
 import glob
+import redis
 import ray
 from ray.tune import Experiment, Trainable, run_experiments, register_env, sample_from
 from ray.tune.schedulers import PopulationBasedTraining, AsyncHyperBandScheduler
@@ -31,24 +32,41 @@ DEFAULT_CONFIG = {
     "centering_position": [0.3, 0.5],
     "duration": 20,
     "_predict_only": is_predict_only(),
-    "_mega_batch_itr": 3,
+    "DIFFICULTY_LEVELS": 3,
 }
 
 
 register_env(train_env_id, lambda config: TwoWayEnv(config))
-#register_env(play_env_id, lambda config: TwoWayEnv(config))
+register_env(play_env_id, lambda config: TwoWayEnv(config))
 redis_add = ray.services.get_node_ip_address() + ":6379"
 
+# assuming rs is your redis connection
+
+def is_redis_available():
+    # ... get redis connection here, or pass it in. up to you.
+    try:
+        rs.get(None)  # getting None returns None or throws an exception
+    except (redis.exceptions.ConnectionError, 
+            redis.exceptions.BusyLoadingError):
+        return False
+    return True
+
+
 if is_predict_only():
-    ray.init(num_gpus=0, local_mode=False)
+    ray.init(num_gpus=0, local_mode=True)
 else:
     try:
         ray.init(redis_add)
+        available_cluster_cpus = int(ray.cluster_resources().get("CPU"))
     except:
         # Kill the redis-server. This seems the surest way to kill it
         subprocess.run(["sudo", "pkill", "redis-server"])
-        ray.shutdown()
+        try:
+            ray.shutdown()
+        except:
+            print("ray shutdown failed. Perhaps ray was not initialized ?")
         ray.init(num_gpus=0, local_mode=False)
+        available_cluster_cpus = int(ray.available_resources().get("CPU"))
 
 
 def explore(config):
@@ -78,6 +96,21 @@ pbt = PopulationBasedTraining(
     },
     custom_explore_fn=explore
 )
+
+def ppotrain(config, reporter):
+    trainer = ppo.PPOTrainer(config=config, env=train_env_id)
+    while True:
+        result = trainer.train()
+        reporter(**result)
+        '''if result["episode_reward_mean"] > 200:
+            phase = 2
+        elif result["episode_reward_mean"] > 100:
+            phase = 1
+        else:
+            phase = 0
+        trainer.workers.foreach_worker(
+            lambda ev: ev.foreach_env(
+                lambda env: env.set_config("DIFFICULTY_LEVELS", phase)))'''
 
 
 def ray_train(save_in_sub_folder=None):
@@ -136,14 +169,14 @@ def ray_train(save_in_sub_folder=None):
                                   mixins=[impala.impala.OverrideDefaultResourceRequest])
 
     checkpt = 2800
-    available_cluster_cpus = int(ray.cluster_resources().get("CPU"))
+    
     if is_predict_only():
         delegated_cpus=1
     else:
         delegated_cpus=available_cluster_cpus-2
 
     ray.tune.run(
-        "PPO",
+        ppotrain,
         name="pygame-ray",
         stop={"training_iteration": int(num_timesteps)},
         # scheduler=pbt,
@@ -188,7 +221,7 @@ def ray_play():
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
     #algo = "IMPALA"
     #checkpt = 629  # which checkpoint file to play
-    results_folder = pathname + "/" + ray_folder + "/" + "20190722-223137"+"/pygame-ray/"
+    results_folder = pathname + "/" + ray_folder + "/" + "20190723-134001"+"/pygame-ray/"
     #+algo+"_"+play_env_id + \
     #    "_0_"+"2019-07-21_02-17-42lcyu3tu7" + "/checkpoint_" + str(checkpt) + "/checkpoint-" + str(checkpt)
     subdir = next(os.walk(results_folder))[1][0]

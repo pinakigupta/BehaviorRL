@@ -61,7 +61,7 @@ if __name__ == "__main__":
             sess.close()
             tf.reset_default_graph()
             print(" Batch iteration ", mega_batch_itr)
-            #gym.Env.metadata['_mega_batch_itr'] = mega_batch_itr
+            #gym.Env.metadata['DIFFICULTY_LEVELS'] = mega_batch_itr
             print("(rank , size) = ", mpi_util.get_local_rank_size(MPI.COMM_WORLD))
 
             if RUN_WITH_RAY:

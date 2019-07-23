@@ -357,3 +357,6 @@ class AbstractEnv(gym.Env):
             else:
                 setattr(result, k, None)
         return result
+
+    def set_config(key, value):
+        self.config[key] = value

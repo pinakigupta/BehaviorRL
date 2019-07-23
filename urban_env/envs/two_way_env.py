@@ -73,9 +73,9 @@ class TwoWayEnv(AbstractEnv):
         #print("self.vehicle.position  ",self.vehicle.position)
         if self.ego_x0 is not None:
             if ('_predict_only', False) in self.config.items():
-                if '_mega_batch_itr' in self.config:
-                    low = 60*self.config['_mega_batch_itr']
-                    high = low + 20*self.config['_mega_batch_itr']
+                if 'DIFFICULTY_LEVELS' in self.config:
+                    low = 60*self.config['DIFFICULTY_LEVELS']
+                    high = low + 20*self.config['DIFFICULTY_LEVELS']
                 else:
                     low = 120
                     high = low + 40
@@ -151,17 +151,19 @@ class TwoWayEnv(AbstractEnv):
         #print("ego_x",self.ego_x0)
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
         scene_complexity = 3
-        if '_mega_batch_itr' in self.config:
-            scene_complexity = self.config['_mega_batch_itr']
+        if 'DIFFICULTY_LEVELS' in self.config:
+            scene_complexity = self.config['DIFFICULTY_LEVELS']
 
         if '_predict_only' in self.config:
             if self.config['_predict_only']:
                 scene_complexity = 3
         
         # stationary vehicles
+        stat_veh_x0 = []
         rand_stat_veh_count = np.random.randint(low=0,high=scene_complexity)
         for i in range(rand_stat_veh_count):
             x0 = self.ego_x0+90+90*i + 10*self.np_random.randn()
+            stat_veh_x0.append(x0)
             self.road.vehicles.append(
                 vehicles_type(road,
                               position=road.network.get_lane(("a", "b", 1))
@@ -193,22 +195,31 @@ class TwoWayEnv(AbstractEnv):
         
         
         # stationary vehicles Left Lane
-        if (rand_stat_veh_count == 0):
+        #if (rand_stat_veh_count == 0):
             rand_stat_veh_count = np.random.randint(low=0,high=2*scene_complexity)
-        else:
-            rand_stat_veh_count = 0
+        #else:
+        #    rand_stat_veh_count = 0
         for i in range(rand_stat_veh_count):
             x0 = self.ROAD_LENGTH-self.ego_x0-100-120*i + 10*self.np_random.randn()
-            v = vehicles_type(road,
-                              position=road.network.get_lane(("b", "a", 0))
-                              .position(x0 , 1),
-                              heading=road.network.get_lane(("b", "a", 0)).heading_at(x0),
-                              velocity=0,target_velocity = 0,
-                              target_lane_index = ("b", "a", 0), lane_index = ("b", "a", 0),
-                              enable_lane_change=False)
-            v.target_lane_index = ("b", "a", 0)
-            v.lane_index = ("b", "a", 0)
-            self.road.vehicles.append(v)
+            x0_wrt_ego_lane = self.ROAD_LENGTH - x0
+            min_offset = 1e6
+
+            if stat_veh_x0:
+                dist_from_ego_lane_parked_vehs = [x - x0_wrt_ego_lane for x in stat_veh_x0]
+                min_offset = min([abs(y) for y in dist_from_ego_lane_parked_vehs])
+            if (min_offset < 10):
+                break
+            else:
+                v = vehicles_type(road,
+                                  position=road.network.get_lane(("b", "a", 0))
+                                  .position(x0 , 1),
+                                  heading=road.network.get_lane(("b", "a", 0)).heading_at(x0),
+                                  velocity=0,target_velocity = 0,
+                                  target_lane_index = ("b", "a", 0), lane_index = ("b", "a", 0),
+                                  enable_lane_change=False)
+                v.target_lane_index = ("b", "a", 0)
+                v.lane_index = ("b", "a", 0)
+                self.road.vehicles.append(v)
 
         
         for i in range(np.random.randint(low=0,high=2*scene_complexity)):
