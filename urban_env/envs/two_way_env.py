@@ -40,7 +40,7 @@ class TwoWayEnv(AbstractEnv):
             "vehicles_count": 6
         },
         "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
-        "duration": 20,
+        "duration": 250,
 
     }
 
@@ -181,7 +181,7 @@ class TwoWayEnv(AbstractEnv):
                               heading=road.network.get_lane(("a", "b", 1)).heading_at(100),
                               velocity=max(0,10 + 2*self.np_random.randn()),
                               target_lane_index = ("a", "b", 1), lane_index = ("a", "b", 1),                             
-                              enable_lane_change=False)
+                              enable_lane_change=True)
             front_vehicle, _ = self.road.neighbour_vehicles(v)
             d = v.lane_distance_to(front_vehicle) 
             if (d<5):
