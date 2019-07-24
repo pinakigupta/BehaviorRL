@@ -15,7 +15,7 @@ from urban_env.road.road import Road, RoadNetwork
 from urban_env.envs.graphics import EnvViewer
 from urban_env.vehicle.control import ControlledVehicle, MDPVehicle
 from urban_env.vehicle.dynamics import Obstacle
-
+from handle_model_files import is_predict_only
 
 class TwoWayEnv(AbstractEnv):
     """
@@ -41,6 +41,7 @@ class TwoWayEnv(AbstractEnv):
         },
         "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
         "duration": 250,
+        "_predict_only": is_predict_only(),
 
     }
 
@@ -59,7 +60,6 @@ class TwoWayEnv(AbstractEnv):
         self.goal = (self.ROAD_LENGTH - self.vehicle.position[0]) / (7.0 * MDPVehicle.SPEED_MAX) # Normalize
         self.goal = min(1.0, max(-1.0, self.goal)) # Clip
         obs[0] = self.goal # Just a temporary imp wo explicitly mentioning the goal
-        print("obs ",obs)
         return (obs, rew, done, info)
 
     def _on_route(self, veh=None):
@@ -152,7 +152,8 @@ class TwoWayEnv(AbstractEnv):
         """
         road = self.road
         ego_lane = road.network.get_lane(("a", "b", 1))
-        ego_init_position = ego_lane.position(np.random.randint(low=660,high=720), 0)
+        low = 400 if self.config["_predict_only"] else 660
+        ego_init_position = ego_lane.position(np.random.randint(low=low,high=low+60), 0)
         ego_vehicle = MDPVehicle(road, position=ego_init_position, velocity=np.random.randint(low=15,high=35))
         road.vehicles.append(ego_vehicle)
         self.vehicle = ego_vehicle
@@ -165,7 +166,7 @@ class TwoWayEnv(AbstractEnv):
 
         if '_predict_only' in self.config:
             if self.config['_predict_only']:
-                scene_complexity = 3
+                scene_complexity = 5
         
         # stationary vehicles
         stat_veh_x0 = []
