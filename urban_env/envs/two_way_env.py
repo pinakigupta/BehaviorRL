@@ -27,7 +27,6 @@ class TwoWayEnv(AbstractEnv):
     """
 
     COLLISION_REWARD = -200
-    #LEFT_LANE_CONSTRAINT = 1
     LEFT_LANE_REWARD = 0
     VELOCITY_REWARD = 5
     GOAL_REWARD = 2000
@@ -59,7 +58,7 @@ class TwoWayEnv(AbstractEnv):
         self.episode_travel = self.vehicle.position[0] - self.ego_x0 
         self.goal = (self.ROAD_LENGTH - self.vehicle.position[0]) / (7.0 * MDPVehicle.SPEED_MAX) # Normalize
         self.goal = min(1.0, max(-1.0, self.goal)) # Clip
-        obs[0] = self.goal # Just a temporary imp wo explicitly mentioning the goal
+        obs[0] = self.goal # Just a temporary implementation wo explicitly mentioning the goal
         return (obs, rew, done, info)
 
     def _on_route(self, veh=None):
@@ -209,7 +208,7 @@ class TwoWayEnv(AbstractEnv):
             rand_stat_veh_count = np.random.randint(low=0,high=3*scene_complexity)
         #else:
         #    rand_stat_veh_count = 0
-        for i in range(0):
+        for i in range(rand_stat_veh_count):
             x0 = self.ROAD_LENGTH-self.ego_x0-100-120*i + 10*self.np_random.randn()
             x0_wrt_ego_lane = self.ROAD_LENGTH - x0
             min_offset = 1e6
