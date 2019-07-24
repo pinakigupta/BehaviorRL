@@ -104,6 +104,11 @@ class AbstractEnv(gym.Env):
         self.rendering_mode = 'human'
         self.enable_auto_render = False
 
+        # Action and reward 
+        self.action = None
+        self.reward = None
+        self.episode_reward = 0
+
         
 
     def seed(self, seed=None):
@@ -153,11 +158,12 @@ class AbstractEnv(gym.Env):
             Reset the environment to it's initial configuration
         :return: the observation of the reset state
         """
+        self.episode_reward = 0
         self.define_spaces()
         obs = self.observation.observe()
         return obs
 
-    def step(self, action, is_training = True):
+    def step(self, action):
         """
             Perform an action and step the environment dynamics.
 
@@ -185,7 +191,10 @@ class AbstractEnv(gym.Env):
 
         constraint = self._constraint(action)
         info = {'constraint': constraint, "c_": constraint, "extra_obs": extra_obs}
-        print("self.steps ", self.steps, " reward ", reward)
+        #print("self.steps ", self.steps, " reward ", reward)
+        self.action = action
+        self.reward = reward
+        self.episode_reward += self.reward
         return obs, reward, terminal, info
 
     def _simulate(self, action=None):

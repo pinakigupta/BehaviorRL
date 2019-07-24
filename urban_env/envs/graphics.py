@@ -27,7 +27,6 @@ class EnvViewer(object):
         self.env = env
 
         pygame.init()
-        pygame.display.set_caption("Urban-AD ")
         panel_size = (self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
         self.screen = pygame.display.set_mode([self.SCREEN_WIDTH, self.SCREEN_HEIGHT])
         self.sim_surface = WorldSurface(panel_size, 0, pygame.Surface(panel_size))
@@ -109,6 +108,14 @@ class EnvViewer(object):
         if self.SAVE_IMAGES:
             pygame.image.save(self.screen, "urban-env_{}.png".format(self.frame))
             self.frame += 1
+
+        caption = "Urban-AD ( "
+        caption += "steps = " + str(self.env.steps)
+        if self.env.episode_travel:
+            caption += ', ep travel  = {:.2f}'.format(self.env.episode_travel)
+        caption += ", reward = " + str(self.env.reward) + ", ep reward = " + str(self.env.episode_reward)
+        caption += " )"
+        pygame.display.set_caption(caption)
 
     def get_image(self):
         """

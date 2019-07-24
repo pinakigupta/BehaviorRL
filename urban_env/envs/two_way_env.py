@@ -46,7 +46,6 @@ class TwoWayEnv(AbstractEnv):
 
     def __init__(self, config=DEFAULT_CONFIG):
         super(TwoWayEnv, self).__init__()
-        self.steps = 0
         self.reset()
         self.goal_achieved = False
         self.ego_x0 = None
@@ -58,6 +57,7 @@ class TwoWayEnv(AbstractEnv):
         self.previous_action = action
         obs, rew, done, info = super(TwoWayEnv, self).step(action)
         self.previous_obs = obs
+        self.episode_travel = self.vehicle.position[0] - self.ego_x0
         return (obs, rew, done, info)
 
 
@@ -72,7 +72,7 @@ class TwoWayEnv(AbstractEnv):
 
         #print("self.vehicle.position  ",self.vehicle.position)
         if self.ego_x0 is not None:
-            if ('_predict_only', False) in self.config.items() or True:
+            if ('_predict_only', False) in self.config.items():
                 if 'DIFFICULTY_LEVELS' in self.config:
                     low = 60*self.config['DIFFICULTY_LEVELS']
                     high = low + 20*self.config['DIFFICULTY_LEVELS']
