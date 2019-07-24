@@ -15,6 +15,14 @@ import os
 from os.path import dirname, abspath
 import time
 import pprint
+import atexit
+
+
+def exit_handler():
+    subprocess.run(["chmod", "-R", "a+rwx", "."])
+
+atexit.register(exit_handler)
+
 pp = pprint.PrettyPrinter(indent=4)
 ####################
 
