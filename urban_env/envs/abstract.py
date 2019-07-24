@@ -191,7 +191,7 @@ class AbstractEnv(gym.Env):
 
         constraint = self._constraint(action)
         info = {'constraint': constraint, "c_": constraint, "extra_obs": extra_obs}
-        #print("self.steps ", self.steps, " reward ", reward)
+        #print("self.steps ", self.steps, " obs ", obs)
         self.action = action
         self.reward = reward
         self.episode_reward += self.reward

@@ -79,7 +79,7 @@ class TwoWayEnv(AbstractEnv):
                 else:
                     low = 120
                     high = low + 40
-                self.goal_achieved =  (self.vehicle.position[0] > self.ego_x0+np.random.randint(low = low,high=high)) and on_route
+                self.goal_achieved =  (self.vehicle.position[0] > 0.99 * self.ROAD_LENGTH ) and on_route
         #neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
         collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
         velocity_reward = self.VELOCITY_REWARD * (self.vehicle.velocity_index -1) / (self.vehicle.SPEED_COUNT - 1)
@@ -143,7 +143,7 @@ class TwoWayEnv(AbstractEnv):
         """
         road = self.road
         ego_lane = road.network.get_lane(("a", "b", 1))
-        ego_init_position = ego_lane.position(np.random.randint(low=360,high=420), 0)
+        ego_init_position = ego_lane.position(np.random.randint(low=660,high=720), 0)
         ego_vehicle = MDPVehicle(road, position=ego_init_position, velocity=np.random.randint(low=15,high=35))
         road.vehicles.append(ego_vehicle)
         self.vehicle = ego_vehicle
@@ -252,3 +252,4 @@ class TwoWayEnv(AbstractEnv):
         print("actions")
         print("Optimal action ", AbstractEnv.ACTIONS[self.previous_action], "\n")
 
+    
