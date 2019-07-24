@@ -116,6 +116,12 @@ class MultilaneEnv(AbstractEnv):
         """
         return self.vehicle.crashed or self.steps >= self.config["duration"]
 
+    def _is_crashed(self):
+        '''
+            Check if the ego vehicle crashed
+        '''
+        return self.vehicle.crashed
+
     def _constraint(self, action):
         """
             The constraint signal is the occurrence of collision

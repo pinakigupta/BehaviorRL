@@ -124,6 +124,12 @@ class AbstractEnv(gym.Env):
         """
         raise NotImplementedError()
 
+    def _is_crashed(self):
+        """
+            Check whether the ego vehicle crashed
+        """
+        raise NotImplementedError()
+
     def _constraint(self, action):
         """
             A constraint metric, for budgeted MDP.
@@ -160,11 +166,10 @@ class AbstractEnv(gym.Env):
         obs = self.observation.observe()
         reward = self._reward(action)
         terminal = self._is_terminal()
-
+        crashed = self._is_crashed()
         constraint = self._constraint(action)
         info = {'constraint': constraint, "c_": constraint}
-
-        return obs, reward, terminal, info
+        return obs, reward, terminal, info, crashed
 
     def _simulate(self, action=None):
         """
