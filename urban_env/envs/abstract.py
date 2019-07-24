@@ -185,7 +185,7 @@ class AbstractEnv(gym.Env):
 
         constraint = self._constraint(action)
         info = {'constraint': constraint, "c_": constraint, "extra_obs": extra_obs}
-
+        print("self.steps ", self.steps, " reward ", reward)
         return obs, reward, terminal, info
 
     def _simulate(self, action=None):
@@ -208,6 +208,7 @@ class AbstractEnv(gym.Env):
             if self.done or self._is_terminal():
                 break
         self.enable_auto_render = False
+        
 
     def render(self, mode='human'):
         """

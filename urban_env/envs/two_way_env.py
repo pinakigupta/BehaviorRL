@@ -72,14 +72,14 @@ class TwoWayEnv(AbstractEnv):
 
         #print("self.vehicle.position  ",self.vehicle.position)
         if self.ego_x0 is not None:
-            if ('_predict_only', False) in self.config.items():
+            if ('_predict_only', False) in self.config.items() or True:
                 if 'DIFFICULTY_LEVELS' in self.config:
                     low = 60*self.config['DIFFICULTY_LEVELS']
                     high = low + 20*self.config['DIFFICULTY_LEVELS']
                 else:
                     low = 120
                     high = low + 40
-                self.goal_achieved =  (self.vehicle.position[0] > self.ego_x0+np.random.randint(low = low,high=high))
+                self.goal_achieved =  (self.vehicle.position[0] > self.ego_x0+np.random.randint(low = low,high=high)) and on_route
         #neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
         collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
         velocity_reward = self.VELOCITY_REWARD * (self.vehicle.velocity_index -1) / (self.vehicle.SPEED_COUNT - 1)
@@ -90,7 +90,7 @@ class TwoWayEnv(AbstractEnv):
         #print("collision_reward ",collision_reward, " velocity_reward ",velocity_reward, " lane_reward ",lane_reward," goal_reward ",goal_reward)
         if self.vehicle.crashed:
             reward =  collision_reward + min(0,velocity_reward)
-        elif self.goal_achieved and on_route:
+        elif self.goal_achieved:
             reward = goal_reward + velocity_reward
         else :
             reward =   velocity_reward  
@@ -183,7 +183,7 @@ class TwoWayEnv(AbstractEnv):
                               heading=road.network.get_lane(("a", "b", 1)).heading_at(100),
                               velocity=max(0,10 + 2*self.np_random.randn()),
                               target_lane_index = ("a", "b", 1), lane_index = ("a", "b", 1),                             
-                              enable_lane_change=True)
+                              enable_lane_change=False)
             front_vehicle, _ = self.road.neighbour_vehicles(v)
             d = v.lane_distance_to(front_vehicle) 
             if (d<5):
@@ -196,10 +196,10 @@ class TwoWayEnv(AbstractEnv):
         
         # stationary vehicles Left Lane
         #if (rand_stat_veh_count == 0):
-            rand_stat_veh_count = np.random.randint(low=0,high=2*scene_complexity)
+            rand_stat_veh_count = np.random.randint(low=0,high=3*scene_complexity)
         #else:
         #    rand_stat_veh_count = 0
-        for i in range(rand_stat_veh_count):
+        for i in range(0):
             x0 = self.ROAD_LENGTH-self.ego_x0-100-120*i + 10*self.np_random.randn()
             x0_wrt_ego_lane = self.ROAD_LENGTH - x0
             min_offset = 1e6
@@ -207,7 +207,7 @@ class TwoWayEnv(AbstractEnv):
             if stat_veh_x0:
                 dist_from_ego_lane_parked_vehs = [x - x0_wrt_ego_lane for x in stat_veh_x0]
                 min_offset = min([abs(y) for y in dist_from_ego_lane_parked_vehs])
-            if (min_offset < 10):
+            if (min_offset < 20):
                 break
             else:
                 v = vehicles_type(road,

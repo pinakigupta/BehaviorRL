@@ -40,17 +40,6 @@ register_env(train_env_id, lambda config: TwoWayEnv(config))
 register_env(play_env_id, lambda config: TwoWayEnv(config))
 redis_add = ray.services.get_node_ip_address() + ":6379"
 
-# assuming rs is your redis connection
-
-def is_redis_available():
-    # ... get redis connection here, or pass it in. up to you.
-    try:
-        rs.get(None)  # getting None returns None or throws an exception
-    except (redis.exceptions.ConnectionError, 
-            redis.exceptions.BusyLoadingError):
-        return False
-    return True
-
 
 if is_predict_only():
     ray.init(num_gpus=0, local_mode=True)
