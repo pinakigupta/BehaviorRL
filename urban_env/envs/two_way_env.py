@@ -7,7 +7,7 @@
 from __future__ import division, print_function, absolute_import
 import numpy as np
 import gym
-
+from gym import GoalEnv
 from urban_env import utils
 from urban_env.envs.abstract import AbstractEnv
 from urban_env.road.lane import LineType, StraightLane, SineLane
@@ -55,7 +55,11 @@ class TwoWayEnv(AbstractEnv):
         self.previous_action = action
         obs, rew, done, info = super(TwoWayEnv, self).step(action)
         self.previous_obs = obs
-        self.episode_travel = self.vehicle.position[0] - self.ego_x0
+        self.episode_travel = self.vehicle.position[0] - self.ego_x0 
+        self.goal = (self.ROAD_LENGTH - self.vehicle.position[0]) / (7.0 * MDPVehicle.SPEED_MAX) # Normalize
+        self.goal = min(1.0, max(-1.0, self.goal)) # Clip
+        obs[0] = self.goal # Just a temporary imp wo explicitly mentioning the goal
+        print("obs ",obs)
         return (obs, rew, done, info)
 
     def _on_route(self, veh=None):
@@ -83,30 +87,19 @@ class TwoWayEnv(AbstractEnv):
         :return: the reward of the state-action transition
         """
 
-
-        #print("self.vehicle.position  ",self.vehicle.position)
-        if self.ego_x0 is not None:
-            if ('_predict_only', False) in self.config.items():
-                if 'DIFFICULTY_LEVELS' in self.config:
-                    low = 60*self.config['DIFFICULTY_LEVELS']
-                    high = low + 20*self.config['DIFFICULTY_LEVELS']
-                else:
-                    low = 120
-                    high = low + 40
         #neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
         collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
         velocity_reward = self.VELOCITY_REWARD * (self.vehicle.velocity_index -1) / (self.vehicle.SPEED_COUNT - 1)
-        if (velocity_reward>0):
+        if (velocity_reward > 0):
             velocity_reward *= self._on_route()
-        #lane_reward = 0 #self.LEFT_LANE_REWARD * (len(neighbours) - 1 - self.vehicle.target_lane_index[2]) / (len(neighbours) - 1)
-        goal_reward = self.GOAL_REWARD 
+        goal_reward = self.GOAL_REWARD
         #print("collision_reward ",collision_reward, " velocity_reward ",velocity_reward, " lane_reward ",lane_reward," goal_reward ",goal_reward)
         if self.vehicle.crashed:
-            reward =  collision_reward + min(0,velocity_reward)
+            reward = collision_reward + min(0.0, velocity_reward)
         elif self._goal_achieved():
             reward = goal_reward + velocity_reward
-        else :
-            reward =   velocity_reward  
+        else:
+            reward = velocity_reward
         return reward
 
     def _is_terminal(self):
