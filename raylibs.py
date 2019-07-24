@@ -173,7 +173,7 @@ def ray_train(save_in_sub_folder=None):
         delegated_cpus=available_cluster_cpus-2
 
     ray.tune.run(
-        ppotrain,
+        "PPO",
         name="pygame-ray",
         stop={"training_iteration": int(num_timesteps)},
         # scheduler=pbt,

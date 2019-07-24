@@ -47,11 +47,9 @@ class TwoWayEnv(AbstractEnv):
     def __init__(self, config=DEFAULT_CONFIG):
         super(TwoWayEnv, self).__init__()
         self.reset()
-        self.goal_achieved = False
+        #self.goal_achieved = False
         self.ego_x0 = None
-
         
-
     def step(self, action):
         self.steps += 1
         self.previous_action = action
@@ -60,6 +58,23 @@ class TwoWayEnv(AbstractEnv):
         self.episode_travel = self.vehicle.position[0] - self.ego_x0
         return (obs, rew, done, info)
 
+    def _on_route(self, veh=None):
+        if veh is None:
+            veh = self.vehicle
+        lane_ID = veh.lane_index[2]
+        onroute = (lane_ID == 1)
+        return onroute
+    
+    def _on_road(self, veh=None):
+        if veh is None:
+            veh = self.vehicle
+        return (veh.position[0] < self.ROAD_LENGTH) and (veh.position[0] > 0)
+
+    def _goal_achieved(self, veh=None):
+        if veh is None:
+            veh = self.vehicle
+        return (veh.position[0] > 0.99 * self.ROAD_LENGTH) and \
+                self._on_route(veh)
 
     def _reward(self, action):
         """
@@ -67,8 +82,7 @@ class TwoWayEnv(AbstractEnv):
         :param action: the action performed
         :return: the reward of the state-action transition
         """
-        lane_ID = self.vehicle.lane_index[2]
-        on_route = (lane_ID==1)
+
 
         #print("self.vehicle.position  ",self.vehicle.position)
         if self.ego_x0 is not None:
@@ -79,18 +93,17 @@ class TwoWayEnv(AbstractEnv):
                 else:
                     low = 120
                     high = low + 40
-                self.goal_achieved =  (self.vehicle.position[0] > 0.99 * self.ROAD_LENGTH ) and on_route
         #neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
         collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
         velocity_reward = self.VELOCITY_REWARD * (self.vehicle.velocity_index -1) / (self.vehicle.SPEED_COUNT - 1)
         if (velocity_reward>0):
-            velocity_reward *= on_route
+            velocity_reward *= self._on_route()
         #lane_reward = 0 #self.LEFT_LANE_REWARD * (len(neighbours) - 1 - self.vehicle.target_lane_index[2]) / (len(neighbours) - 1)
         goal_reward = self.GOAL_REWARD 
         #print("collision_reward ",collision_reward, " velocity_reward ",velocity_reward, " lane_reward ",lane_reward," goal_reward ",goal_reward)
         if self.vehicle.crashed:
             reward =  collision_reward + min(0,velocity_reward)
-        elif self.goal_achieved:
+        elif self._goal_achieved():
             reward = goal_reward + velocity_reward
         else :
             reward =   velocity_reward  
@@ -101,8 +114,10 @@ class TwoWayEnv(AbstractEnv):
             The episode is over if the ego vehicle crashed or the time is out.
         """
         lane_ID = self.vehicle.lane_index[2]
-        on_road = self.vehicle.position[0] < self.ROAD_LENGTH
-        terminal = self.vehicle.crashed or self.goal_achieved or (not on_road) or (self.steps >= self.config["duration"])
+        terminal = self.vehicle.crashed or \
+                   self._goal_achieved() or \
+                  (not self._on_road()) or \
+                  (self.steps >= self.config["duration"])
         #print("self.steps ",self.steps," terminal ",terminal)
         return terminal
 
@@ -136,6 +151,7 @@ class TwoWayEnv(AbstractEnv):
         road = Road(network=net, np_random=self.np_random)
         self.road = road
 
+
     def _make_vehicles(self):
         """
             Populate a road with several vehicles on the road
@@ -148,7 +164,7 @@ class TwoWayEnv(AbstractEnv):
         road.vehicles.append(ego_vehicle)
         self.vehicle = ego_vehicle
         self.ego_x0 = ego_vehicle.position[0]
-        #print("ego_x",self.ego_x0)
+
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
         scene_complexity = 3
         if 'DIFFICULTY_LEVELS' in self.config:
