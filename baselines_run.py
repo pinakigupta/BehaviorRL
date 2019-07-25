@@ -6,7 +6,6 @@ import subprocess
 import warnings
 import glob
 import numpy as np
-import urban_env
 import tensorflow as tf
 import random
 from settings import req_dirs, models_folder, ray_folder

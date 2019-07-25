@@ -2,6 +2,7 @@ import os, sys, glob, time
 from mpi4py import MPI
 from settings import req_dirs, models_folder, ray_folder
 from shutil import copyfile
+import subprocess
 
 pathname = os.getcwd()
 homepath = os.path.expanduser("~")
@@ -49,9 +50,9 @@ urban_AD_env_path = pathname + '/urban_env/envs'
 sys.path.append(urban_AD_env_path)
 import site
 site.addsitedir(urban_AD_env_path)
+site.addsitedir(pathname)
 
-
-
+os.environ["PYTHONPATH"] = pathname
 
 
 def create_dirs(req_dirs):

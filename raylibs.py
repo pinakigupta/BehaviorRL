@@ -21,6 +21,7 @@ import ray.rllib.agents.impala as impala
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, homepath, RUN_WITH_RAY, InceptcurrentDT, is_predict_only
 from handle_model_files import pathname
 from urban_env.envs.two_way_env import TwoWayEnv
+from urban_env.envs.abstract import AbstractEnv
 
 DEFAULT_CONFIG = {
     "observation": {
@@ -35,9 +36,8 @@ DEFAULT_CONFIG = {
     "DIFFICULTY_LEVELS": 3,
 }
 
-
-register_env(train_env_id, lambda config: TwoWayEnv(config))
-register_env(play_env_id, lambda config: TwoWayEnv(config))
+ray.tune.register_env(train_env_id, lambda config: TwoWayEnv(config))
+ray.tune.register_env(play_env_id, lambda config: TwoWayEnv(config))
 redis_add = ray.services.get_node_ip_address() + ":6379"
 
 
@@ -64,6 +64,7 @@ def f():
 
 # Get a list of the IP addresses of the nodes that have joined the cluster.
 list_of_ips= set(ray.get([f.remote() for _ in range(1000)]))
+
 
 
 def explore(config):
@@ -218,7 +219,7 @@ def ray_play():
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
     #algo = "IMPALA"
     #checkpt = 629  # which checkpoint file to play
-    results_folder = pathname + "/" + ray_folder + "/" + "20190724-191857"+"/pygame-ray/"
+    results_folder = pathname + "/" + ray_folder + "/" + "20190725-120013"+"/pygame-ray/"
     #+algo+"_"+play_env_id + \
     #    "_0_"+"2019-07-21_02-17-42lcyu3tu7" + "/checkpoint_" + str(checkpt) + "/checkpoint-" + str(checkpt)
     subdir = next(os.walk(results_folder))[1][0]

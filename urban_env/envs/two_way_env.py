@@ -169,7 +169,7 @@ class TwoWayEnv(AbstractEnv):
         
         # stationary vehicles
         stat_veh_x0 = []
-        rand_stat_veh_count = np.random.randint(low=0,high=scene_complexity)
+        rand_stat_veh_count = np.random.randint(low=0,high=2*scene_complexity)
         for i in range(rand_stat_veh_count):
             x0 = self.ego_x0+90+90*i + 10*self.np_random.randn()
             stat_veh_x0.append(x0)
@@ -192,7 +192,7 @@ class TwoWayEnv(AbstractEnv):
                               heading=road.network.get_lane(("a", "b", 1)).heading_at(100),
                               velocity=max(0,10 + 2*self.np_random.randn()),
                               target_lane_index = ("a", "b", 1), lane_index = ("a", "b", 1),                             
-                              enable_lane_change=False)
+                              enable_lane_change=True)
             front_vehicle, _ = self.road.neighbour_vehicles(v)
             d = v.lane_distance_to(front_vehicle) 
             if (d<5):
@@ -205,10 +205,10 @@ class TwoWayEnv(AbstractEnv):
         
         # stationary vehicles Left Lane
         #if (rand_stat_veh_count == 0):
-            rand_stat_veh_count = np.random.randint(low=0,high=3*scene_complexity)
+        rand_oncoming_stat_veh_count = np.random.randint(low=0,high=5*scene_complexity)
         #else:
         #    rand_stat_veh_count = 0
-        for i in range(rand_stat_veh_count):
+        for i in range(rand_oncoming_stat_veh_count):
             x0 = self.ROAD_LENGTH-self.ego_x0-100-120*i + 10*self.np_random.randn()
             x0_wrt_ego_lane = self.ROAD_LENGTH - x0
             min_offset = 1e6
