@@ -24,14 +24,15 @@ class MultilaneEnv(AbstractEnv):
         staying on the rightmost lanes and avoiding collisions.
     """
 
-    COLLISION_REWARD = -1
+    COLLISION_REWARD = -200
     """ The reward received when colliding with a vehicle."""
     RIGHT_LANE_REWARD = 0.1
     """ The reward received when driving on the right-most lanes, linearly mapped to zero for other lanes."""
-    HIGH_VELOCITY_REWARD = 0.4
+    VELOCITY_REWARD = 5
     """ The reward received when driving at full speed, linearly mapped to zero for lower speeds."""
     LANE_CHANGE_REWARD = -0
     """ The reward received at each lane change action."""
+    GOAL_REWARD = 2000
 
     ROAD_LENGTH = 1000
 
@@ -144,13 +145,21 @@ class MultilaneEnv(AbstractEnv):
                          action_lookup['LANE_RIGHT_AGGRESSIVE']: self.LANE_CHANGE_REWARD
                          }
         neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
-        state_reward = \
-            + self.config["collision_reward"] * self.vehicle.crashed \
-            + self.RIGHT_LANE_REWARD * self.vehicle.target_lane_index[2] / (len(neighbours) - 1) \
-            + self.HIGH_VELOCITY_REWARD * self.vehicle.velocity_index / (self.vehicle.SPEED_COUNT - 1)
-        return utils.remap(action_reward[action] + state_reward,
-                           [self.config["collision_reward"], self.HIGH_VELOCITY_REWARD+self.RIGHT_LANE_REWARD],
-                           [0, 1])
+
+        collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
+        velocity_reward = self.VELOCITY_REWARD * (self.vehicle.velocity_index -1) / (self.vehicle.SPEED_COUNT - 1)
+        if (velocity_reward > 0):
+            velocity_reward *= self._on_route()
+        goal_reward = self.GOAL_REWARD
+
+        if self.vehicle.crashed:
+            reward = collision_reward + min(0.0, velocity_reward)
+        elif self._goal_achieved():
+            reward = goal_reward + velocity_reward
+        else:
+            reward = velocity_reward
+        return reward
+
 
     def _is_terminal(self):
         """

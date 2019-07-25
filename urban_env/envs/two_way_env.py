@@ -92,7 +92,6 @@ class TwoWayEnv(AbstractEnv):
         if (velocity_reward > 0):
             velocity_reward *= self._on_route()
         goal_reward = self.GOAL_REWARD
-        #print("collision_reward ",collision_reward, " velocity_reward ",velocity_reward, " lane_reward ",lane_reward," goal_reward ",goal_reward)
         if self.vehicle.crashed:
             reward = collision_reward + min(0.0, velocity_reward)
         elif self._goal_achieved():
