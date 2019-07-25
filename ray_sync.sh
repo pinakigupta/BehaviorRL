@@ -18,7 +18,7 @@ while IFS=' ' read -ra ADDR; do
               fi
       done
  done <<< "$yaml_key_val"
-REMOTE_DOWNLOAD_PATH="$REMOTE_DOWNLOAD_PATH/"
+REMOTE_DOWNLOAD_PATH="$REMOTE_DOWNLOAD_PATH/ray_results/"
 
 LOCAL_DOWNLOAD_PATH="$PWD/ray_results/"
 echo "LOCAL_DOWNLOAD_PATH" $LOCAL_DOWNLOAD_PATH
