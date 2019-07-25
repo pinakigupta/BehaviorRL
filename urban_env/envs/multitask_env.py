@@ -1,6 +1,7 @@
 from __future__ import division, print_function, absolute_import
 import numpy as np
 from gym import logger
+import gym
 
 from urban_env import utils
 from urban_env.envs.abstract import AbstractEnv

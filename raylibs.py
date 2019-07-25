@@ -21,6 +21,8 @@ import ray.rllib.agents.impala as impala
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, homepath, RUN_WITH_RAY, InceptcurrentDT, is_predict_only
 from handle_model_files import pathname
 from urban_env.envs.two_way_env import TwoWayEnv
+from urban_env.envs.multilane_env import MultilaneEnv
+from urban_env.envs.multitask_env import MultiTaskEnv
 from urban_env.envs.abstract import AbstractEnv
 
 DEFAULT_CONFIG = {
@@ -43,7 +45,7 @@ register_env('two-way-v0', lambda config: urban_env.envs.TwoWayEnv(config))
 register_env('parking-v0', lambda config: urban_env.envs.ParkingEnv(config))
 register_env('parking_2outs-v0', lambda config: urban_env.envs.ParkingEnv_2outs(config))
 register_env('LG-SIM-ENV-v0', lambda config: urban_env.envs.LG_Sim_Env(config))
-register_env('multitask-v0', lambda config: urban_env.envs.MultiTaskEnv(config))
+register_env('multitask-v0', lambda config: MultiTaskEnv(config))
 
 redis_add = ray.services.get_node_ip_address() + ":6379"
 
