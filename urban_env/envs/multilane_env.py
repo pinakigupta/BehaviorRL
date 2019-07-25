@@ -59,12 +59,27 @@ class MultilaneEnv(AbstractEnv):
         },
     }
 
-    def __init__(self):
-        config = self.DEFAULT_CONFIG.copy()
+    def __init__(self, config=DEFAULT_CONFIG):
         config.update(self.DIFFICULTY_LEVELS["HARD"])
         super(MultilaneEnv, self).__init__(config)
         self.steps = 0
         self.reset()
+
+
+    def _on_route(self, veh=None):
+        return True
+    
+    def _on_road(self, veh=None):
+        if veh is None:
+            veh = self.vehicle
+        return (veh.position[0] < self.ROAD_LENGTH) and (veh.position[0] > 0)
+
+    def _goal_achieved(self, veh=None):
+        if veh is None:
+            veh = self.vehicle
+        return (veh.position[0] > 0.99 * self.ROAD_LENGTH) and \
+                self._on_route(veh)
+
 
     def reset(self):
         self._create_road()
