@@ -12,6 +12,7 @@ from urban_env import utils
 from urban_env.envs.abstract import AbstractEnv
 from urban_env.road.road import Road, RoadNetwork
 from urban_env.vehicle.control import MDPVehicle
+from urban_env.envs.graphics import EnvViewer
 
 
 class MultilaneEnv(AbstractEnv):
@@ -31,6 +32,8 @@ class MultilaneEnv(AbstractEnv):
     LANE_CHANGE_REWARD = -0
     """ The reward received at each lane change action."""
 
+    ROAD_LENGTH = 1000
+
     DEFAULT_CONFIG = {
         "observation": {
             "type": "Kinematics"
@@ -38,7 +41,9 @@ class MultilaneEnv(AbstractEnv):
         "initial_spacing": 2,
         "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
         "centering_position": [0.3, 0.5],
-        "collision_reward": COLLISION_REWARD
+        "collision_reward": COLLISION_REWARD,
+        "screen_width": 1800,
+        "screen_height": 300,
     }
 
     DIFFICULTY_LEVELS = {
@@ -63,6 +68,9 @@ class MultilaneEnv(AbstractEnv):
         config.update(self.DIFFICULTY_LEVELS["HARD"])
         super(MultilaneEnv, self).__init__(config)
         self.steps = 0
+        self.ego_x0 = None
+        EnvViewer.SCREEN_HEIGHT = self.config['screen_height']
+        EnvViewer.SCREEN_WIDTH = self.config['screen_width'] 
         self.reset()
 
 
@@ -89,13 +97,18 @@ class MultilaneEnv(AbstractEnv):
 
     def step(self, action):
         self.steps += 1
-        return super(MultilaneEnv, self).step(action)
+        obs, rew, done, info = super(MultilaneEnv, self).step(action)
+        self.goal = (self.ROAD_LENGTH - self.vehicle.position[0]) / (7.0 * MDPVehicle.SPEED_MAX) # Normalize
+        self.goal = min(1.0, max(-1.0, self.goal)) # Clip
+        obs[0] = self.goal # Just a temporary implementation wo explicitly mentioning the goal
+        self.episode_travel = self.vehicle.position[0] - self.ego_x0 
+        return (obs, rew, done, info)
 
     def _create_road(self):
         """
             Create a road composed of straight adjacent lanes.
         """
-        self.road = Road(network=RoadNetwork.straight_road_network(self.config["lanes_count"]),
+        self.road = Road(network=RoadNetwork.straight_road_network(lanes=self.config["lanes_count"], length=self.ROAD_LENGTH),
                          np_random=self.np_random)
 
     def _create_vehicles(self):
@@ -104,6 +117,7 @@ class MultilaneEnv(AbstractEnv):
         """
         self.vehicle = MDPVehicle.create_random(self.road, 25, spacing=self.config["initial_spacing"])
         self.road.vehicles.append(self.vehicle)
+        self.ego_x0 = self.vehicle.position[0]
 
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
         for _ in range(self.config["vehicles_count"]):

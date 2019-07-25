@@ -1,5 +1,6 @@
 from gym.envs.registration import register
 
+
 register(
     id='multilane-v0',
     entry_point='urban_env.envs:MultilaneEnv',
@@ -40,4 +41,11 @@ register(
     entry_point='urban_env.envs:LG_Sim_Env',
     tags={'wrapper_config.TimeLimit.max_episode_steps': 25}
 )
+
+register(
+    id='multitask-v0',
+    entry_point='urban_env.envs:MultiTaskEnv',
+    tags={'wrapper_config.TimeLimit.max_episode_steps': 25}
+)
+
 

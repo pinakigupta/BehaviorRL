@@ -36,8 +36,15 @@ DEFAULT_CONFIG = {
     "DIFFICULTY_LEVELS": 3,
 }
 
-ray.tune.register_env(train_env_id, lambda config: TwoWayEnv(config))
-ray.tune.register_env(play_env_id, lambda config: TwoWayEnv(config))
+register_env('multilane-v0', lambda config: urban_env.envs.MultilaneEnv(config))
+register_env('merge-v0', lambda config: urban_env.envs.MergeEnv(config))
+register_env('roundabout-v0', lambda config: urban_env.envs.RoundaboutEnv(config))
+register_env('two-way-v0', lambda config: urban_env.envs.TwoWayEnv(config))
+register_env('parking-v0', lambda config: urban_env.envs.ParkingEnv(config))
+register_env('parking_2outs-v0', lambda config: urban_env.envs.ParkingEnv_2outs(config))
+register_env('LG-SIM-ENV-v0', lambda config: urban_env.envs.LG_Sim_Env(config))
+register_env('multitask-v0', lambda config: urban_env.envs.MultiTaskEnv(config))
+
 redis_add = ray.services.get_node_ip_address() + ":6379"
 
 

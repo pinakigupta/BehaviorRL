@@ -113,7 +113,8 @@ class EnvViewer(object):
         caption += "steps = " + str(self.env.steps)
         if self.env.episode_travel:
             caption += ', ep travel  = {:.2f}'.format(self.env.episode_travel)
-        caption += ", reward = " + str(self.env.reward) + ", ep reward = " + str(self.env.episode_reward)
+        caption += ', reward  = {:.2f}'.format(self.env.reward)  
+        caption += ', ep reward  = {:.2f}'.format(self.env.episode_reward)
         caption += " )"
         pygame.display.set_caption(caption)
 

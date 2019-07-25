@@ -78,8 +78,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         "centering_position": [0.5, 0.5],
         "parking_spots": 15, #'random', # Parking Spots Per side
         "vehicles_count": 'random', # Total number of cars in the parking (apart from Ego)
-        "screen_width": 600 * 2,
-        "screen_height": 300 * 2 
+        "screen_width": 1800,
+        "screen_height": 300, 
     }    
 
     def __init__(self):                
