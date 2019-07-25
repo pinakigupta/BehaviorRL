@@ -197,7 +197,8 @@ class Vehicle(Loggable):
             'sin_h': self.direction[1],
             'length_': self.LENGTH,
             'width_': self.WIDTH,
-            'psi': self.heading
+            'psi': self.heading,
+            'lane_psi': self.lane.heading_at(self.position[0]),
         }
         if origin_vehicle:
             origin_dict = origin_vehicle.to_dict()
@@ -215,6 +216,7 @@ class Vehicle(Loggable):
             'x': self.position[0],
             'y': self.position[1],
             'psi': self.heading,
+            'lane_psi': self.lane.heading_at(self.position[0]),
             'vx': self.velocity * np.cos(self.heading),
             'vy': self.velocity * np.sin(self.heading),
             'v': self.velocity,

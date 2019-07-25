@@ -104,21 +104,6 @@ pbt = PopulationBasedTraining(
     custom_explore_fn=explore
 )
 
-def ppotrain(config, reporter):
-    trainer = ppo.PPOTrainer(config=config, env=train_env_id)
-    while True:
-        result = trainer.train()
-        reporter(**result)
-        '''if result["episode_reward_mean"] > 200:
-            phase = 2
-        elif result["episode_reward_mean"] > 100:
-            phase = 1
-        else:
-            phase = 0
-        trainer.workers.foreach_worker(
-            lambda ev: ev.foreach_env(
-                lambda env: env.set_config("DIFFICULTY_LEVELS", phase)))'''
-
 
 def ray_train(save_in_sub_folder=None):
     subprocess.run(["chmod", "-R", "a+rwx", save_in_sub_folder + "/"])
@@ -181,7 +166,7 @@ def ray_train(save_in_sub_folder=None):
         delegated_cpus=1
     else:
         delegated_cpus=available_cluster_cpus-2
-
+    
     ray.tune.run(
         "PPO",
         name="pygame-ray",

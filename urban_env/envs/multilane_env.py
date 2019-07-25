@@ -13,6 +13,7 @@ from urban_env.envs.abstract import AbstractEnv
 from urban_env.road.road import Road, RoadNetwork
 from urban_env.vehicle.control import MDPVehicle
 from urban_env.envs.graphics import EnvViewer
+from handle_model_files import is_predict_only
 
 
 class MultilaneEnv(AbstractEnv):
@@ -36,7 +37,9 @@ class MultilaneEnv(AbstractEnv):
 
     DEFAULT_CONFIG = {
         "observation": {
-            "type": "Kinematics"
+            "type": "Kinematics",
+            "features": ['x', 'y', 'vx', 'vy', 'psi', 'lane_psi'],
+            "vehicles_count": 6
         },
         "initial_spacing": 2,
         "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
@@ -44,6 +47,8 @@ class MultilaneEnv(AbstractEnv):
         "collision_reward": COLLISION_REWARD,
         "screen_width": 1800,
         "screen_height": 300,
+        "duration": 2,
+        "_predict_only": is_predict_only(),
     }
 
     DIFFICULTY_LEVELS = {
@@ -65,8 +70,8 @@ class MultilaneEnv(AbstractEnv):
     }
 
     def __init__(self, config=DEFAULT_CONFIG):
-        config.update(self.DIFFICULTY_LEVELS["HARD"])
         super(MultilaneEnv, self).__init__(config)
+        self.config.update(self.DIFFICULTY_LEVELS["HARD"])
         self.steps = 0
         self.ego_x0 = None
         EnvViewer.SCREEN_HEIGHT = self.config['screen_height']
@@ -151,7 +156,10 @@ class MultilaneEnv(AbstractEnv):
         """
             The episode is over if the ego vehicle crashed or the time is out.
         """
-        return self.vehicle.crashed or self.steps >= self.config["duration"]
+        return  self.vehicle.crashed or \
+                self._goal_achieved() or \
+                (not self._on_road()) or \
+                self.steps >= self.config["duration"]
 
     def _constraint(self, action):
         """

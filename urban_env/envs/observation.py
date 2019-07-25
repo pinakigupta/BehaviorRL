@@ -62,7 +62,7 @@ class KinematicObservation(ObservationType):
     """
         Observe the kinematics of nearby vehicles.
     """
-    FEATURES = ['presence', 'x', 'y', 'vx', 'vy', 'psi']
+    FEATURES = ['presence', 'x', 'y', 'vx', 'vy', 'psi', 'lane_psi']
 
     def __init__(self, env, features=FEATURES, vehicles_count=5, **kwargs):
         """
@@ -92,8 +92,8 @@ class KinematicObservation(ObservationType):
         df['y'] = utils.remap(df['y'], [-y_position_range, y_position_range], [-1, 1])
         df['vx'] = utils.remap(df['vx'] , [-velocity_range, velocity_range], [-1, 1])
         df['vy'] = utils.remap(df['vy'], [-velocity_range, velocity_range], [-1, 1])
-        #df['length_'] = df['length_']/10
         df['psi'] = df['psi']/(2*np.pi)
+        df['lane_psi'] = df['lane_psi']/(2*np.pi)
         return df
 
     def observe(self):
