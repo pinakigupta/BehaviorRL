@@ -44,7 +44,7 @@ register(
 
 register(
     id='multitask-v0',
-    entry_point='urban_env.envs:MultiTaskEnv',
+    entry_point='urban_env.envs.multitask_env:MultiTaskEnv',
     tags={'wrapper_config.TimeLimit.max_episode_steps': 25}
 )
 

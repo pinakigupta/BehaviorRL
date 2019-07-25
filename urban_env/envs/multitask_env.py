@@ -21,3 +21,7 @@ class MultiTaskEnv(AbstractEnv):
         return self.env.reset()
     def step(self, action):
         return self.env.step(action)
+    def render(self, mode='human'):
+        return self.env.render(mode)
+    def close(self):
+        return self.env.close() 
