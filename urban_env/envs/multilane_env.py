@@ -35,6 +35,7 @@ class MultilaneEnv(AbstractEnv):
     GOAL_REWARD = 2000
 
     ROAD_LENGTH = 500
+    ROAD_SPEED = 35
 
     DEFAULT_CONFIG = {
         "observation": {
@@ -123,13 +124,15 @@ class MultilaneEnv(AbstractEnv):
         """
             Create some new random vehicles of a given type, and add them on the road.
         """
-        self.vehicle = MDPVehicle.create_random(self.road, np.random.randint(low=15,high=35), spacing=self.config["initial_spacing"])
+        self.vehicle = MDPVehicle.create_random(road=self.road,
+                                                velocity=np.random.randint(low=15,high=35),
+                                                spacing=self.config["initial_spacing"])
         self.road.vehicles.append(self.vehicle)
         self.ego_x0 = self.vehicle.position[0]
 
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
         for _ in range(self.config["vehicles_count"]):
-            self.road.vehicles.append(vehicles_type.create_random(self.road))
+            self.road.vehicles.append(vehicles_type.create_random(road=self.road))
 
     def _reward(self, action):
         """
@@ -155,11 +158,11 @@ class MultilaneEnv(AbstractEnv):
         goal_reward = self.GOAL_REWARD
 
         if self.vehicle.crashed:
-            reward = collision_reward + min(0.0, velocity_reward)
+            reward = collision_reward + min(0.0, velocity_reward + action_reward[action])
         elif self._goal_achieved():
-            reward = goal_reward + velocity_reward
+            reward = goal_reward + velocity_reward + action_reward[action]
         else:
-            reward = velocity_reward
+            reward = velocity_reward + action_reward[action]
         return reward
 
 

@@ -15,7 +15,7 @@ from os.path import dirname, abspath
 import time
 import pprint
 import atexit
-
+from color import color
 
 def exit_handler():
     subprocess.run(["chmod", "-R", "a+rwx", "."])
@@ -95,6 +95,8 @@ if __name__ == "__main__":
                 print("Could not play the prediction after training due to error  ", e)'''
             # from tensorboard import main as tb
             # tb.main()
+
+            print(color.BOLD + 'Successfully ended Training!' + color.END)
 
     else:
         if RUN_WITH_RAY:

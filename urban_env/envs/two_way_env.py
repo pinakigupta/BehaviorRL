@@ -31,6 +31,7 @@ class TwoWayEnv(AbstractEnv):
     VELOCITY_REWARD = 5
     GOAL_REWARD = 2000
     ROAD_LENGTH = 1000
+    ROAD_SPEED = 25
 
     DEFAULT_CONFIG = {
         "observation": {
@@ -151,8 +152,15 @@ class TwoWayEnv(AbstractEnv):
         road = self.road
         ego_lane = road.network.get_lane(("a", "b", 1))
         low = 400 if self.config["_predict_only"] else 660
-        ego_init_position = ego_lane.position(np.random.randint(low=low,high=low+60), 0)
-        ego_vehicle = MDPVehicle(road, position=ego_init_position, velocity=np.random.randint(low=15,high=35))
+        ego_init_position = ego_lane.position(np.random.randint(low=low, 
+                                                                high=low+60
+                                                                ),
+                                               0
+                                             )
+        ego_vehicle = MDPVehicle(road,
+                                 position=ego_init_position,
+                                 velocity=np.random.randint(low=15,high=35),
+                                 )
         road.vehicles.append(ego_vehicle)
         self.vehicle = ego_vehicle
         self.ego_x0 = ego_vehicle.position[0]
@@ -177,8 +185,10 @@ class TwoWayEnv(AbstractEnv):
                               position=road.network.get_lane(("a", "b", 1))
                               .position(x0, 1),
                               heading=road.network.get_lane(("a", "b", 1)).heading_at(100),
-                              velocity=0,target_velocity = 0,
-                              target_lane_index = ("a", "b", 1), lane_index = ("a", "b", 1),                             
+                              velocity=0,
+                              target_velocity=0,
+                              target_lane_index=("a", "b", 1),
+                              lane_index=("a", "b", 1),                             
                               enable_lane_change=False)
             )
             
@@ -190,7 +200,9 @@ class TwoWayEnv(AbstractEnv):
                               .position( x0, 0),
                               heading=road.network.get_lane(("a", "b", 1)).heading_at(100),
                               velocity=max(0,10 + 2*self.np_random.randn()),
-                              target_lane_index = ("a", "b", 1), lane_index = ("a", "b", 1),                             
+                              target_velocity=self.ROAD_SPEED,
+                              target_lane_index=("a", "b", 1), 
+                              lane_index=("a", "b", 1),                             
                               enable_lane_change=True)
             front_vehicle, _ = self.road.neighbour_vehicles(v)
             d = v.lane_distance_to(front_vehicle) 
@@ -219,17 +231,17 @@ class TwoWayEnv(AbstractEnv):
                 break
             else:
                 v = vehicles_type(road,
-                                  position=road.network.get_lane(("b", "a", 0))
-                                  .position(x0 , 1),
+                                  position=road.network.get_lane(("b", "a", 0)).position(x0, 1),
                                   heading=road.network.get_lane(("b", "a", 0)).heading_at(x0),
-                                  velocity=0,target_velocity = 0,
-                                  target_lane_index = ("b", "a", 0), lane_index = ("b", "a", 0),
+                                  velocity=0,
+                                  target_velocity=0,
+                                  target_lane_index=("b", "a", 0),
+                                  lane_index=("b", "a", 0),
                                   enable_lane_change=False)
                 v.target_lane_index = ("b", "a", 0)
                 v.lane_index = ("b", "a", 0)
                 self.road.vehicles.append(v)
-
-        
+       
         for i in range(np.random.randint(low=0,high=2*scene_complexity)):
             x0 = self.ROAD_LENGTH-self.ego_x0-20-120*i + 10*self.np_random.randn()
             v = vehicles_type(road,
@@ -237,7 +249,9 @@ class TwoWayEnv(AbstractEnv):
                               .position(x0, 0.1),
                               heading=road.network.get_lane(("b", "a", 0)).heading_at(100),
                               velocity=max(0,20 + 5*self.np_random.randn()),
-                              target_lane_index = ("b", "a", 0), lane_index = ("b", "a", 0),
+                              target_velocity=self.ROAD_SPEED,
+                              target_lane_index=("b", "a", 0),
+                              lane_index=("b", "a", 0),
                               enable_lane_change=True)
             v.target_lane_index = ("b", "a", 0)
             v.lane_index = ("b", "a", 0)
