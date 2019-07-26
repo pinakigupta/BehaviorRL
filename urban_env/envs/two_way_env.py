@@ -39,7 +39,7 @@ class TwoWayEnv(AbstractEnv):
             "vehicles_count": 6
         },
         "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
-        "duration": 2,
+        "duration": 250,
         "_predict_only": is_predict_only(),
 
     }

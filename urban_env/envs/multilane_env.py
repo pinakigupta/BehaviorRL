@@ -34,7 +34,7 @@ class MultilaneEnv(AbstractEnv):
     """ The reward received at each lane change action."""
     GOAL_REWARD = 2000
 
-    ROAD_LENGTH = 1000
+    ROAD_LENGTH = 300
 
     DEFAULT_CONFIG = {
         "observation": {
@@ -48,7 +48,7 @@ class MultilaneEnv(AbstractEnv):
         "collision_reward": COLLISION_REWARD,
         "screen_width": 1800,
         "screen_height": 300,
-        "duration": 2,
+        "duration": 250,
         "_predict_only": is_predict_only(),
     }
 
