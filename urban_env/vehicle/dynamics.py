@@ -61,7 +61,12 @@ class Vehicle(Loggable):
         :return: A vehicle with at the specified position
         """
         lane = road.network.get_lane(lane_index)
-        return cls(road, lane.position(longitudinal, 0), lane.heading_at(longitudinal), velocity)
+        return cls(
+                   road=road,
+                   position=lane.position(longitudinal, 0),
+                   heading=lane.heading_at(longitudinal),
+                   velocity=velocity
+                   )
 
     @classmethod
     def create_random(cls, road, velocity=None, spacing=1):

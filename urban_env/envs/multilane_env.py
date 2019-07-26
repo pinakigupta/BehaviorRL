@@ -31,6 +31,7 @@ class MultilaneEnv(AbstractEnv):
     VELOCITY_REWARD = 5
     """ The reward received when driving at full speed, linearly mapped to zero for lower speeds."""
     LANE_CHANGE_REWARD = -1
+    AGGRESSIVE_LANE_CHANGE_REWARD = -3
     """ The reward received at each lane change action."""
     GOAL_REWARD = 2000
 
@@ -106,11 +107,13 @@ class MultilaneEnv(AbstractEnv):
 
     def step(self, action):
         self.steps += 1
+        self.previous_action = action
         obs, rew, done, info = super(MultilaneEnv, self).step(action)
         self.goal = (self.ROAD_LENGTH - self.vehicle.position[0]) / (7.0 * MDPVehicle.SPEED_MAX) # Normalize
         self.goal = min(1.0, max(-1.0, self.goal)) # Clip
         obs[0] = self.goal # Just a temporary implementation wo explicitly mentioning the goal
-        self.episode_travel = self.vehicle.position[0] - self.ego_x0 
+        self.episode_travel = self.vehicle.position[0] - self.ego_x0
+        self.previous_obs = obs
         return (obs, rew, done, info)
 
     def _create_road(self):
@@ -146,8 +149,8 @@ class MultilaneEnv(AbstractEnv):
                          action_lookup['LANE_RIGHT']: self.LANE_CHANGE_REWARD, 
                          action_lookup['FASTER']: 0, 
                          action_lookup['SLOWER']: 0,
-                         action_lookup['LANE_LEFT_AGGRESSIVE']: self.LANE_CHANGE_REWARD,
-                         action_lookup['LANE_RIGHT_AGGRESSIVE']: self.LANE_CHANGE_REWARD
+                         action_lookup['LANE_LEFT_AGGRESSIVE']: self.AGGRESSIVE_LANE_CHANGE_REWARD,
+                         action_lookup['LANE_RIGHT_AGGRESSIVE']: self.AGGRESSIVE_LANE_CHANGE_REWARD
                          }
         neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
 
@@ -180,3 +183,14 @@ class MultilaneEnv(AbstractEnv):
             The constraint signal is the occurrence of collision
         """
         return float(self.vehicle.crashed)
+
+    def print_obs_space(self):
+        print("obs space ")
+        import pprint
+        pp = pprint.PrettyPrinter(indent=4)
+        obs_format = pp.pformat(np.round(np.reshape(self.previous_obs,(6, 6)), 3))
+        obs_format = obs_format.rstrip("\n")
+        print(obs_format)
+        print(self.previous_obs)
+        print("actions")
+        print("Optimal action ", AbstractEnv.ACTIONS[self.previous_action], "\n")

@@ -26,7 +26,9 @@ class MultiTaskEnv(AbstractEnv):
         self.env = gym.make(random_env())
         return self.env.reset()
     def step(self, action):
-        return self.env.step(action)
+        step_return = self.env.step(action)
+        self.print_obs_space()
+        return step_return
     def render(self, mode='human'):
         return self.env.render(mode)
     def close(self):
@@ -35,3 +37,5 @@ class MultiTaskEnv(AbstractEnv):
         return self.env._is_terminal()
     def _reward(self, action):
         return self.env._reward(action)
+    def print_obs_space(self):
+        return self.env.print_obs_space()

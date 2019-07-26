@@ -55,11 +55,11 @@ class TwoWayEnv(AbstractEnv):
         self.steps += 1
         self.previous_action = action
         obs, rew, done, info = super(TwoWayEnv, self).step(action)
-        self.previous_obs = obs
         self.episode_travel = self.vehicle.position[0] - self.ego_x0 
         self.goal = (self.ROAD_LENGTH - self.vehicle.position[0]) / (7.0 * MDPVehicle.SPEED_MAX) # Normalize
         self.goal = min(1.0, max(-1.0, self.goal)) # Clip
         obs[0] = self.goal # Just a temporary implementation wo explicitly mentioning the goal
+        self.previous_obs = obs
         return (obs, rew, done, info)
 
     def _on_route(self, veh=None):
@@ -267,7 +267,7 @@ class TwoWayEnv(AbstractEnv):
         print("obs space ")
         import pprint
         pp = pprint.PrettyPrinter(indent=4)
-        obs_format = pp.pformat(np.round(np.reshape(self.previous_obs,(6, 5)),3))
+        obs_format = pp.pformat(np.round(np.reshape(self.previous_obs,(6, 6)),3))
         obs_format = obs_format.rstrip("\n")
         print(obs_format)
         print(self.previous_obs)
