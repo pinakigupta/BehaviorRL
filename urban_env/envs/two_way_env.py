@@ -105,7 +105,6 @@ class TwoWayEnv(AbstractEnv):
         """
             The episode is over if the ego vehicle crashed or the time is out.
         """
-        lane_ID = self.vehicle.lane_index[2]
         terminal = self.vehicle.crashed or \
                    self._goal_achieved() or \
                   (not self._on_road()) or \

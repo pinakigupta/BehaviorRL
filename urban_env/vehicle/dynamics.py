@@ -160,7 +160,7 @@ class Vehicle(Loggable):
             return np.nan
         return self.lane.local_coordinates(vehicle.position)[0] - self.lane.local_coordinates(self.position)[0]
 
-    def check_collision(self, other ):
+    def check_collision(self, other):
         """
             Check for collision with another vehicle.
 
@@ -175,6 +175,7 @@ class Vehicle(Loggable):
 
         if not self.COLLISIONS_ENABLED or not other.COLLISIONS_ENABLED or self.crashed or other is self:
             return
+
 
         # Fast spherical pre-check
         if np.linalg.norm(other.position - self.position) > self.LENGTH:

@@ -200,6 +200,13 @@ class ControlledVehicle(Vehicle):
         self.route = self.route[0:index+1] + \
                      [(self.route[index][1], next_destinations_from[next_index], self.route[index][2])]
 
+    def check_collision(self, other):
+        if not (isinstance(self, MDPVehicle) or isinstance(other, MDPVehicle)): #MDP is not learning from 
+            #collision experiences of other vehicles, yet
+            return
+        return super(ControlledVehicle, self).check_collision(other)
+
+
     @abc.abstractmethod
     def Id(self):
         raise NotImplementedError()

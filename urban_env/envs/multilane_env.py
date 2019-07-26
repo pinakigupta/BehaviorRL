@@ -50,7 +50,6 @@ class MultilaneEnv(AbstractEnv):
         "collision_reward": COLLISION_REWARD,
         "screen_width": 1800,
         "screen_height": 300,
-        "duration": 250,
         "_predict_only": is_predict_only(),
     }
 

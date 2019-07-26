@@ -27,7 +27,7 @@ class MultiTaskEnv(AbstractEnv):
         return self.env.reset()
     def step(self, action):
         step_return = self.env.step(action)
-        self.print_obs_space()
+    #    self.print_obs_space()
         return step_return
     def render(self, mode='human'):
         return self.env.render(mode)

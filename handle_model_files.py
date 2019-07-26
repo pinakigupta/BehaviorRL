@@ -37,7 +37,7 @@ num_timesteps = '1' # Keeping steps at 1 will only sping off prediction/simulati
 
 '''
 train_env_id = 'multitask-v0'
-play_env_id = 'multitask-v0'
+play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
 num_timesteps = '1' # Keeping steps at 1 will only sping off prediction/simulation. > 1 for training. 
