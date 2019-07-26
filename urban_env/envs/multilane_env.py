@@ -30,11 +30,11 @@ class MultilaneEnv(AbstractEnv):
     """ The reward received when driving on the right-most lanes, linearly mapped to zero for other lanes."""
     VELOCITY_REWARD = 5
     """ The reward received when driving at full speed, linearly mapped to zero for lower speeds."""
-    LANE_CHANGE_REWARD = -0
+    LANE_CHANGE_REWARD = -1
     """ The reward received at each lane change action."""
     GOAL_REWARD = 2000
 
-    ROAD_LENGTH = 300
+    ROAD_LENGTH = 500
 
     DEFAULT_CONFIG = {
         "observation": {
@@ -73,6 +73,8 @@ class MultilaneEnv(AbstractEnv):
     def __init__(self, config=DEFAULT_CONFIG):
         super(MultilaneEnv, self).__init__(config)
         self.config.update(self.DIFFICULTY_LEVELS["HARD"])
+        if self.config["_predict_only"]:
+            self.ROAD_LENGTH = 1000
         self.steps = 0
         self.ego_x0 = None
         EnvViewer.SCREEN_HEIGHT = self.config['screen_height']
@@ -121,7 +123,7 @@ class MultilaneEnv(AbstractEnv):
         """
             Create some new random vehicles of a given type, and add them on the road.
         """
-        self.vehicle = MDPVehicle.create_random(self.road, 25, spacing=self.config["initial_spacing"])
+        self.vehicle = MDPVehicle.create_random(self.road, np.random.randint(low=15,high=35), spacing=self.config["initial_spacing"])
         self.road.vehicles.append(self.vehicle)
         self.ego_x0 = self.vehicle.position[0]
 

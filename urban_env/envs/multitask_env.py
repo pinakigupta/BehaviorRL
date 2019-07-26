@@ -12,18 +12,18 @@ from urban_env.envs.graphics import EnvViewer
 
 import random
 
-def random_index():
-    return np.random.choice([0, 1])
+def random_env():
+    env_list = ['multilane-v0', 'two-way-v0']
+    return np.random.choice(env_list)
 
 class MultiTaskEnv(AbstractEnv):
     def __init__(self, env_config=None):
         # pick actual env based on worker and env indexes
-        env_list = ['multilane-v0', 'two-way-v0']
-        self.random_choice = random_index()
-        self.env = gym.make(env_list[self.random_choice])
+        self.reset()
         self.action_space = self.env.action_space
         self.observation_space = self.env.observation_space
     def reset(self):
+        self.env = gym.make(random_env())
         return self.env.reset()
     def step(self, action):
         return self.env.step(action)
