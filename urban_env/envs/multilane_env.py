@@ -126,15 +126,28 @@ class MultilaneEnv(AbstractEnv):
         """
             Create some new random vehicles of a given type, and add them on the road.
         """
+
         self.vehicle = MDPVehicle.create_random(road=self.road,
                                                 velocity=np.random.randint(low=15,high=35),
                                                 spacing=self.config["initial_spacing"])
+
+
+
         self.road.vehicles.append(self.vehicle)
         self.ego_x0 = self.vehicle.position[0]
 
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
-        for _ in range(self.config["vehicles_count"]):
-            self.road.vehicles.append(vehicles_type.create_random(road=self.road))
+        ahead_vehicles = self.config["vehicles_count"] // 2
+        behind_vehicles = self.config["vehicles_count"] - ahead_vehicles
+        for _ in range(ahead_vehicles):
+            self.road.vehicles.append(vehicles_type.create_random(road=self.road,
+                                                                  ahead=True)
+                                     )
+
+        for _ in range(behind_vehicles):
+            self.road.vehicles.append(vehicles_type.create_random(road=self.road,
+                                                                  ahead=False)
+                                     )
 
     def _reward(self, action):
         """
@@ -166,7 +179,6 @@ class MultilaneEnv(AbstractEnv):
         else:
             reward = velocity_reward + action_reward[action]
         return reward
-
 
     def _is_terminal(self):
         """

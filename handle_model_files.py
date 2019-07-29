@@ -37,10 +37,10 @@ num_timesteps = '1' # Keeping steps at 1 will only sping off prediction/simulati
 
 '''
 train_env_id = 'multitask-v0'
-play_env_id = 'two-way-v0'
+play_env_id = 'multitask-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '1' # Keeping steps at 1 will only sping off prediction/simulation. > 1 for training. 
+num_timesteps = '300' # Keeping steps at 1 will only sping off prediction/simulation. > 1 for training. 
 # To be compatible with Ray please keep this a normal integer representation. i.e 1000 not 1e3
 
 #################################################################
