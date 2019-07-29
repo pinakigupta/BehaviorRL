@@ -59,6 +59,7 @@ else:
     except:
         # Kill the redis-server. This seems the surest way to kill it
         subprocess.run(["sudo", "pkill", "redis-server"])
+        subprocess.run(["sudo", "pkill", "ray_RolloutWork"])
         try:
             ray.shutdown()
         except:

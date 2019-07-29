@@ -23,9 +23,9 @@ class Vehicle(Loggable):
     """
     COLLISIONS_ENABLED = True
     """ Enable collision detection between vehicles """
-    LENGTH = 5.0
+    DEFAULT_LENGTH = 5.0
     """ Vehicle length [m] """
-    WIDTH = 2.0
+    DEFAULT_WIDTH = 2.0
     """ Vehicle width [m] """
 
     DEFAULT_VELOCITIES = [23, 25]

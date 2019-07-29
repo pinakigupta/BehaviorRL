@@ -14,6 +14,7 @@ from urban_env.road.road import Road, RoadNetwork
 from urban_env.vehicle.control import MDPVehicle
 from urban_env.envs.graphics import EnvViewer
 from handle_model_files import is_predict_only
+from urban_env.vehicle.dynamics import Vehicle, Obstacle
 
 
 class MultilaneEnv(AbstractEnv):
@@ -49,7 +50,7 @@ class MultilaneEnv(AbstractEnv):
         "centering_position": [0.3, 0.5],
         "collision_reward": COLLISION_REWARD,
         "screen_width": 1800,
-        "screen_height": 300,
+        "screen_height": 400,
         "_predict_only": is_predict_only(),
     }
 
@@ -122,6 +123,7 @@ class MultilaneEnv(AbstractEnv):
         self.road = Road(network=RoadNetwork.straight_road_network(lanes=self.config["lanes_count"], length=self.ROAD_LENGTH),
                          np_random=self.np_random)
 
+
     def _create_vehicles(self):
         """
             Create some new random vehicles of a given type, and add them on the road.
@@ -148,6 +150,40 @@ class MultilaneEnv(AbstractEnv):
             self.road.vehicles.append(vehicles_type.create_random(road=self.road,
                                                                   ahead=False)
                                      )
+
+        # Add the virtual obstacles
+        lane = self.road.network.lanes_list()[0]
+        x0 = lane.length/2
+        position = lane.position(x0, -3)
+        lane_index = self.road.network.get_closest_lane_index(
+                                                            position=position,
+                                                            heading=0  
+                                                             )  
+        virtual_obstacle_left = vehicles_type(self.road,
+                                               position=position,
+                                               heading=lane.heading_at(x0),
+                                               velocity=0,
+                                               target_velocity=0,
+                                               lane_index=lane_index,
+                                               target_lane_index=lane_index,                     
+                                               enable_lane_change=False)
+        lane = self.road.network.lanes_list()[-1]
+        x0 = lane.length/2
+        position = lane.position(x0, 3)
+        virtual_obstacle_left.LENGTH = lane.length
+        self.road.vehicles.append(virtual_obstacle_left)
+        virtual_obstacle_right = vehicles_type(self.road,
+                                               position=position,
+                                               heading=lane.heading_at(x0),
+                                               velocity=0,
+                                               target_velocity=0,
+                                               lane_index=lane_index,
+                                               target_lane_index=lane_index,                     
+                                               enable_lane_change=False)
+        virtual_obstacle_right.LENGTH = lane.length
+        self.road.vehicles.append(virtual_obstacle_right)
+
+        print("virtual_obstacle_right ")
 
     def _reward(self, action):
         """
