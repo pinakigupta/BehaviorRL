@@ -171,6 +171,7 @@ class MultilaneEnv(AbstractEnv):
         x0 = lane.length/2
         position = lane.position(x0, 3)
         virtual_obstacle_left.LENGTH = lane.length
+        virtual_obstacle_left.render = False
         self.road.vehicles.append(virtual_obstacle_left)
         virtual_obstacle_right = vehicles_type(self.road,
                                                position=position,
@@ -181,6 +182,7 @@ class MultilaneEnv(AbstractEnv):
                                                target_lane_index=lane_index,                     
                                                enable_lane_change=False)
         virtual_obstacle_right.LENGTH = lane.length
+        virtual_obstacle_right.render = False
         self.road.vehicles.append(virtual_obstacle_right)
 
         print("virtual_obstacle_right ")

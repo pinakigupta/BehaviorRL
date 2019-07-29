@@ -48,6 +48,7 @@ class Vehicle(Loggable):
         self.action = {'steering': 0, 'acceleration': 0}
         self.crashed = False
         self.log = []
+        self.render = True
 
     @classmethod
     def make_on_lane(cls, road, lane_index, longitudinal, velocity=0):
