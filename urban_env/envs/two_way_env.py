@@ -16,6 +16,8 @@ from urban_env.envs.graphics import EnvViewer
 from urban_env.vehicle.control import ControlledVehicle, MDPVehicle
 from urban_env.vehicle.dynamics import Obstacle
 from handle_model_files import is_predict_only
+from urban_env.envs.graphics import EnvViewer
+
 
 class TwoWayEnv(AbstractEnv):
     """
@@ -42,13 +44,16 @@ class TwoWayEnv(AbstractEnv):
         "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
         "duration": 250,
         "_predict_only": is_predict_only(),
-
+        "screen_width": 1800,
+        "screen_height": 400,
     }
 
     def __init__(self, config=DEFAULT_CONFIG):
         super(TwoWayEnv, self).__init__()
         self.reset()
         #self.goal_achieved = False
+        EnvViewer.SCREEN_HEIGHT = self.config['screen_height']
+        EnvViewer.SCREEN_WIDTH = self.config['screen_width']         
         self.ego_x0 = None
         
     def step(self, action):
@@ -262,6 +267,43 @@ class TwoWayEnv(AbstractEnv):
             elif(d<20):
                 v.velocity = max(0,4 + self.np_random.randn())
             self.road.vehicles.append(v)
+
+            # Add the virtual obstacles
+        lane_index = ("b", "a", 0)
+        lane = self.road.network.get_lane(lane_index)
+        x0 = lane.length/2
+        position = lane.position(x0, 3.5)
+        lane_index = self.road.network.get_closest_lane_index(
+                                                            position=position,
+                                                            heading=0  
+                                                             )  
+        virtual_obstacle_left = vehicles_type(self.road,
+                                               position=position,
+                                               heading=lane.heading_at(x0),
+                                               velocity=0,
+                                               target_velocity=0,
+                                               lane_index=lane_index,
+                                               target_lane_index=lane_index,                     
+                                               enable_lane_change=False)
+        virtual_obstacle_left.LENGTH = lane.length
+        self.road.vehicles.append(virtual_obstacle_left)
+
+        lane_index = ("a", "b", 1)
+        lane = self.road.network.get_lane(lane_index)
+        x0 = lane.length/2
+        position = lane.position(x0, 3.5)
+        virtual_obstacle_left.render = False
+        virtual_obstacle_right = vehicles_type(self.road,
+                                               position=position,
+                                               heading=lane.heading_at(x0),
+                                               velocity=0,
+                                               target_velocity=0,
+                                               lane_index=lane_index,
+                                               target_lane_index=lane_index,                   
+                                               enable_lane_change=False)
+        virtual_obstacle_right.LENGTH = lane.length
+        virtual_obstacle_right.render = False
+        self.road.vehicles.append(virtual_obstacle_right)
 
     def print_obs_space(self):
         print("obs space ")

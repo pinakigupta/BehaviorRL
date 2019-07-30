@@ -155,7 +155,7 @@ class MultilaneEnv(AbstractEnv):
         # Add the virtual obstacles
         lane = self.road.network.lanes_list()[0]
         x0 = lane.length/2
-        position = lane.position(x0, -3)
+        position = lane.position(x0, -3.5)
         lane_index = self.road.network.get_closest_lane_index(
                                                             position=position,
                                                             heading=0  
@@ -168,12 +168,14 @@ class MultilaneEnv(AbstractEnv):
                                                lane_index=lane_index,
                                                target_lane_index=lane_index,                     
                                                enable_lane_change=False)
-        lane = self.road.network.lanes_list()[-1]
-        x0 = lane.length/2
-        position = lane.position(x0, 3)
         virtual_obstacle_left.LENGTH = lane.length
         virtual_obstacle_left.render = False
         self.road.vehicles.append(virtual_obstacle_left)
+
+
+        lane = self.road.network.lanes_list()[-1]
+        x0 = lane.length/2
+        position = lane.position(x0, 3.5)
         virtual_obstacle_right = vehicles_type(self.road,
                                                position=position,
                                                heading=lane.heading_at(x0),
