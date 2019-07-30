@@ -96,9 +96,13 @@ class KinematicObservation(ObservationType):
         df['y'] = utils.remap(df['y'], [-y_position_range, y_position_range], [-1, 1])
         df['vx'] = utils.remap(df['vx'] , [-velocity_range, velocity_range], [-1, 1])
         df['vy'] = utils.remap(df['vy'], [-velocity_range, velocity_range], [-1, 1])
-        df['psi'] = df['psi']/(2*np.pi)
-        df['lane_psi'] = df['lane_psi']/(2*np.pi)
-        df['length'] = df['length']/400
+
+        if 'psi' in df:
+            df['psi'] = df['psi']/(2*np.pi)
+        if 'lane_psi' in df:
+            df['lane_psi'] = df['lane_psi']/(2*np.pi)
+        if 'length' in df:
+            df['length'] = df['length']/400
         return df
 
     def observe(self):
