@@ -38,7 +38,7 @@ class TwoWayEnv(AbstractEnv):
     DEFAULT_CONFIG = {
         "observation": {
             "type": "Kinematics",
-            "features": ['x', 'y', 'vx', 'vy', 'psi', 'lane_psi','length'],
+            "features": ['x', 'y', 'vx', 'vy', 'psi'],
             "vehicles_count": 6
         },
         "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
@@ -209,7 +209,7 @@ class TwoWayEnv(AbstractEnv):
                               target_velocity=self.ROAD_SPEED,
                               target_lane_index=("a", "b", 1), 
                               lane_index=("a", "b", 1),                             
-                              enable_lane_change=True)
+                              enable_lane_change=False)
             front_vehicle, _ = self.road.neighbour_vehicles(v)
             d = v.lane_distance_to(front_vehicle) 
             if (d<5):
@@ -258,7 +258,7 @@ class TwoWayEnv(AbstractEnv):
                               target_velocity=self.ROAD_SPEED,
                               target_lane_index=("b", "a", 0),
                               lane_index=("b", "a", 0),
-                              enable_lane_change=True)
+                              enable_lane_change=False)
             v.target_lane_index = ("b", "a", 0)
             v.lane_index = ("b", "a", 0)
             front_vehicle, _ = self.road.neighbour_vehicles(v)
@@ -270,7 +270,7 @@ class TwoWayEnv(AbstractEnv):
             self.road.vehicles.append(v)
 
             # Add the virtual obstacles
-        lane_index = ("b", "a", 0)
+        '''lane_index = ("b", "a", 0)
         lane = self.road.network.get_lane(lane_index)
         x0 = lane.length/2
         position = lane.position(x0, 3.5)
@@ -304,7 +304,7 @@ class TwoWayEnv(AbstractEnv):
                                                enable_lane_change=False)
         virtual_obstacle_right.virtual = True                                       
         virtual_obstacle_right.LENGTH = lane.length
-        self.road.vehicles.append(virtual_obstacle_right)
+        self.road.vehicles.append(virtual_obstacle_right)'''
 
     def print_obs_space(self):
         print("obs space ")
