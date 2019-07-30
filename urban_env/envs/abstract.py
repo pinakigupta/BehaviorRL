@@ -109,6 +109,7 @@ class AbstractEnv(gym.Env):
         self.reward = None
         self.episode_reward = 0
 
+
         
 
     def seed(self, seed=None):

@@ -64,7 +64,8 @@ class KinematicObservation(ObservationType):
     """
     FEATURES = ['presence', 'x', 'y', 'vx', 'vy', 'psi', 'lane_psi']
 
-    def __init__(self, env, features=FEATURES, vehicles_count=5, **kwargs):
+    def __init__(self, env, features=FEATURES, vehicles_count=5,
+                 virtual_vehicles_count=2, **kwargs):
         """
         :param env: The environment to observe
         :param features: Names of features used in the observation
@@ -100,7 +101,7 @@ class KinematicObservation(ObservationType):
         # Add ego-vehicle
         df = pandas.DataFrame.from_records([self.env.vehicle.to_dict(self.env.vehicle)])[self.features]
         # Add nearby traffic
-        close_vehicles = self.env.road.closest_vehicles_to(self.env.vehicle, self.vehicles_count - 1,7.0 * MDPVehicle.SPEED_MAX)
+        close_vehicles = self.env.road.closest_vehicles_to(self.env.vehicle, self.vehicles_count - 1, 7.0 * MDPVehicle.SPEED_MAX)
         
         if close_vehicles:
             df = df.append(pandas.DataFrame.from_records(
@@ -116,6 +117,7 @@ class KinematicObservation(ObservationType):
         if df.shape[0] < self.vehicles_count:
             rows = -np.ones((self.vehicles_count - df.shape[0], len(self.features)))
             df = df.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
+        
             
         # Reorder
         df = df[self.features]

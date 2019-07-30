@@ -168,7 +168,18 @@ class Vehicle(Loggable):
         """
         if not vehicle:
             return np.nan
-        return self.lane.local_coordinates(vehicle.position)[0] - self.lane.local_coordinates(self.position)[0]
+        other_center_on_lane = self.lane.local_coordinates(vehicle.position)[0]
+        # assuming heading along lane
+        other_edge_1_on_lane = self.lane.local_coordinates(vehicle.position)[0]-vehicle.LENGTH/2
+        other_edge_2_on_lane = self.lane.local_coordinates(vehicle.position)[0]+vehicle.LENGTH/2
+        ego_center_on_lane = self.lane.local_coordinates(self.position)[0]
+        other_edge_1_wrt_ego_on_lane = other_edge_1_on_lane - ego_center_on_lane
+        other_edge_2_wrt_ego_on_lane = other_edge_2_on_lane - ego_center_on_lane
+        if (other_edge_1_wrt_ego_on_lane*other_edge_2_wrt_ego_on_lane < 0):
+            return 0
+        if(abs(other_edge_1_wrt_ego_on_lane) < abs(other_edge_2_wrt_ego_on_lane)):
+            return other_edge_1_wrt_ego_on_lane
+        return other_edge_2_wrt_ego_on_lane
 
     def check_collision(self, other):
         """

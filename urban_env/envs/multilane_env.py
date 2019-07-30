@@ -144,6 +144,7 @@ class MultilaneEnv(AbstractEnv):
         for _ in range(ahead_vehicles):
             self.road.vehicles.append(vehicles_type.create_random(road=self.road,
                                                                   ahead=True)
+
                                      )
 
         for _ in range(behind_vehicles):
@@ -185,7 +186,6 @@ class MultilaneEnv(AbstractEnv):
         virtual_obstacle_right.render = False
         self.road.vehicles.append(virtual_obstacle_right)
 
-        print("virtual_obstacle_right ")
 
     def _reward(self, action):
         """
