@@ -62,10 +62,9 @@ class KinematicObservation(ObservationType):
     """
         Observe the kinematics of nearby vehicles.
     """
-    FEATURES = ['presence', 'x', 'y', 'vx', 'vy', 'psi', 'lane_psi']
+    FEATURES = ['presence', 'x', 'y', 'vx', 'vy', 'psi', 'lane_psi', 'length']
 
-    def __init__(self, env, features=FEATURES, vehicles_count=5,
-                 virtual_vehicles_count=2, **kwargs):
+    def __init__(self, env, features=FEATURES, vehicles_count=7, **kwargs):
         """
         :param env: The environment to observe
         :param features: Names of features used in the observation

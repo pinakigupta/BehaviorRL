@@ -34,11 +34,11 @@ class TwoWayEnv(AbstractEnv):
     GOAL_REWARD = 2000
     ROAD_LENGTH = 1000
     ROAD_SPEED = 25
-
+    
     DEFAULT_CONFIG = {
         "observation": {
             "type": "Kinematics",
-            "features": ['x', 'y', 'vx', 'vy', 'psi', 'lane_psi'],
+            "features": ['x', 'y', 'vx', 'vy', 'psi', 'lane_psi','length'],
             "vehicles_count": 6
         },
         "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
@@ -309,7 +309,9 @@ class TwoWayEnv(AbstractEnv):
         print("obs space ")
         import pprint
         pp = pprint.PrettyPrinter(indent=4)
-        obs_format = pp.pformat(np.round(np.reshape(self.previous_obs,(6, 6)),3))
+        numoffeatures = len(self.config["observation"]["features"])
+        numfofobs = len(self.previous_obs)
+        obs_format = pp.pformat(np.round(np.reshape(self.previous_obs,(numfofobs//numoffeatures, numoffeatures)),3))
         obs_format = obs_format.rstrip("\n")
         print(obs_format)
         print(self.previous_obs)

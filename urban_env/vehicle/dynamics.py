@@ -221,7 +221,7 @@ class Vehicle(Loggable):
             'vy': self.velocity * self.direction[1],
             'cos_h': self.direction[0],
             'sin_h': self.direction[1],
-            'length_': self.LENGTH,
+            'length': self.LENGTH,
             'width_': self.WIDTH,
             'psi': self.heading,
             'lane_psi': self.lane.heading_at(self.position[0]),
