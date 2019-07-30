@@ -141,7 +141,7 @@ class RoadGraphics(object):
         :param surface: the pygame surface
         """
         for v in road.vehicles:
-            if v.render:
+            if not v.virtual:
                 VehicleGraphics.display(v, surface)
 
 

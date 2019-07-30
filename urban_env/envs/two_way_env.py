@@ -65,7 +65,7 @@ class TwoWayEnv(AbstractEnv):
         self.goal = min(1.0, max(-1.0, self.goal)) # Clip
         obs[0] = self.goal # Just a temporary implementation wo explicitly mentioning the goal
         self.previous_obs = obs
-        self.print_obs_space()
+        #self.print_obs_space()
         return (obs, rew, done, info)
 
     def _on_route(self, veh=None):
@@ -285,6 +285,7 @@ class TwoWayEnv(AbstractEnv):
                                                lane_index=lane_index,
                                                target_lane_index=lane_index,                     
                                                enable_lane_change=False)
+        virtual_obstacle_left.virtual = True
         virtual_obstacle_left.LENGTH = lane.length
         self.road.vehicles.append(virtual_obstacle_left)
 
@@ -292,17 +293,16 @@ class TwoWayEnv(AbstractEnv):
         lane = self.road.network.get_lane(lane_index)
         x0 = lane.length/2
         position = lane.position(x0, 3.5)
-        virtual_obstacle_left.render = False
         virtual_obstacle_right = vehicles_type(self.road,
                                                position=position,
                                                heading=lane.heading_at(x0),
                                                velocity=0,
                                                target_velocity=0,
                                                lane_index=lane_index,
-                                               target_lane_index=lane_index,                   
+                                               target_lane_index=lane_index,                
                                                enable_lane_change=False)
+        virtual_obstacle_right.virtual = True                                       
         virtual_obstacle_right.LENGTH = lane.length
-        virtual_obstacle_right.render = False
         self.road.vehicles.append(virtual_obstacle_right)
 
     def print_obs_space(self):
@@ -312,9 +312,10 @@ class TwoWayEnv(AbstractEnv):
         numoffeatures = len(self.config["observation"]["features"])
         numfofobs = len(self.previous_obs)
         obs_format = pp.pformat(np.round(np.reshape(self.previous_obs,(numfofobs//numoffeatures, numoffeatures)),3))
+        print("numoffeatures ",numoffeatures," numfofobs ",numfofobs)
         obs_format = obs_format.rstrip("\n")
         print(obs_format)
-        print(self.previous_obs)
+        #print(self.previous_obs)
         print("actions")
         print("Optimal action ", AbstractEnv.ACTIONS[self.previous_action], "\n")
 

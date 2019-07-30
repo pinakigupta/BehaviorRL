@@ -73,9 +73,13 @@ class KinematicObservation(ObservationType):
         self.env = env
         self.features = features
         self.vehicles_count = vehicles_count
+        self.virtual_vehicles_count = 2
+        '''for v in self.env.road.vehicles:
+            if v.virtual:
+                self.virtual_vehicles_count += 1'''
 
     def space(self):
-        return spaces.Box(shape=(len(self.features) * self.vehicles_count,), low=-1, high=1, dtype=np.float32)
+        return spaces.Box(shape=(len(self.features) * (self.vehicles_count + self.virtual_vehicles_count),), low=-1, high=1, dtype=np.float32)
 
     def normalize(self, df):
         """
@@ -94,18 +98,26 @@ class KinematicObservation(ObservationType):
         df['vy'] = utils.remap(df['vy'], [-velocity_range, velocity_range], [-1, 1])
         df['psi'] = df['psi']/(2*np.pi)
         df['lane_psi'] = df['lane_psi']/(2*np.pi)
+        df['length'] = df['length']/1000
         return df
 
     def observe(self):
         # Add ego-vehicle
         df = pandas.DataFrame.from_records([self.env.vehicle.to_dict(self.env.vehicle)])[self.features]
+
+
+
+                
         # Add nearby traffic
-        close_vehicles = self.env.road.closest_vehicles_to(self.env.vehicle, self.vehicles_count - 1, 7.0 * MDPVehicle.SPEED_MAX)
+        close_vehicles = self.env.road.closest_vehicles_to(self.env.vehicle,
+                                                           self.vehicles_count+self.virtual_vehicles_count - 1,
+                                                           7.0 * MDPVehicle.SPEED_MAX)
+
         
         if close_vehicles:
             df = df.append(pandas.DataFrame.from_records(
                 [v.to_dict(self.env.vehicle)
-                 for v in close_vehicles[-self.vehicles_count + 1:]])[self.features],
+                 for v in close_vehicles[-self.vehicles_count - self.virtual_vehicles_count + 1:]])[self.features],
                            ignore_index=True)
 
             
@@ -113,8 +125,8 @@ class KinematicObservation(ObservationType):
         #df = df.iloc[1:]
         df = self.normalize(df)
         # Fill missing rows
-        if df.shape[0] < self.vehicles_count:
-            rows = -np.ones((self.vehicles_count - df.shape[0], len(self.features)))
+        if df.shape[0] < self.vehicles_count+self.virtual_vehicles_count:
+            rows = -np.ones((self.vehicles_count + self.virtual_vehicles_count - df.shape[0], len(self.features)))
             df = df.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
         
             

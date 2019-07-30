@@ -42,7 +42,7 @@ class MultilaneEnv(AbstractEnv):
     DEFAULT_CONFIG = {
         "observation": {
             "type": "Kinematics",
-            "features": ['x', 'y', 'vx', 'vy', 'psi', 'lane_psi','length'],
+            "features": ['x', 'y', 'vx', 'vy', 'psi', 'lane_psi', 'length'],
             "vehicles_count": 6
         },
         "initial_spacing": 2,
@@ -169,7 +169,7 @@ class MultilaneEnv(AbstractEnv):
                                                target_lane_index=lane_index,                     
                                                enable_lane_change=False)
         virtual_obstacle_left.LENGTH = lane.length
-        virtual_obstacle_left.render = False
+        virtual_obstacle_left.virtual = True
         self.road.vehicles.append(virtual_obstacle_left)
 
 
@@ -185,7 +185,7 @@ class MultilaneEnv(AbstractEnv):
                                                target_lane_index=lane_index,                     
                                                enable_lane_change=False)
         virtual_obstacle_right.LENGTH = lane.length
-        virtual_obstacle_right.render = False
+        virtual_obstacle_right.virtual = True
         self.road.vehicles.append(virtual_obstacle_right)
 
 

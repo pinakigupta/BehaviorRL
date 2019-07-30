@@ -33,7 +33,7 @@ class Vehicle(Loggable):
     MAX_VELOCITY = 40
     """ Maximum reachable velocity [m/s] """
 
-    def __init__(self, road, position, lane_index = None , heading=0, velocity=0, length=5.0, width=2.0):
+    def __init__(self, road, position, lane_index = None , heading=0, velocity=0, length=5.0, width=2.0, virtual=False):
         self.LENGTH = length
         self.WIDTH = width
         self.road = road
@@ -48,7 +48,7 @@ class Vehicle(Loggable):
         self.action = {'steering': 0, 'acceleration': 0}
         self.crashed = False
         self.log = []
-        self.render = True
+        self.virtual = virtual
 
     @classmethod
     def make_on_lane(cls, road, lane_index, longitudinal, velocity=0):
