@@ -179,7 +179,7 @@ class Vehicle(Loggable):
             return 0
         if(abs(other_edge_1_wrt_ego_on_lane) < abs(other_edge_2_wrt_ego_on_lane)):
             return other_edge_1_wrt_ego_on_lane
-        return other_edge_2_wrt_ego_on_lane
+        return self.lane.local_coordinates(vehicle.position)[0] - self.lane.local_coordinates(self.position)[0]
 
     def check_collision(self, other):
         """

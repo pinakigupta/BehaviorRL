@@ -20,6 +20,8 @@ from urban_env.road.lane import AbstractLane
 from urban_env.vehicle.behavior import IDMVehicle
 from urban_env.vehicle.control import MDPVehicle
 from urban_env.vehicle.dynamics import Obstacle
+from urban_env.envdict import ACTIONS_DICT
+
 
 
 class AbstractEnv(gym.Env):
@@ -30,17 +32,9 @@ class AbstractEnv(gym.Env):
         velocity. The action space is fixed, but the observation space and reward function must be defined in the
         environment implementations.
     """
-    metadata = {'render.modes': ['human', 'rgb_array'],
-                '_predict_only': 'False'}
+    metadata = {'render.modes': ['human', 'rgb_array']}
 
-    ACTIONS = {0: 'LANE_LEFT',
-               1: 'IDLE',
-               2: 'LANE_RIGHT',
-               3: 'FASTER',
-               4: 'SLOWER',
-               5: 'LANE_LEFT_AGGRESSIVE',
-               6: 'LANE_RIGHT_AGGRESSIVE'
-               }
+    ACTIONS = ACTIONS_DICT
     
     """ Which Actions are Allowed for the current Agent """
     ACTION_MASKS = [True,True,True,True,True,True,True] 

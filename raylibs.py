@@ -51,6 +51,11 @@ redis_add = ray.services.get_node_ip_address() + ":6379"
 
 
 if is_predict_only():
+    try:
+        subprocess.run(["sudo", "pkill", "redis-server"])
+        subprocess.run(["sudo", "pkill", "ray_RolloutWork"])
+    except:
+        print("ray process not running")
     ray.init(num_gpus=0, local_mode=True)
 else:
     try:
@@ -214,7 +219,7 @@ def ray_play():
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
     #algo = "IMPALA"
     #checkpt = 629  # which checkpoint file to play
-    results_folder = pathname + "/" + ray_folder + "/" + "20190730-115234"+"/pygame-ray/"
+    results_folder = pathname + "/" + ray_folder + "/" + "20190730-175530"+"/pygame-ray/"
     #+algo+"_"+play_env_id + \
     #    "_0_"+"2019-07-21_02-17-42lcyu3tu7" + "/checkpoint_" + str(checkpt) + "/checkpoint-" + str(checkpt)
     subdir = next(os.walk(results_folder))[1][0]

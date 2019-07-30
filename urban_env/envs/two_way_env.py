@@ -66,7 +66,7 @@ class TwoWayEnv(AbstractEnv):
         self.goal = min(1.0, max(-1.0, self.goal)) # Clip
         obs[0] = self.goal # Just a temporary implementation wo explicitly mentioning the goal
         self.previous_obs = obs
-        #self.print_obs_space()
+        self.print_obs_space()
         return (obs, rew, done, info)
 
     def _on_route(self, veh=None):

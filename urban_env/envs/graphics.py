@@ -13,7 +13,7 @@ import pygame
 
 from urban_env.road.graphics import WorldSurface, RoadGraphics
 from urban_env.vehicle.graphics import VehicleGraphics
-
+from urban_env.envdict import ACTIONS_DICT
 
 class EnvViewer(object):
     """
@@ -110,7 +110,8 @@ class EnvViewer(object):
             self.frame += 1
 
         caption = "Urban-AD ( "
-        caption += "steps = " + str(self.env.steps)
+        caption += "action = " + str(ACTIONS_DICT[self.env.previous_action])
+        caption += " steps = " + str(self.env.steps)
         if self.env.episode_travel:
             caption += ', ep travel  = {:.2f}'.format(self.env.episode_travel)
         caption += ', reward  = {:.2f}'.format(self.env.reward)  
