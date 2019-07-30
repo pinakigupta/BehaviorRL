@@ -66,7 +66,7 @@ class TwoWayEnv(AbstractEnv):
         self.goal = min(1.0, max(-1.0, self.goal)) # Clip
         obs[0] = self.goal # Just a temporary implementation wo explicitly mentioning the goal
         self.previous_obs = obs
-        self.print_obs_space()
+        #self.print_obs_space()
         return (obs, rew, done, info)
 
     def _on_route(self, veh=None):
@@ -269,8 +269,8 @@ class TwoWayEnv(AbstractEnv):
                 v.velocity = max(0,4 + self.np_random.randn())
             self.road.vehicles.append(v)
 
-            # Add the virtual obstacles
-        '''lane_index = ("b", "a", 0)
+            # Add the virtual obstacles/constraints
+        lane_index = ("b", "a", 0)
         lane = self.road.network.get_lane(lane_index)
         x0 = lane.length/2
         position = lane.position(x0, 3.5)
@@ -304,7 +304,7 @@ class TwoWayEnv(AbstractEnv):
                                                enable_lane_change=False)
         virtual_obstacle_right.virtual = True                                       
         virtual_obstacle_right.LENGTH = lane.length
-        self.road.vehicles.append(virtual_obstacle_right)'''
+        self.road.vehicles.append(virtual_obstacle_right)
 
     def print_obs_space(self):
         print("obs space ")

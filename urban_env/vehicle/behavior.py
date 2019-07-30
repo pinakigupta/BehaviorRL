@@ -99,7 +99,7 @@ class IDMVehicle(ControlledVehicle):
         action['steering'] = self.steering_control(self.target_lane_index)
 
         # Longitudinal: IDM
-        action['acceleration'] = self.acceleration( control_vehicle=self,
+        action['acceleration'] = self.acceleration(control_vehicle=self,
                                                    front_vehicle=self.front_vehicle,
                                                    rear_vehicle=self.rear_vehicle)
         # action['acceleration'] = self.recover_from_stop(action['acceleration'])
@@ -136,7 +136,7 @@ class IDMVehicle(ControlledVehicle):
             return 0
 
         if self.target_velocity is not None:
-            if (self.target_velocity == 0) and (self.velocity==0):
+            if (self.target_velocity == 0) and (self.velocity == 0):
                 return 0
         acceleration = self.COMFORT_ACC_MAX * (
                 1 - np.power(control_vehicle.velocity / utils.not_zero(control_vehicle.target_velocity), self.DELTA))

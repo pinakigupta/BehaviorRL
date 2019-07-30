@@ -95,12 +95,12 @@ class ControlledVehicle(Vehicle):
         elif action == "SLOWER":
             self.target_velocity -= self.DELTA_VELOCITY
         el'''
-        if action == "LANE_RIGHT" :
+        if action == "LANE_RIGHT":
             _from, _to, _id = self.target_lane_index
             target_lane_index = _from, _to, np.clip(_id + 1, 0, len(self.road.network.graph[_from][_to]) - 1)
             if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
                 self.target_lane_index = target_lane_index
-        elif action == "LANE_LEFT" :
+        elif action == "LANE_LEFT":
             _from, _to, _id = self.target_lane_index
             target_lane_index = _from, _to, np.clip(_id - 1, 0, len(self.road.network.graph[_from][_to]) - 1)
             if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
@@ -118,10 +118,17 @@ class ControlledVehicle(Vehicle):
             if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
                 self.target_lane_index = target_lane_index
                 is_aggressive_lcx = True
-            # print("LANE_LEFT_AGGRESSIVE")
-        action = {'steering': self.steering_control(self.target_lane_index,is_aggressive_lcx),
-                  'acceleration': self.velocity_control(self.target_velocity)}
-        super(ControlledVehicle, self).act(action)
+        steering = self.steering_control(self.target_lane_index,
+                                         is_aggressive_lcx
+                                        )
+        acceleration = self.velocity_control(self.target_velocity)
+        control_action = {'steering': steering,
+                          'acceleration': acceleration}
+        if 'target_lane_index' in locals() and False:
+            print("target_lane_index (_from, _to, _id) : ", target_lane_index,
+                  ' steering ', steering, ' acceleration ', acceleration,
+                  " action ", action)
+        super(ControlledVehicle, self).act(control_action)
 
     def follow_road(self):
         """
