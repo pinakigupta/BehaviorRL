@@ -12,7 +12,7 @@ fi
 echo "number of workers are " "$worker_numbers"
 
 outputfile="output.txt"
-runfile="./baselines_run.py"
+runfile="baselines_run.py"
 pdb_commands="-m pdb -c continue"
 
 # mpirun -bind-to none -np 4  python -W ignore baselines_run.py  2>&1 | tee  output.txt
