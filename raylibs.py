@@ -17,6 +17,13 @@ from ray.rllib.agents.trainer_template import build_trainer
 import ray.rllib.agents.ppo as ppo
 import ray.rllib.agents.impala as impala
 
+import yaml
+with open("Ray-Cluster.yaml", 'r') as stream:
+    try:
+        yaml_data = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print(exc)
+min_cluster_nodes = yaml_data['min_workers']
 
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, homepath, RUN_WITH_RAY, InceptcurrentDT, is_predict_only
 from handle_model_files import pathname
@@ -50,6 +57,16 @@ register_env('multitask-v0', lambda config: MultiTaskEnv(config))
 redis_add = ray.services.get_node_ip_address() + ":6379"
 
 
+def ray_node_ips():
+    @ray.remote
+    def f():
+        time.sleep(0.01)
+        return ray.services.get_node_ip_address()
+
+    # Get a list of the IP addresses of the nodes that have joined the cluster.
+    list_of_ips = set(ray.get([f.remote() for _ in range(1000)]))
+    return list_of_ips
+
 if is_predict_only():
     try:
         subprocess.run(["sudo", "pkill", "redis-server"])
@@ -69,16 +86,18 @@ else:
             ray.shutdown()
         except:
             print("ray shutdown failed. Perhaps ray was not initialized ?")
+        while True: #run waiting for the entire cluster to be initialized (or something else is wrong ?)
+            available_nodes = len(ray_node_ips())
+            if available_nodes >= min_cluster_nodes:
+                break
+            else:
+                print("available nodes count ", available_nodes," min cluster nodes required", min_cluster_nodes)
+                sleep(1)
         ray.init(num_gpus=0, local_mode=False)
         available_cluster_cpus = int(ray.available_resources().get("CPU"))
 
-@ray.remote
-def f():
-    time.sleep(0.01)
-    return ray.services.get_node_ip_address()
 
-# Get a list of the IP addresses of the nodes that have joined the cluster.
-list_of_ips= set(ray.get([f.remote() for _ in range(1000)]))
+
 
 
 

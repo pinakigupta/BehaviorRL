@@ -244,6 +244,3 @@ class MultilaneEnv(AbstractEnv):
         obs_format = pp.pformat(np.round(np.reshape(self.previous_obs,(numfofobs//numoffeatures, numoffeatures)), 3))
         obs_format = obs_format.rstrip("\n")
         print(obs_format)
-        print(self.previous_obs)
-        print("actions")
-        print("Optimal action ", AbstractEnv.ACTIONS[self.previous_action], "\n")

@@ -316,8 +316,6 @@ class TwoWayEnv(AbstractEnv):
         print("numoffeatures ",numoffeatures," numfofobs ",numfofobs)
         obs_format = obs_format.rstrip("\n")
         print(obs_format)
-        #print(self.previous_obs)
-        print("actions")
-        print("Optimal action ", AbstractEnv.ACTIONS[self.previous_action], "\n")
+
 
     
