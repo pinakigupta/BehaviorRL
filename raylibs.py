@@ -67,6 +67,16 @@ def ray_node_ips():
     list_of_ips = set(ray.get([f.remote() for _ in range(1000)]))
     return list_of_ips
 
+
+def ray_cluster_status_check():
+    while True: #run waiting for the entire cluster to be initialized (or something else is wrong ?)
+        available_nodes = len(ray_node_ips())
+        if available_nodes >= min_cluster_nodes:
+            break
+        else:
+            print("available nodes count ", available_nodes," min cluster nodes required", min_cluster_nodes)
+            sleep(1)    
+
 if is_predict_only():
     try:
         subprocess.run(["sudo", "pkill", "redis-server"])
@@ -76,6 +86,7 @@ if is_predict_only():
     ray.init(num_gpus=0, local_mode=True)
 else:
     try:
+        ray_cluster_status_check()
         ray.init(redis_add)
         available_cluster_cpus = int(ray.cluster_resources().get("CPU"))
     except:
@@ -86,13 +97,7 @@ else:
             ray.shutdown()
         except:
             print("ray shutdown failed. Perhaps ray was not initialized ?")
-        while True: #run waiting for the entire cluster to be initialized (or something else is wrong ?)
-            available_nodes = len(ray_node_ips())
-            if available_nodes >= min_cluster_nodes:
-                break
-            else:
-                print("available nodes count ", available_nodes," min cluster nodes required", min_cluster_nodes)
-                sleep(1)
+
         ray.init(num_gpus=0, local_mode=False)
         available_cluster_cpus = int(ray.available_resources().get("CPU"))
 
