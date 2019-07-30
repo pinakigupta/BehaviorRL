@@ -50,11 +50,12 @@ class TwoWayEnv(AbstractEnv):
 
     def __init__(self, config=DEFAULT_CONFIG):
         super(TwoWayEnv, self).__init__()
-        self.reset()
         #self.goal_achieved = False
         EnvViewer.SCREEN_HEIGHT = self.config['screen_height']
         EnvViewer.SCREEN_WIDTH = self.config['screen_width']         
         self.ego_x0 = None
+        self.reset()
+
         
     def step(self, action):
         self.steps += 1

@@ -80,7 +80,7 @@ class MultilaneEnv(AbstractEnv):
         self.steps = 0
         self.ego_x0 = None
         EnvViewer.SCREEN_HEIGHT = self.config['screen_height']
-        EnvViewer.SCREEN_WIDTH = self.config['screen_width'] 
+        EnvViewer.SCREEN_WIDTH = self.config['screen_width']
         self.reset()
 
 

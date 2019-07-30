@@ -91,7 +91,7 @@ class AbstractEnv(gym.Env):
 
         # Spaces
         self.observation = None
-        self.define_spaces()
+        #self.define_spaces()
 
         # Running
         self.time = 0

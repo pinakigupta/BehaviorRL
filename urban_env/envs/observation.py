@@ -73,10 +73,10 @@ class KinematicObservation(ObservationType):
         self.env = env
         self.features = features
         self.vehicles_count = vehicles_count
-        self.virtual_vehicles_count = 2
-        '''for v in self.env.road.vehicles:
+        self.virtual_vehicles_count = 0
+        for v in self.env.road.vehicles:
             if v.virtual:
-                self.virtual_vehicles_count += 1'''
+                self.virtual_vehicles_count += 1
 
     def space(self):
         return spaces.Box(shape=(len(self.features) * (self.vehicles_count + self.virtual_vehicles_count),), low=-1, high=1, dtype=np.float32)
@@ -98,7 +98,7 @@ class KinematicObservation(ObservationType):
         df['vy'] = utils.remap(df['vy'], [-velocity_range, velocity_range], [-1, 1])
         df['psi'] = df['psi']/(2*np.pi)
         df['lane_psi'] = df['lane_psi']/(2*np.pi)
-        df['length'] = df['length']/1000
+        df['length'] = df['length']/400
         return df
 
     def observe(self):
