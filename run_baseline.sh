@@ -21,9 +21,9 @@ echo "Running all planning modules ... " &
 export OMP_NUM_THREADS=1;
 export USE_SIMPLE_THREADED_LEVEL=1;
 
-one=1
 
-if [ $worker_numbers > 1 ];  then
+if (( $worker_numbers > 1 ));  then
+    echo "MPI running"
     mpirun  -bind-to none -np $worker_numbers --allow-run-as-root  python -W ignore $runfile  2>&1 | tee  $outputfile
   else
     echo "MPI not running. This can be because Ray is running or there is only 1 cpu allocated to this machine"
