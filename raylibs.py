@@ -70,7 +70,7 @@ def ray_node_ips():
 
 def ray_cluster_status_check():
     while True: #run waiting for the entire cluster to be initialized (or something else is wrong ?)
-        available_nodes = len(ray_node_ips())
+        available_nodes = len(ray.nodes())
         if available_nodes >= min_cluster_nodes:
             break
         else:
