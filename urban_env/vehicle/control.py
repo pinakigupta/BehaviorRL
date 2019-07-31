@@ -128,7 +128,7 @@ class ControlledVehicle(Vehicle):
         if 'target_lane_index' in locals():
             if (self.target_lane_index == self.lane_index):
                 action_validity = False
-                #print(" invalid action for action ", action)
+                print(" invalid action for action ", action)
         super(ControlledVehicle, self).act(control_action)
         return action_validity
 

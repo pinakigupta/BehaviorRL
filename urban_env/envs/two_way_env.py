@@ -29,7 +29,7 @@ class TwoWayEnv(AbstractEnv):
     """
 
     COLLISION_REWARD = -200
-    INVALID_ACTION_REWARD = -50
+    INVALID_ACTION_REWARD = -200
     VELOCITY_REWARD = 5
     GOAL_REWARD = 2000
     ROAD_LENGTH = 1000
@@ -117,7 +117,8 @@ class TwoWayEnv(AbstractEnv):
         terminal = self.vehicle.crashed or \
                    self._goal_achieved() or \
                   (not self._on_road()) or \
-                  (self.steps >= self.config["duration"])
+                  (self.steps >= self.config["duration"]) or\
+                   (self.action_validity == False)
         #print("self.steps ",self.steps," terminal ",terminal)
         return terminal
 

@@ -100,7 +100,7 @@ class AbstractEnv(gym.Env):
 
         # Action and reward 
         self.action = None
-        self.action_validity = None
+        self.action_validity = True
         self.reward = None
         self.episode_reward = 0
 

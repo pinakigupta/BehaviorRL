@@ -243,7 +243,7 @@ def ray_play():
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
     #algo = "IMPALA"
     #checkpt = 629  # which checkpoint file to play
-    results_folder = pathname + "/" + ray_folder + "/" + "20190731-120625"+"/pygame-ray/"
+    results_folder = pathname + "/" + ray_folder + "/" + "20190731-193226"+"/pygame-ray/"
     #+algo+"_"+play_env_id + \
     #    "_0_"+"2019-07-21_02-17-42lcyu3tu7" + "/checkpoint_" + str(checkpt) + "/checkpoint-" + str(checkpt)
     subdir = next(os.walk(results_folder))[1][0]
