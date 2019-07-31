@@ -16,7 +16,7 @@ RUN mkdir /root/.aws
 COPY ./requirements.txt /
 RUN pip install -r requirements.txt
 RUN pip install --ignore-installed gym
-RUN pip3 install tensorflow pillow requests setproctitle psutil lz4 awscli boto tabulate
+RUN pip3 install tensorflow pillow requests setproctitle psutil lz4 awscli boto boto3 tabulate
 
 FROM base AS intermediate
 # stage 2

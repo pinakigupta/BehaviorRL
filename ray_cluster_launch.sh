@@ -11,6 +11,6 @@ outputfile="output_cluster.txt"
 
 ray up -y $ray_yaml_file 2>&1 | tee  $outputfile
 sleep 500
-ray exec --tmux --docker $ray_yaml_file "docker attach $(docker ps -aqf "name=ray_docker");cd rl_baselines_ad;./run_baseline.sh" 2>&1 | tee  $outputfile
+ray exec --docker $ray_yaml_file "docker attach $(docker ps -aqf "name=ray_docker");cd rl_baselines_ad;./run_baseline.sh" 2>&1 | tee  $outputfile
 bash ray_sync.sh $ray_yaml_file 
 ray down -y $ray_yaml_file 
