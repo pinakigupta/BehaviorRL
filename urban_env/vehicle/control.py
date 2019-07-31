@@ -86,6 +86,7 @@ class ControlledVehicle(Vehicle):
 
         :param action: a high-level action
         """
+        action_validity = True
         self.front_vehicle, self.rear_vehicle = self.road.neighbour_vehicles(self)
         is_aggressive_lcx = False
         self.follow_road()
@@ -124,11 +125,12 @@ class ControlledVehicle(Vehicle):
         acceleration = self.velocity_control(self.target_velocity)
         control_action = {'steering': steering,
                           'acceleration': acceleration}
-        if 'target_lane_index' in locals() and False:
-            print("target_lane_index (_from, _to, _id) : ", target_lane_index,
-                  ' steering ', steering, ' acceleration ', acceleration,
-                  " action ", action)
+        if 'target_lane_index' in locals():
+            if (self.target_lane_index == self.lane_index):
+                action_validity = False
+                print(" invalid action for action ", action)
         super(ControlledVehicle, self).act(control_action)
+        return action_validity
 
     def follow_road(self):
         """

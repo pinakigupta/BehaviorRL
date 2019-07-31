@@ -29,7 +29,7 @@ class TwoWayEnv(AbstractEnv):
     """
 
     COLLISION_REWARD = -200
-    LEFT_LANE_REWARD = 0
+    INVALID_ACTION_REWARD = -50
     VELOCITY_REWARD = 5
     GOAL_REWARD = 2000
     ROAD_LENGTH = 1000
@@ -87,7 +87,7 @@ class TwoWayEnv(AbstractEnv):
         return (veh.position[0] > 0.99 * self.ROAD_LENGTH) and \
                 self._on_route(veh)
 
-    def _reward(self, action):
+    def _reward(self, action, action_validity=True):
         """
             The vehicle is rewarded for driving with high velocity
         :param action: the action performed
@@ -106,6 +106,8 @@ class TwoWayEnv(AbstractEnv):
             reward = goal_reward + velocity_reward
         else:
             reward = velocity_reward
+        if not action_validity:
+            reward = reward + self.INVALID_ACTION_REWARD
         return reward
 
     def _is_terminal(self):
