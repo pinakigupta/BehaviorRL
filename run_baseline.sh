@@ -1,19 +1,21 @@
 #!/bin/sh
-
+outputfile="output.txt"
+runfile="baselines_run.py"
+pdb_commands="-m pdb -c continue"
 
 
 if [ $# \> 0 ]
   then
     worker_numbers=$1
   else
-    worker_numbers=1
+    echo "MPI not running"
+    python -W ignore  $runfile  2>&1 | tee  $outputfile
+    return
 fi
 
 echo "number of workers are " "$worker_numbers"
 
-outputfile="output.txt"
-runfile="baselines_run.py"
-pdb_commands="-m pdb -c continue"
+
 
 # mpirun -bind-to none -np 4  python -W ignore baselines_run.py  2>&1 | tee  output.txt
 echo "Running all planning modules ... " &
