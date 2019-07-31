@@ -86,7 +86,7 @@ if is_predict_only():
     ray.init(num_gpus=0, local_mode=True)
 else:
     try:
-        ray_cluster_status_check()
+        #ray_cluster_status_check()
         ray.init(redis_add)
         available_cluster_cpus = int(ray.cluster_resources().get("CPU"))
     except:
