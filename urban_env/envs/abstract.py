@@ -82,6 +82,7 @@ class AbstractEnv(gym.Env):
         # Scene
         self.road = None
         self.vehicle = None
+        self.close_vehicles = None
 
         # Spaces
         self.observation = None
@@ -176,10 +177,10 @@ class AbstractEnv(gym.Env):
         reward = self._reward(action)
         terminal = self._is_terminal()
 
-        close_vehicles = self.road.closest_vehicles_to(self.vehicle, 5 )
+        self.close_vehicles = self.observation.close_vehicles
         extra_obs = [self.vehicle.__str__()]
-        if close_vehicles:
-            for v in close_vehicles:
+        if self.close_vehicles:
+            for v in self.close_vehicles:
                 extra_obs.append(v.__str__())
         for _ in  range(len(extra_obs),6):
             extra_obs.append(None)

@@ -119,7 +119,7 @@ class TwoWayEnv(AbstractEnv):
                   (not self._on_road()) or \
                   (self.steps >= self.config["duration"]) or\
                    (self.vehicle.action_validity == False)
-        #print("self.steps ",self.steps," terminal ",terminal)
+        #print("self.steps ",self.steps," terminal ", terminal)
         return terminal
 
     def _constraint(self, action):
@@ -271,9 +271,11 @@ class TwoWayEnv(AbstractEnv):
             elif(d<20):
                 v.velocity = max(0,4 + self.np_random.randn())
             self.road.vehicles.append(v)
+        
+
 
             # Add the virtual obstacles/constraints
-        lane_index = ("b", "a", 0)
+        '''lane_index = ("b", "a", 0)
         lane = self.road.network.get_lane(lane_index)
         x0 = lane.length/2
         position = lane.position(x0, 3.5)
@@ -307,7 +309,9 @@ class TwoWayEnv(AbstractEnv):
                                                enable_lane_change=False)
         virtual_obstacle_right.virtual = True                                       
         virtual_obstacle_right.LENGTH = lane.length
-        self.road.vehicles.append(virtual_obstacle_right)
+        self.road.vehicles.append(virtual_obstacle_right)'''
+
+        
 
     def print_obs_space(self):
         print("obs space ")
@@ -315,10 +319,33 @@ class TwoWayEnv(AbstractEnv):
         pp = pprint.PrettyPrinter(indent=4)
         numoffeatures = len(self.config["observation"]["features"])
         numfofobs = len(self.previous_obs)
-        obs_format = pp.pformat(np.round(np.reshape(self.previous_obs,(numfofobs//numoffeatures, numoffeatures)),3))
-        print("numoffeatures ",numoffeatures," numfofobs ",numfofobs)
+        numofvehicles = numfofobs//numoffeatures
+        close_vehicle_ids = [int(self.vehicle.Id())]
+        modified_obs = self.previous_obs
+        for v in self.close_vehicles:
+            close_vehicle_ids.append(int(v.Id()))
+        #close_vehicle_ids = str(close_vehicle_ids)
+        #assert(len(close_vehicle_ids) == numofvehicles, [len(close_vehicle_ids) , numofvehicles] )
+        #print([len(close_vehicle_ids) , numofvehicles])
+        Idx = 0
+        obs_Idx = 0
+        while True:
+            temp = modified_obs
+            del(modified_obs)
+            modified_obs = np.insert(temp, obs_Idx, close_vehicle_ids[Idx])
+            del(temp)
+            Idx += 1
+            obs_Idx += numoffeatures+1
+            if Idx >= len(close_vehicle_ids):
+                break
+        #close_vehicle_ids_format = pp.pformat(np.round(np.reshape(close_vehicle_ids, (len(close_vehicle_ids), 1)), 3))
+        #print(close_vehicle_ids_format)
+        #print("numoffeatures ", numoffeatures, " numfofobs ", numfofobs)
+        np.set_printoptions(precision=3, suppress=True)
+        obs_format = pp.pformat(np.round(np.reshape(modified_obs, (numofvehicles, numoffeatures+1 )), 3))
         obs_format = obs_format.rstrip("\n")
+        #close_vehicle_ids_format = close_vehicle_ids_format.rstrip("\n")
+        #obs_format = [close_vehicle_ids_format, obs_format]
         print(obs_format)
-
 
     

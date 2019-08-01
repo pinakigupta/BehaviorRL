@@ -74,6 +74,7 @@ class KinematicObservation(ObservationType):
         self.features = features
         self.vehicles_count = vehicles_count
         self.virtual_vehicles_count = 0
+        self.close_vehicles = None
         for v in self.env.road.vehicles:
             if v.virtual:
                 self.virtual_vehicles_count += 1
@@ -113,15 +114,15 @@ class KinematicObservation(ObservationType):
 
                 
         # Add nearby traffic
-        close_vehicles = self.env.road.closest_vehicles_to(self.env.vehicle,
+        self.close_vehicles = self.env.road.closest_vehicles_to(self.env.vehicle,
                                                            self.vehicles_count+self.virtual_vehicles_count - 1,
                                                            7.0 * MDPVehicle.SPEED_MAX)
 
         
-        if close_vehicles:
+        if self.close_vehicles:
             df = df.append(pandas.DataFrame.from_records(
                 [v.to_dict(self.env.vehicle)
-                 for v in close_vehicles[-self.vehicles_count - self.virtual_vehicles_count + 1:]])[self.features],
+                 for v in self.close_vehicles[-self.vehicles_count - self.virtual_vehicles_count + 1:]])[self.features],
                            ignore_index=True)
 
             
