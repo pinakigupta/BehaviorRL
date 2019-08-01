@@ -13,7 +13,7 @@ ray up -y $ray_yaml_file
 clear
 for i in {0..500..50}
   do 
-     sleep 50
+     sleep 5
      echo "slept for $i secs"
  done
 

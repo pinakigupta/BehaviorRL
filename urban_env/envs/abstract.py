@@ -100,7 +100,6 @@ class AbstractEnv(gym.Env):
 
         # Action and reward 
         self.action = None
-        self.action_validity = True
         self.reward = None
         self.episode_reward = 0
 
@@ -122,7 +121,7 @@ class AbstractEnv(gym.Env):
         self.observation = observation_factory(self, self.config["observation"])
         self.observation_space = self.observation.space()
 
-    def _reward(self, action, action_validity=True):
+    def _reward(self, action):
         """
             Return the reward associated with performing a given action and ending up in the current state.
 
@@ -174,7 +173,7 @@ class AbstractEnv(gym.Env):
         self._simulate(action)
 
         obs = self.observation.observe()
-        reward = self._reward(action, self.action_validity)
+        reward = self._reward(action)
         terminal = self._is_terminal()
 
         close_vehicles = self.road.closest_vehicles_to(self.vehicle, 5 )
@@ -200,7 +199,7 @@ class AbstractEnv(gym.Env):
         for k in range(int(self.SIMULATION_FREQUENCY // self.POLICY_FREQUENCY)):
             if action is not None : # and self.time % int(self.SIMULATION_FREQUENCY // self.POLICY_FREQUENCY) == 0:
                 # Forward action to the vehicle
-                self.action_validity = self.vehicle.act(self.ACTIONS[action])
+                self.vehicle.act(self.ACTIONS[action])
 
             self.road.act(ego_MDPVehicle = self.vehicle)
             self.road.step(1 / self.SIMULATION_FREQUENCY)

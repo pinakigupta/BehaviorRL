@@ -46,6 +46,7 @@ class Vehicle(Loggable):
             self.lane_index = lane_index
         self.lane = self.road.network.get_lane(self.lane_index) if self.road else None
         self.action = {'steering': 0, 'acceleration': 0}
+        self.action_validity = True
         self.crashed = False
         self.log = []
         self.virtual = virtual

@@ -86,7 +86,6 @@ class ControlledVehicle(Vehicle):
 
         :param action: a high-level action
         """
-        action_validity = True
         self.front_vehicle, self.rear_vehicle = self.road.neighbour_vehicles(self)
         is_aggressive_lcx = False
         self.follow_road()
@@ -127,10 +126,9 @@ class ControlledVehicle(Vehicle):
                           'acceleration': acceleration}
         if 'target_lane_index' in locals():
             if (self.target_lane_index == self.lane_index):
-                action_validity = False
+                self.action_validity = False
                 #print(" invalid action for action ", action)
         super(ControlledVehicle, self).act(control_action)
-        return action_validity
 
     def follow_road(self):
         """
@@ -224,6 +222,7 @@ class ControlledVehicle(Vehicle):
     def __str__(self):
         raise NotImplementedError()
 
+
 class MDPVehicle(ControlledVehicle):
     """
         A controlled vehicle with a specified discrete range of allowed target velocities.
@@ -275,7 +274,6 @@ class MDPVehicle(ControlledVehicle):
             super(MDPVehicle, self).act(action)
         else:
             super(MDPVehicle, self).act(action)
-        return
 
 
     @classmethod
