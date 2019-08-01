@@ -122,13 +122,13 @@ class ControlledVehicle(Vehicle):
                                          is_aggressive_lcx
                                         )
         acceleration = self.velocity_control(self.target_velocity)
-        control_action = {'steering': steering,
+        self.control_action = {'steering': steering,
                           'acceleration': acceleration}
         if 'target_lane_index' in locals():
             if (self.target_lane_index == self.lane_index):
                 self.action_validity = False
                 #print(" invalid action for action ", action)
-        super(ControlledVehicle, self).act(control_action)
+        super(ControlledVehicle, self).act(self.control_action)
 
     def follow_road(self):
         """

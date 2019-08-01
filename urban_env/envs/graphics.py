@@ -111,6 +111,8 @@ class EnvViewer(object):
 
         caption = "Urban-AD ( "
         caption += "action = " + str(ACTIONS_DICT[self.env.previous_action])
+        caption += " accel = " + str(round(self.env.vehicle.control_action['acceleration']))
+        caption += " steering = " + str(round(self.env.vehicle.control_action['steering']))
         caption += " steps = " + str(self.env.steps)
         if self.env.episode_travel:
             caption += ', ep travel  = {:.2f}'.format(self.env.episode_travel)

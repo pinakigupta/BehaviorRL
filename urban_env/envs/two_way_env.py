@@ -44,8 +44,9 @@ class TwoWayEnv(AbstractEnv):
         "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
         "duration": 250,
         "_predict_only": is_predict_only(),
-        "screen_width": 1800,
+        "screen_width": 2600,
         "screen_height": 400,
+        "DIFFICULTY_LEVELS": 2,
     }
 
     def __init__(self, config=DEFAULT_CONFIG):
@@ -181,13 +182,13 @@ class TwoWayEnv(AbstractEnv):
 
         if '_predict_only' in self.config:
             if self.config['_predict_only']:
-                scene_complexity = 5
+                scene_complexity = 2
         
         # stationary vehicles
         stat_veh_x0 = []
         rand_stat_veh_count = np.random.randint(low=0,high=2*scene_complexity)
         for i in range(rand_stat_veh_count):
-            x0 = self.ego_x0+90+90*i + 10*self.np_random.randn()
+            x0 = self.ego_x0 + 90 + 90*i + 10*self.np_random.randn()
             stat_veh_x0.append(x0)
             self.road.vehicles.append(
                 vehicles_type(road,
@@ -206,7 +207,7 @@ class TwoWayEnv(AbstractEnv):
             x0 = self.ego_x0+90+40*i + 10*self.np_random.randn()
             v = vehicles_type(road,
                               position=road.network.get_lane(("a", "b", 1))
-                              .position( x0, 0),
+                              .position(x0, 0),
                               heading=road.network.get_lane(("a", "b", 1)).heading_at(100),
                               velocity=max(0,10 + 2*self.np_random.randn()),
                               target_velocity=self.ROAD_SPEED,
@@ -225,7 +226,7 @@ class TwoWayEnv(AbstractEnv):
         
         # stationary vehicles Left Lane
         #if (rand_stat_veh_count == 0):
-        rand_oncoming_stat_veh_count = np.random.randint(low=0,high=5*scene_complexity)
+        rand_oncoming_stat_veh_count = np.random.randint(low=0, high=2*scene_complexity)
         #else:
         #    rand_stat_veh_count = 0
         for i in range(rand_oncoming_stat_veh_count):
@@ -257,7 +258,7 @@ class TwoWayEnv(AbstractEnv):
                               position=road.network.get_lane(("b", "a", 0))
                               .position(x0, 0.1),
                               heading=road.network.get_lane(("b", "a", 0)).heading_at(100),
-                              velocity=max(0,20 + 5*self.np_random.randn()),
+                              velocity=max(0, 20 + 5*self.np_random.randn()),
                               target_velocity=self.ROAD_SPEED,
                               target_lane_index=("b", "a", 0),
                               lane_index=("b", "a", 0),
@@ -266,9 +267,9 @@ class TwoWayEnv(AbstractEnv):
             v.lane_index = ("b", "a", 0)
             front_vehicle, _ = self.road.neighbour_vehicles(v)
             d = v.lane_distance_to(front_vehicle)
-            if(d<5):
+            if(d < 5):
                 continue 
-            elif(d<20):
+            elif(d < 20):
                 v.velocity = max(0,4 + self.np_random.randn())
             self.road.vehicles.append(v)
         
@@ -324,9 +325,7 @@ class TwoWayEnv(AbstractEnv):
         modified_obs = self.previous_obs
         for v in self.close_vehicles:
             close_vehicle_ids.append(int(v.Id()))
-        #close_vehicle_ids = str(close_vehicle_ids)
-        #assert(len(close_vehicle_ids) == numofvehicles, [len(close_vehicle_ids) , numofvehicles] )
-        #print([len(close_vehicle_ids) , numofvehicles])
+        close_vehicle_ids.extend([-1]*(numofvehicles-len(close_vehicle_ids)))
         Idx = 0
         obs_Idx = 0
         while True:
@@ -338,14 +337,10 @@ class TwoWayEnv(AbstractEnv):
             obs_Idx += numoffeatures+1
             if Idx >= len(close_vehicle_ids):
                 break
-        #close_vehicle_ids_format = pp.pformat(np.round(np.reshape(close_vehicle_ids, (len(close_vehicle_ids), 1)), 3))
-        #print(close_vehicle_ids_format)
-        #print("numoffeatures ", numoffeatures, " numfofobs ", numfofobs)
+
         np.set_printoptions(precision=3, suppress=True)
         obs_format = pp.pformat(np.round(np.reshape(modified_obs, (numofvehicles, numoffeatures+1 )), 3))
         obs_format = obs_format.rstrip("\n")
-        #close_vehicle_ids_format = close_vehicle_ids_format.rstrip("\n")
-        #obs_format = [close_vehicle_ids_format, obs_format]
         print(obs_format)
 
     
