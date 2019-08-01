@@ -19,7 +19,7 @@ from urban_env.road.lane import AbstractLane
 from urban_env.vehicle.behavior import IDMVehicle
 from urban_env.vehicle.control import MDPVehicle
 from urban_env.vehicle.dynamics import Obstacle
-
+from urban_env.envdict import RED, GREEN, BLUE, YELLOW, BLACK, PURPLE, DEFAULT_COLOR, EGO_COLOR, WHITE
 
 class ObservationType(object):
     def space(self):
@@ -64,7 +64,7 @@ class KinematicObservation(ObservationType):
     """
     FEATURES = ['presence', 'x', 'y', 'vx', 'vy', 'psi', 'lane_psi', 'length']
 
-    def __init__(self, env, features=FEATURES, vehicles_count=7, **kwargs):
+    def __init__(self, env, features=FEATURES, vehicles_count=9, **kwargs):
         """
         :param env: The environment to observe
         :param features: Names of features used in the observation
@@ -133,8 +133,9 @@ class KinematicObservation(ObservationType):
         if df.shape[0] < self.vehicles_count+self.virtual_vehicles_count:
             rows = -np.ones((self.vehicles_count + self.virtual_vehicles_count - df.shape[0], len(self.features)))
             df = df.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
-        
-            
+
+        for v in self.env.road.vehicles:
+            v.color = GREEN if v in self.close_vehicles else None
         # Reorder
         df = df[self.features]
         # Clip

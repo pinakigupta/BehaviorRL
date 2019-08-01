@@ -40,6 +40,7 @@ class Vehicle(Loggable):
         self.position = np.array(position).astype('float')
         self.heading = heading
         self.velocity = velocity
+        self.color = None
         if lane_index is None:
             self.lane_index = self.road.network.get_closest_lane_index(self.position, self.heading) if self.road else np.nan
         else:

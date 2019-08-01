@@ -11,18 +11,10 @@ import pygame
 from urban_env.vehicle.dynamics import Vehicle, Obstacle
 from urban_env.vehicle.control import ControlledVehicle, MDPVehicle
 from urban_env.vehicle.behavior import IDMVehicle, LinearVehicle
-
+from urban_env.envdict import RED, GREEN, BLUE, YELLOW, BLACK, PURPLE, DEFAULT_COLOR, EGO_COLOR, WHITE
 
 class VehicleGraphics(object):
-    RED = (255, 100, 100)
-    GREEN = (50, 200, 0)
-    BLUE = (100, 200, 255)
-    YELLOW = (200, 200, 0)
-    BLACK = (60, 60, 60)
-    PURPLE = (200, 0, 150)
-    DEFAULT_COLOR = YELLOW
-    EGO_COLOR = PURPLE
-    WHITE = (255,255,255)
+
 
     @classmethod
     def display(cls, vehicle, surface, transparent=False):
@@ -44,7 +36,7 @@ class VehicleGraphics(object):
         #     s = pygame.Surface((surface.pix(length), surface.pix(length)), pygame.SRCALPHA)  # per-pixel alpha
         #     rect = (0, surface.pix(length) / 2 - surface.pix(width) / 2, surface.pix(length), surface.pix(width))        
         #     pygame.draw.rect(s, cls.get_color(v, transparent), rect, 0)        
-        #     pygame.draw.rect(s, cls.BLACK, rect, 1)                  
+        #     pygame.draw.rect(s, BLACK, rect, 1)                  
             
         #     x = v.position[0] - length / 2
         #     y = v.position[1] - width / 2            
@@ -69,7 +61,7 @@ class VehicleGraphics(object):
         s = pygame.Surface((surface.pix(v.LENGTH), surface.pix(v.LENGTH)), pygame.SRCALPHA)  # per-pixel alpha
         rect = (0, surface.pix(v.LENGTH) / 2 - surface.pix(v.WIDTH) / 2, surface.pix(v.LENGTH), surface.pix(v.WIDTH))        
         pygame.draw.rect(s, cls.get_color(v, transparent), rect, 0)        
-        pygame.draw.rect(s, cls.BLACK, rect, 1)      
+        pygame.draw.rect(s, BLACK, rect, 1)      
 
         s = pygame.Surface.convert_alpha(s)
         h = v.heading if abs(v.heading) > 2 * np.pi / 180 else 0
@@ -78,7 +70,7 @@ class VehicleGraphics(object):
 
         font_type = 'freesansbold.ttf'
         size = 12
-        color = cls.WHITE
+        color = WHITE
         font = pygame.font.Font(font_type, size) 
 
         text = ""
@@ -101,7 +93,7 @@ class VehicleGraphics(object):
         """
         font_type = 'Ubuntu'
         size = 16
-        color = cls.YELLOW
+        color = YELLOW
         next_line_step = -20
         ini_line = surface.get_height() + next_line_step
         
@@ -132,7 +124,7 @@ class VehicleGraphics(object):
         font = pygame.font.SysFont(font_type, size, bold=True)
         tmp_color = color
         if not vehicle.is_on_the_road:            
-            color = cls.RED
+            color = RED
         text = font.render(text, True, color)
         color = tmp_color
 
@@ -144,7 +136,7 @@ class VehicleGraphics(object):
         font = pygame.font.SysFont(font_type, size, bold=True) 
         tmp_color = color
         if vehicle.high_vel_reward < 0:            
-            color = cls.RED
+            color = RED
         text = font.render(text, True, color)
         color = tmp_color
 
@@ -155,7 +147,7 @@ class VehicleGraphics(object):
         text = 'Reverse Reward: {:.3f}'.format(vehicle.reverse_reward)
         font = pygame.font.SysFont(font_type, size, bold=True)
         if vehicle.reverse_reward < 0:            
-            color = cls.RED
+            color = RED
         text = font.render(text, True, color)
         color = tmp_color        
         surface.blit(text, (0, ini_line + line*next_line_step))
@@ -165,7 +157,7 @@ class VehicleGraphics(object):
         # text = 'Lane Change Reward: {:.3f}'.format(vehicle.lane_change_reward)
         # font = pygame.font.SysFont(font_type, size, bold=True)
         # if vehicle.lane_change_reward < 0:            
-        #     color = cls.RED
+        #     color = RED
         # text = font.render(text, True, color)
         # color = tmp_color
 
@@ -176,7 +168,7 @@ class VehicleGraphics(object):
         text = 'Off-Road Reward: {:.3f}'.format(vehicle.off_road_reward)
         font = pygame.font.SysFont(font_type, size, bold=True)
         if vehicle.off_road_reward < 0:            
-            color = cls.RED
+            color = RED
         text = font.render(text, True, color)
         color = tmp_color
 
@@ -187,7 +179,7 @@ class VehicleGraphics(object):
         text = 'Distance To Goal Reward: {:.3f}'.format(vehicle.distance_goal_reward)
         font = pygame.font.SysFont(font_type, size, bold=True)
         if vehicle.distance_goal_reward < 0:            
-            color = cls.RED
+            color = RED
         text = font.render(text, True, color)
         color = tmp_color
 
@@ -212,7 +204,7 @@ class VehicleGraphics(object):
         text = 'Total Reward: {:.3f}'.format(vehicle.reward)
         font = pygame.font.SysFont(font_type, size, bold=True)
         if vehicle.reward < 0:            
-            color = cls.RED
+            color = RED
         text = font.render(text, True, color)
         color = tmp_color
 
@@ -239,7 +231,7 @@ class VehicleGraphics(object):
         # Display EGO Goal                    
         pix_pos= surface.pos2pix(vehicle.goal_state[0],vehicle.goal_state[1])
         radius = abs(pix_pos[0] - surface.pos2pix(vehicle.goal_state[0]+3, vehicle.goal_state[1])[0])
-        pygame.draw.circle(surface, cls.GREEN, pix_pos, radius)
+        pygame.draw.circle(surface, GREEN, pix_pos, radius)
 
         
 
@@ -256,18 +248,21 @@ class VehicleGraphics(object):
 
     @classmethod
     def get_color(cls, vehicle, transparent=False):
-        color = cls.DEFAULT_COLOR
+        color = DEFAULT_COLOR
         if vehicle.crashed:
-            color = cls.RED
+            color = RED
+
+        if vehicle.color is not None:
+            return vehicle.color
 
         elif isinstance(vehicle, LinearVehicle):
-            color = cls.YELLOW
+            color = YELLOW
         elif isinstance(vehicle, IDMVehicle):
-            color = cls.BLUE
+            color = BLUE
         elif isinstance(vehicle, MDPVehicle):
-            color = cls.EGO_COLOR
+            color = EGO_COLOR
         elif isinstance(vehicle, Obstacle):
-            color = cls.GREEN
+            color = GREEN
         if transparent:
             color = (color[0], color[1], color[2], 50)
         return color
