@@ -134,6 +134,16 @@ pbt = PopulationBasedTraining(
     custom_explore_fn=explore
 )
 
+def on_train_result(info):
+    result = info["result"]
+    if result["episode_reward_mean"] > 1200:
+        curriculam = 4
+    else:
+        curriculam = 2
+    trainer = info["trainer"]
+    trainer.workers.foreach_worker(
+        lambda ev: ev.foreach_env(
+            lambda env: env.set_curriculam(curriculam)))
 
 def ray_train(save_in_sub_folder=None):
     subprocess.run(["chmod", "-R", "a+rwx", save_in_sub_folder + "/"])
@@ -222,6 +232,9 @@ def ray_train(save_in_sub_folder=None):
                 "gamma": 0.85,
                 "num_workers": delegated_cpus,
                 "env": train_env_id,
+                "callbacks": {
+                                "on_train_result": None #ray.tune.function(on_train_result),
+                             },
                 # These params are tuned from a fixed starting value.
                 # "lambda": 0.95,
                 # "clip_param": 0.2,
@@ -243,7 +256,7 @@ def ray_play():
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
     #algo = "IMPALA"
     #checkpt = 629  # which checkpoint file to play
-    results_folder = pathname + "/" + ray_folder + "/" + "20190801-160626" + "/pygame-ray/"
+    results_folder = pathname + "/" + ray_folder + "/" + "20190801-205817" + "/pygame-ray/"
     #+algo+"_"+play_env_id + \
     #    "_0_"+"2019-07-21_02-17-42lcyu3tu7" + "/checkpoint_" + str(checkpt) + "/checkpoint-" + str(checkpt)
     subdir = next(os.walk(results_folder))[1][0]

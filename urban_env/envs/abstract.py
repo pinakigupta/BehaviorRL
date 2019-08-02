@@ -63,7 +63,8 @@ class AbstractEnv(gym.Env):
     DEFAULT_CONFIG = {
         "observation": {
             "type": "TimeToCollision"
-        }
+        },
+        "DIFFICULTY_LEVELS": 2
     }
 
     _max_episode_steps = None
@@ -366,3 +367,9 @@ class AbstractEnv(gym.Env):
 
     def set_config(key, value):
         self.config[key] = value
+
+    def set_curriculam(value):
+        self.set_config("DIFFICULTY_LEVELS", value)
+
+    def get_curriculam():
+        return self.config["DIFFICULTY_LEVELS"]
