@@ -121,7 +121,8 @@ class ControlledVehicle(Vehicle):
                 
         if 'target_lane_index' in locals(): # Means lane change
             if (self.target_lane_index == self.lane_index):
-                self.action_validity = False
+                self.action_validity = True
+                
         steering = self.steering_control(self.target_lane_index, is_aggressive_lcx)
         acceleration = self.velocity_control(self.target_velocity)
         self.control_action = {'steering': steering,
@@ -156,6 +157,7 @@ class ControlledVehicle(Vehicle):
         lane_next_coords = lane_coords[0] + self.velocity * self.PURSUIT_TAU
         lane_future_heading = target_lane.heading_at(lane_next_coords)
 
+
         # Lateral position control
         lateral_velocity_command = (- 2* self.KP_LATERAL * lane_coords[1]) if is_agressive else (- self.KP_LATERAL * lane_coords[1])
 
@@ -168,6 +170,11 @@ class ControlledVehicle(Vehicle):
         # Heading rate to steering angle
         steering_angle = self.LENGTH / utils.not_zero(self.velocity) * np.arctan(heading_rate_command)
         steering_angle = np.clip(steering_angle, -self.MAX_STEERING_ANGLE, self.MAX_STEERING_ANGLE)
+
+        if isinstance(self, MDPVehicle) and is_agressive:
+            print("Id: ",self.Id(), " lane_future_heading ", lane_future_heading,\
+                  "steering_angle ", steering_angle," lateral_velocity_command ", lateral_velocity_command)
+
         return steering_angle
 
     def velocity_control(self, target_velocity):

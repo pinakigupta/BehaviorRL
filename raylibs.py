@@ -8,11 +8,25 @@ import os
 import time
 import glob
 import redis
+
+filename = '/usr/local/lib/python3.6/dist-packages/ray/rllib/rollout.py'
+with open(filename, 'r') as original: 
+    original_data = original.read()
+    linebylinecontent = original.readlines()
+
+print(linebylinecontent)
+#for linecontent in linebylinecontent:
+    #print(linecontent)
+    #if "import ray" in linecontent :
+    #    exit("Exiting code")
+
+
 import ray
 from ray.tune import Experiment, Trainable, run_experiments, register_env, sample_from
 from ray.tune.schedulers import PopulationBasedTraining, AsyncHyperBandScheduler
 from ray.tune.ray_trial_executor import RayTrialExecutor
 from ray.rllib.agents.trainer_template import build_trainer
+
 
 import ray.rllib.agents.ppo as ppo
 import ray.rllib.agents.impala as impala
@@ -56,6 +70,30 @@ register_env('multitask-v0', lambda config: MultiTaskEnv(config))
 
 redis_add = ray.services.get_node_ip_address() + ":6379"
 
+def get_immediate_subdirectories(a_dir):
+    if not a_dir:
+        return
+    return [name for name in os.listdir(a_dir)
+            if os.path.isdir(os.path.join(a_dir, name))]
+
+def purge_dirs():
+    all_folders = glob.glob(pathname + "/" + ray_folder+'/*')
+    for folder in all_folders:
+        results_folder = folder + "/pygame-ray"
+        if not os.path.exists(results_folder):
+            continue
+        subdirs = get_immediate_subdirectories(results_folder)
+        if not subdirs:
+            continue
+        subdir = subdirs[0]
+        results_folder = results_folder + "/" + subdir 
+        all_checkpt_folders = get_immediate_subdirectories(results_folder)
+        if all_checkpt_folders:
+            continue
+        import shutil
+        print("purging folder ", folder)
+        shutil.rmtree(folder)
+purge_dirs()
 
 def ray_node_ips():
     @ray.remote
@@ -115,6 +153,12 @@ def explore(config):
         config["num_sgd_iter"] = 1
     return config
 
+def filetonum(filename):
+    try:
+        return int(filename.split('_')[-1])
+    except:
+        return -1
+
 
 pbt = PopulationBasedTraining(
     time_attr="training_iteration",
@@ -133,6 +177,10 @@ pbt = PopulationBasedTraining(
     },
     custom_explore_fn=explore
 )
+
+def on_episode_start(info):
+    print(info.keys())  # -> "env", 'episode"
+
 
 def on_train_result(info):
     result = info["result"]
@@ -200,13 +248,25 @@ def ray_train(save_in_sub_folder=None):
                                   make_policy_optimizer=impala.impala.make_aggregators_and_optimizer,
                                   mixins=[impala.impala.OverrideDefaultResourceRequest])
 
-    checkpt = 2800
+    #checkpt = 2800
     
     if is_predict_only():
         delegated_cpus=1
     else:
         delegated_cpus=available_cluster_cpus-2
-    
+
+    local_restore_path = pathname + "/" + ray_folder + "/" + "20190801-205817" 
+    restore_folder = local_restore_path + "/pygame-ray/"
+    subdir = next(os.walk(restore_folder))[1][0]
+    restore_folder = restore_folder + subdir + "/" 
+    all_checkpt_folders = glob.glob(restore_folder+'/*')
+    last_checkpt_folder = max(all_checkpt_folders, key=filetonum)
+    if 'checkpt' not in locals():    
+        checkpt = filetonum(last_checkpt_folder)
+    restore_folder = restore_folder + "checkpoint_" + str(checkpt) + "/checkpoint-" + str(checkpt)
+    #print("restore_folder is ", restore_folder)
+    assert(os.path.exists(restore_folder))
+
     ray.tune.run(
         "PPO",
         name="pygame-ray",
@@ -221,8 +281,7 @@ def ray_train(save_in_sub_folder=None):
         resume=True,
         # trial_executor=RayTrialExecutor(),
         #resources_per_trial = {"cpu": 216, "gpu": 0},
-        #restore=pathname + "/" + ray_folder + "/" + "20190721-021730"+"/pygame-ray/"+algo+"_"+train_env_id +
-        #"_0_"+"2019-07-21_02-17-42lcyu3tu7" + "/checkpoint_" + str(checkpt) + "/checkpoint-" + str(checkpt),
+        #restore=restore_folder
         **{
             "num_samples": 1,
             "config": {
@@ -233,7 +292,7 @@ def ray_train(save_in_sub_folder=None):
                 "num_workers": delegated_cpus,
                 "env": train_env_id,
                 "callbacks": {
-                                "on_train_result": None #ray.tune.function(on_train_result),
+                                "on_episode_start": ray.tune.function(on_episode_start),
                              },
                 # These params are tuned from a fixed starting value.
                 # "lambda": 0.95,
@@ -250,6 +309,9 @@ def ray_train(save_in_sub_folder=None):
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
 
 
+
+
+
 def ray_play():
     import gym
     gym.make(play_env_id).reset()
@@ -262,19 +324,16 @@ def ray_play():
     subdir = next(os.walk(results_folder))[1][0]
     results_folder = results_folder + subdir + "/" 
     all_checkpt_folders = glob.glob(results_folder+'/*')
-
-    if 'algo' not in locals():
-        algo = subdir.split('_')[0]
-
-    def filetonum(filename):
-        try:
-            return int(filename.split('_')[-1])
-        except:
-            return -1
     last_checkpt_folder = max(all_checkpt_folders, key=filetonum)
     if 'checkpt' not in locals():    
         checkpt = filetonum(last_checkpt_folder)
     results_folder = results_folder + "/checkpoint_" + str(checkpt) + "/checkpoint-" + str(checkpt)
+
+    if 'algo' not in locals():
+        algo = subdir.split('_')[0]
+
+
+
     #results_folder = "PPO_two-way-v0_0_2019-07-15_17-11-45avp2pc6k"
     # results_folder = pathname + "/" + ray_folder + "/" + "pygame-ray/" + results_folder + \
     #    "/checkpoint_" + str(checkpt) +"/checkpoint-" + str(checkpt)
