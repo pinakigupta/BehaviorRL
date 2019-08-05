@@ -272,7 +272,7 @@ def ray_train(save_in_sub_folder=None):
         name="pygame-ray",
         stop={"training_iteration": int(num_timesteps)},
         # scheduler=pbt,
-        checkpoint_freq=int(num_timesteps)//10,
+        checkpoint_freq=int(num_timesteps)//3,
         checkpoint_at_end=True,
         local_dir=local_dir_path,
         # upload_dir=upload_dir_path,
@@ -292,7 +292,7 @@ def ray_train(save_in_sub_folder=None):
                 "num_workers": delegated_cpus,
                 "env": train_env_id,
                 "callbacks": {
-                                "on_episode_start": ray.tune.function(on_episode_start),
+                              #  "on_episode_start": ray.tune.function(on_episode_start),
                              },
                 # These params are tuned from a fixed starting value.
                 # "lambda": 0.95,
@@ -318,7 +318,7 @@ def ray_play():
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
     #algo = "IMPALA"
     #checkpt = 629  # which checkpoint file to play
-    results_folder = pathname + "/" + ray_folder + "/" + "20190801-205817" + "/pygame-ray/"
+    results_folder = pathname + "/" + ray_folder + "/" + "20190804-205549" + "/pygame-ray/"
     #+algo+"_"+play_env_id + \
     #    "_0_"+"2019-07-21_02-17-42lcyu3tu7" + "/checkpoint_" + str(checkpt) + "/checkpoint-" + str(checkpt)
     subdir = next(os.walk(results_folder))[1][0]

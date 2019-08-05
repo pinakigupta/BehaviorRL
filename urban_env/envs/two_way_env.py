@@ -276,7 +276,7 @@ class TwoWayEnv(AbstractEnv):
 
 
             # Add the virtual obstacles/constraints
-        '''lane_index = ("b", "a", 0)
+        lane_index = ("b", "a", 0)
         lane = self.road.network.get_lane(lane_index)
         x0 = lane.length/2
         position = lane.position(x0, 3.5)
@@ -310,7 +310,7 @@ class TwoWayEnv(AbstractEnv):
                                                enable_lane_change=False)
         virtual_obstacle_right.virtual = True                                       
         virtual_obstacle_right.LENGTH = lane.length
-        self.road.vehicles.append(virtual_obstacle_right)'''
+        self.road.vehicles.append(virtual_obstacle_right)
 
         
 

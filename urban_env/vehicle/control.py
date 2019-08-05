@@ -119,11 +119,16 @@ class ControlledVehicle(Vehicle):
                 self.target_lane_index = target_lane_index
                 is_aggressive_lcx = True
                 
+        default_offset = 0
         if 'target_lane_index' in locals(): # Means lane change
             if (self.target_lane_index == self.lane_index):
+                if action == "LANE_LEFT_AGGRESSIVE" or action == "LANE_LEFT_AGGRESSIVE":
+                    default_offset = 4
+                else :
+                    default_offset = -4
                 self.action_validity = True
                 
-        steering = self.steering_control(self.target_lane_index, is_aggressive_lcx)
+        steering = self.steering_control(self.target_lane_index, is_aggressive_lcx, default_offset)
         acceleration = self.velocity_control(self.target_velocity)
         self.control_action = {'steering': steering,
                                 'acceleration': acceleration}
@@ -140,7 +145,7 @@ class ControlledVehicle(Vehicle):
                                                                  position=self.position,
                                                                  np_random=self.road.np_random)
 
-    def steering_control(self, target_lane_index, is_agressive = False ):
+    def steering_control(self, target_lane_index, is_agressive = False, default_offset=0 ):
         """
             Steer the vehicle to follow the center of an given lane.
 
@@ -159,7 +164,8 @@ class ControlledVehicle(Vehicle):
 
 
         # Lateral position control
-        lateral_velocity_command = (- 2* self.KP_LATERAL * lane_coords[1]) if is_agressive else (- self.KP_LATERAL * lane_coords[1])
+        target_offset = default_offset + lane_coords[1]
+        lateral_velocity_command = (- 2* self.KP_LATERAL * target_offset) if is_agressive else (- self.KP_LATERAL * target_offset)
 
         # Lateral velocity to heading
         heading_command = np.arcsin(np.clip(lateral_velocity_command/utils.not_zero(self.velocity), -1, 1))
@@ -171,9 +177,10 @@ class ControlledVehicle(Vehicle):
         steering_angle = self.LENGTH / utils.not_zero(self.velocity) * np.arctan(heading_rate_command)
         steering_angle = np.clip(steering_angle, -self.MAX_STEERING_ANGLE, self.MAX_STEERING_ANGLE)
 
-        if isinstance(self, MDPVehicle) and is_agressive:
+        '''if isinstance(self, MDPVehicle) and is_agressive:
             print("Id: ",self.Id(), " lane_future_heading ", lane_future_heading,\
                   "steering_angle ", steering_angle," lateral_velocity_command ", lateral_velocity_command)
+            print("lane_coords ",lane_coords,"self.action ", self.action)'''
 
         return steering_angle
 
