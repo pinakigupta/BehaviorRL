@@ -278,7 +278,7 @@ def ray_train(save_in_sub_folder=None):
         # upload_dir=upload_dir_path,
         verbose=True,
         queue_trials=False,
-        resume=True,
+        resume=False,
         # trial_executor=RayTrialExecutor(),
         #resources_per_trial = {"cpu": 216, "gpu": 0},
         #restore=restore_folder,
@@ -291,9 +291,9 @@ def ray_train(save_in_sub_folder=None):
                 "gamma": 0.85,
                 "num_workers": delegated_cpus,
                 "env": train_env_id,
-                "callbacks": {
+                #"callbacks": {
                               #  "on_episode_start": ray.tune.function(on_episode_start),
-                             },
+                #             },
                 # These params are tuned from a fixed starting value.
                 # "lambda": 0.95,
                 # "clip_param": 0.2,
