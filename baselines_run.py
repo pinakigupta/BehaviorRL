@@ -73,7 +73,9 @@ if __name__ == "__main__":
 
             if RUN_WITH_RAY:
                 from raylibs import ray_train
-                ray_train(save_in_sub_folder=pathname + "/" + ray_folder + "/" + InceptcurrentDT)
+                save_in_sub_folder = pathname + "/" + ray_folder + "/" + InceptcurrentDT
+                print("save_in_sub_folder is ", save_in_sub_folder)
+                ray_train(save_in_sub_folder=save_in_sub_folder)
             else:
                 print("(rank , size) = ", mpi_util.get_local_rank_size(MPI.COMM_WORLD))
                 if len(sys_args) <= 1:

@@ -14,7 +14,7 @@ with open(filename, 'r') as original:
     original_data = original.read()
     linebylinecontent = original.readlines()
 
-print(linebylinecontent)
+#print(linebylinecontent)
 #for linecontent in linebylinecontent:
     #print(linecontent)
     #if "import ray" in linecontent :
@@ -272,7 +272,7 @@ def ray_train(save_in_sub_folder=None):
         name="pygame-ray",
         stop={"training_iteration": int(num_timesteps)},
         # scheduler=pbt,
-        checkpoint_freq=int(num_timesteps)//3,
+        checkpoint_freq=int(num_timesteps)//10,
         checkpoint_at_end=True,
         local_dir=local_dir_path,
         # upload_dir=upload_dir_path,
@@ -281,7 +281,7 @@ def ray_train(save_in_sub_folder=None):
         resume=True,
         # trial_executor=RayTrialExecutor(),
         #resources_per_trial = {"cpu": 216, "gpu": 0},
-        #restore=restore_folder
+        #restore=restore_folder,
         **{
             "num_samples": 1,
             "config": {
