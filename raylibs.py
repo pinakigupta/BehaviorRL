@@ -181,6 +181,19 @@ pbt = PopulationBasedTraining(
 def on_episode_start(info):
     print(info.keys())  # -> "env", 'episode"
 
+def retrieve_ray_folder_info(target_folder):
+    local_restore_path = pathname + "/" + ray_folder + "/" + target_folder #"20190805-132549"
+    restore_folder = local_restore_path + "/pygame-ray/"
+    #checkpt = 2800
+    subdir = next(os.walk(restore_folder))[1][0]
+    restore_folder = restore_folder + subdir + "/" 
+    all_checkpt_folders = glob.glob(restore_folder+'/*')
+    last_checkpt_folder = max(all_checkpt_folders, key=filetonum)
+    if 'checkpt' not in locals():    
+        checkpt = filetonum(last_checkpt_folder)
+    restore_folder = restore_folder + "checkpoint_" + str(checkpt) + "/checkpoint-" + str(checkpt)
+    assert(os.path.exists(restore_folder))
+    return restore_folder,local_restore_path
 
 def on_train_result(info):
     result = info["result"]
@@ -248,24 +261,30 @@ def ray_train(save_in_sub_folder=None):
                                   make_policy_optimizer=impala.impala.make_aggregators_and_optimizer,
                                   mixins=[impala.impala.OverrideDefaultResourceRequest])
 
-    #checkpt = 2800
     
     if is_predict_only():
         delegated_cpus=1
     else:
         delegated_cpus=available_cluster_cpus-2
 
-    local_restore_path = pathname + "/" + ray_folder + "/" + "20190801-205817" 
-    restore_folder = local_restore_path + "/pygame-ray/"
-    subdir = next(os.walk(restore_folder))[1][0]
-    restore_folder = restore_folder + subdir + "/" 
-    all_checkpt_folders = glob.glob(restore_folder+'/*')
-    last_checkpt_folder = max(all_checkpt_folders, key=filetonum)
-    if 'checkpt' not in locals():    
-        checkpt = filetonum(last_checkpt_folder)
-    restore_folder = restore_folder + "checkpoint_" + str(checkpt) + "/checkpoint-" + str(checkpt)
-    #print("restore_folder is ", restore_folder)
-    assert(os.path.exists(restore_folder))
+     
+
+
+
+    restore_folder, local_restore_path = retrieve_ray_folder_info("20190805-132549")
+
+    RESTORE_COND = "RESTORE_MODEL"
+    if RESTORE_COND == "RESTORE_AND_RESUME"
+        local_dir=local_restore_path
+        resume=True
+    elif RESTORE_COND == "RESTORE":
+        local_dir=local_dir_path
+        resume=False
+    else:
+        local_dir=local_dir_path
+        resume=False
+        restore=None
+
 
     ray.tune.run(
         "PPO",
@@ -281,7 +300,7 @@ def ray_train(save_in_sub_folder=None):
         resume=False,
         # trial_executor=RayTrialExecutor(),
         #resources_per_trial = {"cpu": 216, "gpu": 0},
-        #restore=restore_folder,
+        restore=restore_folder,
         **{
             "num_samples": 1,
             "config": {
