@@ -13,7 +13,7 @@
         "-e", "DISPLAY=${env:DISPLAY}",
         "-v", "/tmp/.X11-unix:/tmp/.X11-unix",
         "-v","/var/run/docker.sock:/var/run/docker.sock",
-        "-v","${env:HOME}${env:USERPROFILE}/.aws/:/root/.aws/"    
+//        "-v","${env:HOME}${env:USERPROFILE}/.aws/:/root/.aws/"    
                    ],
 
             "remote.SSH.defaultExtensions": [
