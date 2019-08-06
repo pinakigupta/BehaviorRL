@@ -31,7 +31,7 @@ else
 	xhost +
 	sudo docker run -it --runtime=nvidia -v $HOST_DIR:/rl_baselines_ad -e DISPLAY=unix$DISPLAY \
         -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID  -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-	-v /tmp/.X11-unix:/tmp/.X11-unix  -v $HOME/.aws/:/root/.aws/  pinakigupta/rl_baselines /bin/bash
+	-v /tmp/.X11-unix:/tmp/.X11-unix   pinakigupta/rl_baselines /bin/bash
 fi
 
 

@@ -193,7 +193,9 @@ def retrieve_ray_folder_info(target_folder):
         checkpt = filetonum(last_checkpt_folder)
     restore_folder = restore_folder + "checkpoint_" + str(checkpt) + "/checkpoint-" + str(checkpt)
     assert(os.path.exists(restore_folder))
-    return restore_folder,local_restore_path
+    if 'algo' not in locals():
+        algo = subdir.split('_')[0]
+    return restore_folder, local_restore_path, algo
 
 def on_train_result(info):
     result = info["result"]
@@ -260,21 +262,16 @@ def ray_train(save_in_sub_folder=None):
                                   make_workers=impala.impala.defer_make_workers,
                                   make_policy_optimizer=impala.impala.make_aggregators_and_optimizer,
                                   mixins=[impala.impala.OverrideDefaultResourceRequest])
-
     
     if is_predict_only():
-        delegated_cpus=1
+        delegated_cpus = 1
     else:
-        delegated_cpus=available_cluster_cpus-2
+        delegated_cpus = available_cluster_cpus-2
 
-     
-
-
-
-    restore_folder, local_restore_path = retrieve_ray_folder_info("20190805-132549")
+    restore_folder, local_restore_path, _ = retrieve_ray_folder_info("20190805-132549")
 
     RESTORE_COND = "RESTORE_MODEL"
-    if RESTORE_COND == "RESTORE_AND_RESUME"
+    if RESTORE_COND == "RESTORE_AND_RESUME":
         local_dir=local_restore_path
         resume=True
     elif RESTORE_COND == "RESTORE":
@@ -337,25 +334,8 @@ def ray_play():
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
     #algo = "IMPALA"
     #checkpt = 629  # which checkpoint file to play
-    results_folder = pathname + "/" + ray_folder + "/" + "20190804-205549" + "/pygame-ray/"
-    #+algo+"_"+play_env_id + \
-    #    "_0_"+"2019-07-21_02-17-42lcyu3tu7" + "/checkpoint_" + str(checkpt) + "/checkpoint-" + str(checkpt)
-    subdir = next(os.walk(results_folder))[1][0]
-    results_folder = results_folder + subdir + "/" 
-    all_checkpt_folders = glob.glob(results_folder+'/*')
-    last_checkpt_folder = max(all_checkpt_folders, key=filetonum)
-    if 'checkpt' not in locals():    
-        checkpt = filetonum(last_checkpt_folder)
-    results_folder = results_folder + "/checkpoint_" + str(checkpt) + "/checkpoint-" + str(checkpt)
 
-    if 'algo' not in locals():
-        algo = subdir.split('_')[0]
-
-
-
-    #results_folder = "PPO_two-way-v0_0_2019-07-15_17-11-45avp2pc6k"
-    # results_folder = pathname + "/" + ray_folder + "/" + "pygame-ray/" + results_folder + \
-    #    "/checkpoint_" + str(checkpt) +"/checkpoint-" + str(checkpt)
+    results_folder, _ , algo = retrieve_ray_folder_info("20190805-132549")
     print("results_folder = ", results_folder)
     subprocess.run(["rllib", "rollout", results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
