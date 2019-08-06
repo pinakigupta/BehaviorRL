@@ -124,7 +124,7 @@ if is_predict_only():
     ray.init(num_gpus=0, local_mode=True)
 else:
     try:
-        #ray_cluster_status_check()
+        ray_cluster_status_check()
         ray.init(redis_add)
         available_cluster_cpus = int(ray.cluster_resources().get("CPU"))
     except:
@@ -280,7 +280,7 @@ def ray_train(save_in_sub_folder=None):
     else:
         local_dir=local_dir_path
         resume=False
-        restore=None
+        restore_folder=None
 
 
     ray.tune.run(
@@ -290,11 +290,11 @@ def ray_train(save_in_sub_folder=None):
         # scheduler=pbt,
         checkpoint_freq=int(num_timesteps)//10,
         checkpoint_at_end=True,
-        local_dir=local_dir_path,
+        local_dir=local_dir,
         # upload_dir=upload_dir_path,
         verbose=True,
         queue_trials=False,
-        resume=False,
+        resume=resume,
         # trial_executor=RayTrialExecutor(),
         #resources_per_trial = {"cpu": 216, "gpu": 0},
         restore=restore_folder,
