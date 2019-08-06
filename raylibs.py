@@ -31,13 +31,6 @@ from ray.rllib.agents.trainer_template import build_trainer
 import ray.rllib.agents.ppo as ppo
 import ray.rllib.agents.impala as impala
 
-import yaml
-with open("Ray-Cluster.yaml", 'r') as stream:
-    try:
-        yaml_data = yaml.safe_load(stream)
-    except yaml.YAMLError as exc:
-        print(exc)
-min_cluster_nodes = yaml_data['min_workers']
 
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, homepath, RUN_WITH_RAY, InceptcurrentDT, is_predict_only
 from handle_model_files import pathname
@@ -93,7 +86,7 @@ def purge_ray_dirs():
         import shutil
         print("purging folder ", folder)
         shutil.rmtree(folder)
-purge_ray_dirs()
+#purge_ray_dirs()
 
 def ray_node_ips():
     @ray.remote
@@ -106,14 +99,26 @@ def ray_node_ips():
     return list_of_ips
 
 
-def ray_cluster_status_check():
+def ray_cluster_status_check(init=True):
+    import yaml
+    with open("Ray-Cluster.yaml", 'r') as stream:
+        try:
+            yaml_data = yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+    min_cluster_nodes = yaml_data['min_workers']+1 #one for head node
+    init_cluster_nodes = yaml_data['initial_workers']+1 #one for head node
+    if init:
+        min_cluster_nodes = max(min_cluster_nodes,init_cluster_nodes)
     while True: #run waiting for the entire cluster to be initialized (or something else is wrong ?)
         available_nodes = len(ray.nodes())
         if available_nodes >= min_cluster_nodes:
+            print("All nodes available. min_cluster_nodes count ", min_cluster_nodes,
+                  "available_nodes count ", available_nodes)
             break
         else:
-            print("available nodes count ", available_nodes," min cluster nodes required", min_cluster_nodes)
-            sleep(1)    
+            print("available nodes count ", available_nodes," min cluster nodes required",
+            min_cluster_nodes)
 
 if is_predict_only():
     try:
@@ -124,8 +129,8 @@ if is_predict_only():
     ray.init(num_gpus=0, local_mode=True)
 else:
     try:
-        ray_cluster_status_check()
         ray.init(redis_add)
+        ray_cluster_status_check()
         available_cluster_cpus = int(ray.cluster_resources().get("CPU"))
     except:
         # Kill the redis-server. This seems the surest way to kill it
