@@ -76,7 +76,7 @@ def get_immediate_subdirectories(a_dir):
     return [name for name in os.listdir(a_dir)
             if os.path.isdir(os.path.join(a_dir, name))]
 
-def purge_dirs():
+def purge_ray_dirs():
     all_folders = glob.glob(pathname + "/" + ray_folder+'/*')
     for folder in all_folders:
         results_folder = folder + "/pygame-ray"
@@ -93,7 +93,7 @@ def purge_dirs():
         import shutil
         print("purging folder ", folder)
         shutil.rmtree(folder)
-purge_dirs()
+purge_ray_dirs()
 
 def ray_node_ips():
     @ray.remote
@@ -334,7 +334,7 @@ def ray_play():
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
     #algo = "IMPALA"
     #checkpt = 629  # which checkpoint file to play
-
+    subprocess.run(["xhost", "+"])
     results_folder, _ , algo = retrieve_ray_folder_info("20190805-132549")
     print("results_folder = ", results_folder)
     subprocess.run(["rllib", "rollout", results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])

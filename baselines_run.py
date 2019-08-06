@@ -36,7 +36,7 @@ sys.path.append(open_ai_baselines_dir)
 
 from baselines.common import tf_util, mpi_util
 from baselines.common.vec_env import VecEnv
-import baselines.run as run
+#import baselines.run as run
 
 ####################
 
