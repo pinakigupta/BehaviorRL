@@ -9,8 +9,7 @@ fi
 
 # Automatically parse the yaml file and get the remote mount path
 source yaml.sh
-yaml_key_val="$(parse_yaml "$ray_yaml_file" )"
-#echo $yaml_key_val
+yaml_key_val="$(parse_yaml "$ray_yaml_file" )" #parse_yaml script parses the ray yaml file
 while IFS=' ' read -ra ADDR; do
      	for i in "${ADDR[@]}"; do
               if [[ $i == *"/mnt"* ]]; then
