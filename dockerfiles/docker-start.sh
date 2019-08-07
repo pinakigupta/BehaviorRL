@@ -21,6 +21,7 @@ fi
 
 AWS_ACCESS_KEY_ID=$(aws --profile default configure get aws_access_key_id)
 AWS_SECRET_ACCESS_KEY=$(aws --profile default configure get aws_secret_access_key)
+docker_name=ray_docker_local
 
 echo "We are ready to run the main docker container"
 if [ $EC2Instance == true ]; then
@@ -29,10 +30,12 @@ if [ $EC2Instance == true ]; then
 else
         echo "docker run Ubuntu version"
 	xhost +
-	sudo docker run -it --runtime=nvidia -v $HOST_DIR:/rl_baselines_ad -e DISPLAY=unix$DISPLAY \
-        -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID  -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-	-v /tmp/.X11-unix:/tmp/.X11-unix   pinakigupta/rl_baselines /bin/bash
+	docker container rm $docker_name
+	sudo docker run -it --name $docker_name --runtime=nvidia -v $HOST_DIR:/rl_baselines_ad -e DISPLAY=unix$DISPLAY\
+	-v ~/.aws:/tmp/.aws -v ~/.ssh:/tmp/.ssh\
+	-v /tmp/.X11-unix:/tmp/.X11-unix pinakigupta/rl_baselines /bin/bash  rl_baselines_ad/dockerfiles/docker-ini-script.sh
 fi
-
+        #-e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID  -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+	#-v ${env:HOME}${env:USERPROFILE}/.aws/:/root/.aws/ -v ${env:HOME}${env:USERPROFILE}/.ssh/:/root/.ssh/\
 
 
