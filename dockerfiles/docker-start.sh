@@ -33,7 +33,7 @@ else
 	docker container rm $docker_name
 	sudo docker run -it --name $docker_name --runtime=nvidia -v $HOST_DIR:/rl_baselines_ad -e DISPLAY=unix$DISPLAY\
 	-v ~/.aws:/tmp/.aws -v ~/.ssh:/tmp/.ssh\
-	-v /tmp/.X11-unix:/tmp/.X11-unix pinakigupta/rl_baselines /bin/bash  rl_baselines_ad/dockerfiles/docker-ini-script.sh
+	-v /tmp/.X11-unix:/tmp/.X11-unix pinakigupta/rl_baselines /bin/bash 
 fi
         #-e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID  -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
 	#-v ${env:HOME}${env:USERPROFILE}/.aws/:/root/.aws/ -v ${env:HOME}${env:USERPROFILE}/.ssh/:/root/.ssh/\
