@@ -141,7 +141,7 @@ else:
         except:
             print("ray shutdown failed. Perhaps ray was not initialized ?")
 
-        ray.init(num_gpus=0, local_mode=False)
+        ray.init(num_gpus=1, local_mode=False)
         available_cluster_cpus = int(ray.available_resources().get("CPU"))
 
 
@@ -289,7 +289,7 @@ def ray_train(save_in_sub_folder=None):
 
 
     ray.tune.run(
-        "PPO",
+        "APPO",
         name="pygame-ray",
         stop={"training_iteration": int(num_timesteps)},
         # scheduler=pbt,
@@ -301,17 +301,21 @@ def ray_train(save_in_sub_folder=None):
         queue_trials=False,
         resume=resume,
         # trial_executor=RayTrialExecutor(),
-        #resources_per_trial = {"cpu": 216, "gpu": 0},
+        #resources_per_trial={"cpu": delegated_cpus, "gpu": 0},
         restore=restore_folder,
         **{
             "num_samples": 1,
             "config": {
                 "num_gpus_per_worker": 0,
-                "num_cpus_per_worker": 1,
+                #"num_cpus_per_worker": 1,
                 # "gpus": 0,
                 "gamma": 0.85,
                 "num_workers": delegated_cpus,
+                "num_envs_per_worker": 2,
                 "env": train_env_id,
+                "model": {
+                                "use_lstm": True,
+                         },                
                 #"callbacks": {
                               #  "on_episode_start": ray.tune.function(on_episode_start),
                 #             },
@@ -339,8 +343,8 @@ def ray_play():
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
     #algo = "IMPALA"
     #checkpt = 629  # which checkpoint file to play
-    subprocess.run(["xhost", "+"])
-    results_folder, _ , algo = retrieve_ray_folder_info("20190805-132549")
+    subprocess.run(["xhost", "+"], shell=True)
+    results_folder, _ , algo = retrieve_ray_folder_info("20190806-183517")
     print("results_folder = ", results_folder)
     subprocess.run(["rllib", "rollout", results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
