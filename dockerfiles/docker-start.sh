@@ -30,7 +30,7 @@ if [ $EC2Instance == true ]; then
 else
         echo "docker run Ubuntu version"
 	xhost +
-	docker stop $docker_name && docker container rm $docker_name
+	sudo docker stop $docker_name && sudo docker container rm $docker_name
 	sudo docker run -it --name $docker_name --runtime=nvidia -v $HOST_DIR:/rl_baselines_ad -e DISPLAY=unix$DISPLAY\
 	-v ~/.aws:/tmp/.aws -v ~/.ssh:/tmp/.ssh\
 	-v /tmp/.X11-unix:/tmp/.X11-unix pinakigupta/rl_baselines /bin/bash 
