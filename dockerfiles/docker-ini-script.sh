@@ -46,3 +46,5 @@ cp -a /tmp/.aws/. ~/.aws
 cp -a /tmp/.ssh/. ~/.ssh
 chown -R root:root ~/.ssh
 chown -R root:root ~/.aws
+
+
