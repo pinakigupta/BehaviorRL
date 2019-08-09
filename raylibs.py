@@ -119,13 +119,18 @@ def ray_cluster_status_check(init=True):
         else:
             print("available nodes count ", available_nodes," min cluster nodes required",
             min_cluster_nodes)
+            print("ray nodes  ", ray.nodes())
+            print("cluster_resources ", ray.cluster_resources())
+            print("available_resources ", ray.available_resources())
 
+LOCAL_MODE = True
 if is_predict_only():
     try:
         subprocess.run(["sudo", "pkill", "redis-server"])
         subprocess.run(["sudo", "pkill", "ray_RolloutWork"])
     except:
         print("ray process not running")
+    LOCAL_MODE = True    
     ray.init(num_gpus=0, local_mode=True)
 else:
     try:
@@ -141,8 +146,12 @@ else:
         except:
             print("ray shutdown failed. Perhaps ray was not initialized ?")
 
-        ray.init(num_gpus=1, local_mode=False)
-        available_cluster_cpus = int(ray.available_resources().get("CPU"))
+        ray.init(num_gpus=1, local_mode=LOCAL_MODE)
+        if not LOCAL_MODE:
+            print("ray nodes  ", ray.nodes())
+            print("cluster_resources ", ray.cluster_resources())
+            print("available_resources ", ray.available_resources())
+            available_cluster_cpus = int(ray.available_resources().get("CPU"))
 
 
 
@@ -268,14 +277,14 @@ def ray_train(save_in_sub_folder=None):
                                   make_policy_optimizer=impala.impala.make_aggregators_and_optimizer,
                                   mixins=[impala.impala.OverrideDefaultResourceRequest])
     
-    if is_predict_only():
+    if is_predict_only() or LOCAL_MODE:
         delegated_cpus = 1
     else:
         delegated_cpus = available_cluster_cpus-2
 
     restore_folder, local_restore_path, _ = retrieve_ray_folder_info("20190805-132549")
 
-    RESTORE_COND = "RESTORE_MODEL"
+    RESTORE_COND = "NONE"
     if RESTORE_COND == "RESTORE_AND_RESUME":
         local_dir=local_restore_path
         resume=True
@@ -288,8 +297,10 @@ def ray_train(save_in_sub_folder=None):
         restore_folder=None
 
 
+
+
     ray.tune.run(
-        "APPO",
+        "PPO",
         name="pygame-ray",
         stop={"training_iteration": int(num_timesteps)},
         # scheduler=pbt,
@@ -314,7 +325,7 @@ def ray_train(save_in_sub_folder=None):
                 "num_envs_per_worker": 2,
                 "env": train_env_id,
                 "model": {
-                                "use_lstm": True,
+                            #    "use_lstm": True,
                          },                
                 #"callbacks": {
                               #  "on_episode_start": ray.tune.function(on_episode_start),
