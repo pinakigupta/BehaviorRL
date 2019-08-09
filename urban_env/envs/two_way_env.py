@@ -65,7 +65,7 @@ class TwoWayEnv(AbstractEnv):
         self.episode_travel = self.vehicle.position[0] - self.ego_x0 
         self.goal = (self.ROAD_LENGTH - self.vehicle.position[0]) / (7.0 * MDPVehicle.SPEED_MAX) # Normalize
         self.goal = min(1.0, max(-1.0, self.goal)) # Clip
-        obs[0] = self.goal # Just a temporary implementation wo explicitly mentioning the goal
+        obs[0][0] = self.goal # Just a temporary implementation wo explicitly mentioning the goal
         self.previous_obs = obs
         #self.print_obs_space()
         return (obs, rew, done, info)

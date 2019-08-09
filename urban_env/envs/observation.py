@@ -63,6 +63,7 @@ class KinematicObservation(ObservationType):
         Observe the kinematics of nearby vehicles.
     """
     FEATURES = ['presence', 'x', 'y', 'vx', 'vy', 'psi', 'lane_psi', 'length']
+    STACK_SIZE = 2
 
     def __init__(self, env, features=FEATURES, vehicles_count=9, **kwargs):
         """
@@ -75,12 +76,16 @@ class KinematicObservation(ObservationType):
         self.vehicles_count = vehicles_count
         self.virtual_vehicles_count = 0
         self.close_vehicles = None
+        self.observations = None
         for v in self.env.road.vehicles:
             if v.virtual:
                 self.virtual_vehicles_count += 1
 
     def space(self):
-        return spaces.Box(shape=(len(self.features) * (self.vehicles_count + self.virtual_vehicles_count),), low=-1, high=1, dtype=np.float32)
+        one_obs_space = spaces.Box(shape=(len(self.features) * (self.vehicles_count + self.virtual_vehicles_count),), low=-1, high=1, dtype=np.float32)
+        if(self.STACK_SIZE == 1):
+            return one_obs_space
+        return spaces.Tuple((one_obs_space, one_obs_space))
 
     def normalize(self, df):
         """
@@ -142,7 +147,16 @@ class KinematicObservation(ObservationType):
         obs = np.clip(df.values, -1, 1)
         # Flatten
         obs = np.ravel(obs)
-        return obs
+        if(self.STACK_SIZE == 1):
+            return obs
+        if self.observations is None:
+            self.observations = [obs]*self.STACK_SIZE
+            return tuple(self.observations)
+        else:
+            self.observations.pop(len(self.observations)-1)
+            self.observations.insert(0, obs)
+            return tuple(self.observations)
+        return None
 
 
 class KinematicsGoalObservation(KinematicObservation):
