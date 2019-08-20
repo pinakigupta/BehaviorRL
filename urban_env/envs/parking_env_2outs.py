@@ -1,7 +1,7 @@
 ######################################################################
 #          Deep Reinforcement Learning for Autonomous Driving
 #                  Created/Modified on: February 5, 2019
-#                      Author: Munir Jojo-Verge
+#                      Author: Munir Jojo-Verge, Pinaki Gupta
 #######################################################################
 
 
@@ -77,9 +77,9 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         "other_vehicles_type": "urban_AD_env.vehicle.behavior.IDMVehicle",
         "centering_position": [0.5, 0.5],
         "parking_spots": 15, #'random', # Parking Spots Per side
-        "vehicles_count": 0, #'random', # Total number of cars in the parking (apart from Ego)
-        "screen_width": 600 * 2,
-        "screen_height": 300 * 2 
+        "vehicles_count": 'random', # Total number of cars in the parking (apart from Ego)
+        "screen_width": 1800,
+        "screen_height": 300, 
     }    
 
     def __init__(self):                
@@ -91,6 +91,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             achieved_goal = Box(-np.inf, np.inf, shape=obs["achieved_goal"].shape, dtype=np.float32),
             observation   = Box(-np.inf, np.inf, shape=obs["observation"].shape, dtype=np.float32),
         ))
+        self.DEFAULT_CONFIG["vehicles_count"]= np.random.randint(low=0,high=10)
+        self._max_episode_steps = 50
 
         # ACTION SPACE: 
         ### Throttle: [0 to 1], 
@@ -146,20 +148,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             rows = -np.ones((missing, len(self.observation_config['features'])))
             obs = obs.append(pandas.DataFrame(data=rows, columns=self.observation_config['features']), ignore_index=True)
 
-        ##### ADDING NEARBY (TO GOAL) TRAFFIC #####
-        # close_vehicles = self.road.closest_vehicles_to(self.goal, self.OBSERVATION_NEAR_GOAL)
-        # if close_vehicles:
-        #     obs = obs.append(pandas.DataFrame.from_records(
-        #         [v.to_dict(self.vehicle)
-        #          for v in close_vehicles])[self.OBSERVATION_FEATURES],
-        #                    ignore_index=True)
-
-        # # Fill missing rows
-        # needed = self.OBSERVATION_NEAR_EGO + self.OBSERVATION_NEAR_GOAL + 1
-        # missing = needed - obs.shape[0]
-        # if obs.shape[0] < (needed):
-        #     rows = -np.ones((missing, len(self.OBSERVATION_FEATURES)))
-        #     obs = obs.append(pandas.DataFrame(data=rows, columns=self.OBSERVATION_FEATURES), ignore_index=True)
         
 
         # Normalize
@@ -207,6 +195,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         }
 
         self.previous_action = action
+        self.previous_obs = obs
 
         reward = self.compute_reward(obs['achieved_goal'], obs['desired_goal'], info)
         terminal = self._is_terminal()
@@ -394,3 +383,18 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         if self.vehicle.crashed or self.is_success:
             self.reset()
         return False  # or self._is_success(obs['achieved_goal'], obs['desired_goal'])
+
+    def print_obs_space(self):
+        print("obs space ")
+        '''obs_format = pp.pformat(np.round(np.reshape(self.previous_obs,(6, 5)),3))
+        obs_format = obs_format.rstrip("\n")
+        print(obs_format)'''
+        print(self.previous_obs["observation"])
+        print("achieved_goal")
+        print(self.previous_obs["achieved_goal"])
+        print("desired_goal")
+        print(self.previous_obs["desired_goal"])
+        print("actions")
+        print("Optimal action ",self.previous_action, "\n")
+
+                

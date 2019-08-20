@@ -1,7 +1,7 @@
 ######################################################################
 #          Deep Reinforcement Learning for Autonomous Driving
 #                  Created/Modified on: February 5, 2019
-#                      Author: Munir Jojo-Verge
+#                      Author: Munir Jojo-Verge, Pinaki Gupta
 #######################################################################
 
 from __future__ import division, print_function, absolute_import
@@ -13,13 +13,13 @@ import pygame
 
 from urban_env.road.graphics import WorldSurface, RoadGraphics
 from urban_env.vehicle.graphics import VehicleGraphics
-
+from urban_env.envdict import ACTIONS_DICT
 
 class EnvViewer(object):
     """
         A viewer to render a urban driving environment.
     """
-    SCREEN_WIDTH = 2000
+    SCREEN_WIDTH = 1750
     SCREEN_HEIGHT = 150
     SAVE_IMAGES = False
 
@@ -27,7 +27,6 @@ class EnvViewer(object):
         self.env = env
 
         pygame.init()
-        pygame.display.set_caption("Urban-AD (Munir Jojo-Verge)")
         panel_size = (self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
         self.screen = pygame.display.set_mode([self.SCREEN_WIDTH, self.SCREEN_HEIGHT])
         self.sim_surface = WorldSurface(panel_size, 0, pygame.Surface(panel_size))
@@ -109,6 +108,18 @@ class EnvViewer(object):
         if self.SAVE_IMAGES:
             pygame.image.save(self.screen, "urban-env_{}.png".format(self.frame))
             self.frame += 1
+
+        caption = "Urban-AD ( "
+        caption += "action = " + str(ACTIONS_DICT[self.env.previous_action])
+        caption += " accel = " + str(round(self.env.vehicle.control_action['acceleration']))
+        caption += " steering = " + str(round(self.env.vehicle.control_action['steering']))
+        caption += " steps = " + str(self.env.steps)
+        if self.env.episode_travel:
+            caption += ', ep travel  = {:.2f}'.format(self.env.episode_travel)
+        caption += ', reward  = {:.2f}'.format(self.env.reward)  
+        caption += ', ep reward  = {:.2f}'.format(self.env.episode_reward)
+        caption += " )"
+        pygame.display.set_caption(caption)
 
     def get_image(self):
         """

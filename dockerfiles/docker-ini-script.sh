@@ -30,14 +30,21 @@ if cd baselines; then
 	git pull; 
 	cd ..;
 else 
-	git clone https://github.com/openai/baselines.git;
+  git clone https://github.com/openai/baselines.git .;
 fi
+
+
 pip install --ignore-installed -e .
 cd ..
 
-
+sudo apt-get -y install tmux
 
 EXECDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-bash $EXECDIR/run_baseline.sh $worker_numbers
+#bash $EXECDIR/run_baseline.sh $worker_numbers
+
+cp -a /tmp/.aws/. ~/.aws
+cp -a /tmp/.ssh/. ~/.ssh
+chown -R root:root ~/.ssh
+chown -R root:root ~/.aws
 
 

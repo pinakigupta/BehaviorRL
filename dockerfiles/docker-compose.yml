@@ -1,0 +1,8 @@
+version: '2.1'
+
+services:
+  rl_baselines_ad:
+    image: rl_baselines_ad
+    build: .
+    ports:
+      - :

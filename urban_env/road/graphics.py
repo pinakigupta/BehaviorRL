@@ -1,7 +1,7 @@
 ######################################################################
 #          Deep Reinforcement Learning for Autonomous Driving
 #                  Created/Modified on: February 5, 2019
-#                      Author: Munir Jojo-Verge
+#                      Author: Munir Jojo-Verge, Pinaki Gupta
 #######################################################################
 
 
@@ -11,7 +11,7 @@ import pygame
 
 from urban_env.road.lane import LineType
 from urban_env.vehicle.graphics import VehicleGraphics
-
+from urban_env.envdict import RED, GREEN, BLUE, YELLOW, BLACK, PURPLE, DEFAULT_COLOR, EGO_COLOR, WHITE
 
 class LaneGraphics(object):
     """
@@ -141,7 +141,8 @@ class RoadGraphics(object):
         :param surface: the pygame surface
         """
         for v in road.vehicles:
-            VehicleGraphics.display(v, surface)
+            if not v.virtual:
+                VehicleGraphics.display(v, surface)
 
 
 class WorldSurface(pygame.Surface):

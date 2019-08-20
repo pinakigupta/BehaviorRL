@@ -1,7 +1,7 @@
 ######################################################################
 #          Deep Reinforcement Learning for Autonomous Driving
 #                  Created/Modified on: February 5, 2019
-#                      Author: Munir Jojo-Verge
+#                      Author: Munir Jojo-Verge, Pinaki Gupta
 #######################################################################
 
 from __future__ import division, print_function, absolute_import
@@ -20,6 +20,8 @@ from urban_env.road.lane import AbstractLane
 from urban_env.vehicle.behavior import IDMVehicle
 from urban_env.vehicle.control import MDPVehicle
 from urban_env.vehicle.dynamics import Obstacle
+from urban_env.envdict import ACTIONS_DICT
+
 
 
 class AbstractEnv(gym.Env):
@@ -30,17 +32,9 @@ class AbstractEnv(gym.Env):
         velocity. The action space is fixed, but the observation space and reward function must be defined in the
         environment implementations.
     """
-    metadata = {'render.modes': ['human', 'rgb_array'],
-                '_predict_only': 'False'}
+    metadata = {'render.modes': ['human', 'rgb_array']}
 
-    ACTIONS = {0: 'LANE_LEFT',
-               1: 'IDLE',
-               2: 'LANE_RIGHT',
-               3: 'FASTER',
-               4: 'SLOWER',
-               5: 'LANE_LEFT_AGGRESSIVE',
-               6: 'LANE_RIGHT_AGGRESSIVE'
-               }
+    ACTIONS = ACTIONS_DICT
     
     """ Which Actions are Allowed for the current Agent """
     ACTION_MASKS = [True,True,True,True,True,True,True] 
@@ -69,9 +63,11 @@ class AbstractEnv(gym.Env):
     DEFAULT_CONFIG = {
         "observation": {
             "type": "TimeToCollision"
-        }
+        },
+        "DIFFICULTY_LEVELS": 2
     }
 
+    _max_episode_steps = None
     #_predict_only = False
 
     def __init__(self, config=None):
@@ -87,10 +83,11 @@ class AbstractEnv(gym.Env):
         # Scene
         self.road = None
         self.vehicle = None
+        self.close_vehicles = None
 
         # Spaces
         self.observation = None
-        self.define_spaces()
+        #self.define_spaces()
 
         # Running
         self.time = 0
@@ -102,7 +99,12 @@ class AbstractEnv(gym.Env):
         self.should_update_rendering = True
         self.rendering_mode = 'human'
         self.enable_auto_render = False
-        self._max_episode_steps = None
+
+        # Action and reward 
+        self.action = None
+        self.reward = None
+        self.episode_reward = 0
+
 
         
 
@@ -153,11 +155,12 @@ class AbstractEnv(gym.Env):
             Reset the environment to it's initial configuration
         :return: the observation of the reset state
         """
+        self.episode_reward = 0
         self.define_spaces()
         obs = self.observation.observe()
         return obs
 
-    def step(self, action, is_training = True):
+    def step(self, action):
         """
             Perform an action and step the environment dynamics.
 
@@ -175,17 +178,20 @@ class AbstractEnv(gym.Env):
         reward = self._reward(action)
         terminal = self._is_terminal()
 
-        close_vehicles = self.road.closest_vehicles_to(self.vehicle, 5 )
+        self.close_vehicles = self.observation.close_vehicles
         extra_obs = [self.vehicle.__str__()]
-        if close_vehicles:
-            for v in close_vehicles:
+        if self.close_vehicles:
+            for v in self.close_vehicles:
                 extra_obs.append(v.__str__())
         for _ in  range(len(extra_obs),6):
             extra_obs.append(None)
 
         constraint = self._constraint(action)
         info = {'constraint': constraint, "c_": constraint, "extra_obs": extra_obs}
-
+        #print("self.steps ", self.steps, " obs ", obs)
+        self.action = action
+        self.reward = reward
+        self.episode_reward += self.reward
         return obs, reward, terminal, info
 
     def _simulate(self, action=None):
@@ -208,6 +214,7 @@ class AbstractEnv(gym.Env):
             if self.done or self._is_terminal():
                 break
         self.enable_auto_render = False
+        
 
     def render(self, mode='human'):
         """
@@ -357,3 +364,12 @@ class AbstractEnv(gym.Env):
             else:
                 setattr(result, k, None)
         return result
+
+    def set_config(key, value):
+        self.config[key] = value
+
+    def set_curriculam(value):
+        self.set_config("DIFFICULTY_LEVELS", value)
+
+    def get_curriculam():
+        return self.config["DIFFICULTY_LEVELS"]

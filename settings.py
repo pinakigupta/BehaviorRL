@@ -4,9 +4,9 @@
 #                      Author: Munir Jojo-Verge
 #######################################################################
 
-
+ray_folder = 'ray_results'
 run_folder = 'run/'
 logs_folder = run_folder + 'logs'
 models_folder = run_folder + 'models'
 
-req_dirs = [run_folder, logs_folder, models_folder]
+req_dirs = [ray_folder,run_folder, logs_folder, models_folder]

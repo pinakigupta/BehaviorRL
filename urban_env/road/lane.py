@@ -1,7 +1,7 @@
 ######################################################################
 #          Deep Reinforcement Learning for Autonomous Driving
 #                  Created/Modified on: February 5, 2019
-#                      Author: Munir Jojo-Verge
+#                      Author: Munir Jojo-Verge, Pinaki Gupta
 #######################################################################
 
 
@@ -73,7 +73,7 @@ class AbstractLane(object):
         if not longitudinal or not lateral:
             longitudinal, lateral = self.local_coordinates(position)
         is_on = np.abs(lateral) <= self.width_at(longitudinal) / 2 and \
-                -Vehicle.LENGTH <= longitudinal < self.length + Vehicle.LENGTH
+                -Vehicle.DEFAULT_LENGTH <= longitudinal < self.length + Vehicle.DEFAULT_LENGTH
         return is_on
 
     def is_reachable_from(self, position):
@@ -86,13 +86,13 @@ class AbstractLane(object):
         if self.forbidden:
             return False
         longitudinal, lateral = self.local_coordinates(position)
-        is_close = np.abs(lateral) <= 2 * self.width_at(longitudinal) and 0 <= longitudinal < self.length + Vehicle.LENGTH
+        is_close = np.abs(lateral) <= 2 * self.width_at(longitudinal) and 0 <= longitudinal < self.length + Vehicle.DEFAULT_LENGTH
         return is_close
 
     def after_end(self, position, longitudinal=None, lateral=None):
         if not longitudinal:
             longitudinal, _ = self.local_coordinates(position)
-        return longitudinal > self.length - Vehicle.LENGTH / 2
+        return longitudinal > self.length - Vehicle.DEFAULT_LENGTH / 2
 
     def distance(self, position):
         """

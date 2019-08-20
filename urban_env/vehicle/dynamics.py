@@ -1,7 +1,7 @@
 ######################################################################
 #          Deep Reinforcement Learning for Autonomous Driving
 #                  Created/Modified on: February 5, 2019
-#                      Author: Munir Jojo-Verge
+#                      Author: Munir Jojo-Verge, Pinaki Gupta
 #######################################################################
 
 from __future__ import division, print_function
@@ -23,9 +23,9 @@ class Vehicle(Loggable):
     """
     COLLISIONS_ENABLED = True
     """ Enable collision detection between vehicles """
-    LENGTH = 5.0
+    DEFAULT_LENGTH = 5.0
     """ Vehicle length [m] """
-    WIDTH = 2.0
+    DEFAULT_WIDTH = 2.0
     """ Vehicle width [m] """
 
     DEFAULT_VELOCITIES = [23, 25]
@@ -33,21 +33,24 @@ class Vehicle(Loggable):
     MAX_VELOCITY = 40
     """ Maximum reachable velocity [m/s] """
 
-    def __init__(self, road, position, lane_index = None , heading=0, velocity=0, length=5.0, width=2.0):
+    def __init__(self, road, position, lane_index = None , heading=0, velocity=0, length=5.0, width=2.0, virtual=False):
         self.LENGTH = length
         self.WIDTH = width
         self.road = road
         self.position = np.array(position).astype('float')
         self.heading = heading
         self.velocity = velocity
+        self.color = None
         if lane_index is None:
             self.lane_index = self.road.network.get_closest_lane_index(self.position, self.heading) if self.road else np.nan
         else:
             self.lane_index = lane_index
         self.lane = self.road.network.get_lane(self.lane_index) if self.road else None
         self.action = {'steering': 0, 'acceleration': 0}
+        self.action_validity = True
         self.crashed = False
         self.log = []
+        self.virtual = virtual
 
     @classmethod
     def make_on_lane(cls, road, lane_index, longitudinal, velocity=0):
@@ -61,10 +64,15 @@ class Vehicle(Loggable):
         :return: A vehicle with at the specified position
         """
         lane = road.network.get_lane(lane_index)
-        return cls(road, lane.position(longitudinal, 0), lane.heading_at(longitudinal), velocity)
+        return cls(
+                   road=road,
+                   position=lane.position(longitudinal, 0),
+                   heading=lane.heading_at(longitudinal),
+                   velocity=velocity
+                   )
 
     @classmethod
-    def create_random(cls, road, velocity=None, spacing=1):
+    def create_random(cls, road, velocity=None, spacing=1, ahead=True):
         """
             Create a random vehicle on the road.
 
@@ -83,13 +91,21 @@ class Vehicle(Loggable):
         _from = road.np_random.choice(list(road.network.graph.keys()))
         _to = road.np_random.choice(list(road.network.graph[_from].keys()))
         _id = road.np_random.choice(len(road.network.graph[_from][_to]))
-        offset = spacing * default_spacing * \
-            np.exp(-5 / 30 * len(road.network.graph[_from][_to]))
-        x0 = np.max([v.position[0] for v in road.vehicles]
+        offset = spacing * default_spacing * np.exp(-5 / 30 * len(road.network.graph[_from][_to]))
+        if ahead:
+            x0 = np.max([v.position[0] for v in road.vehicles]
                     ) if len(road.vehicles) else 3*offset
-        x0 += offset * road.np_random.uniform(0.9, 1.1)
-        v = cls(road, road.network.get_lane(
-            (_from, _to, _id)).position(x0, 0), 0, velocity)
+            x0+=offset * road.np_random.uniform(0.9, 1.1)
+        else:
+            x0 = np.min([v.position[0] for v in road.vehicles]
+                    ) if len(road.vehicles) else 3*offset
+            x0-=offset * road.np_random.uniform(0.9, 1.1)
+        
+        #x0=x0+delta_x0
+        v = cls(road=road,
+                position=road.network.get_lane((_from, _to, _id)).position(x0, 0),
+                heading=0,
+                velocity=velocity)
         return v
 
     @classmethod
@@ -154,22 +170,35 @@ class Vehicle(Loggable):
         """
         if not vehicle:
             return np.nan
+        other_center_on_lane = self.lane.local_coordinates(vehicle.position)[0]
+        # assuming heading along lane
+        other_edge_1_on_lane = self.lane.local_coordinates(vehicle.position)[0]-vehicle.LENGTH/2
+        other_edge_2_on_lane = self.lane.local_coordinates(vehicle.position)[0]+vehicle.LENGTH/2
+        ego_center_on_lane = self.lane.local_coordinates(self.position)[0]
+        other_edge_1_wrt_ego_on_lane = other_edge_1_on_lane - ego_center_on_lane
+        other_edge_2_wrt_ego_on_lane = other_edge_2_on_lane - ego_center_on_lane
+        if (other_edge_1_wrt_ego_on_lane*other_edge_2_wrt_ego_on_lane < 0):
+            return 0
+        if(abs(other_edge_1_wrt_ego_on_lane) < abs(other_edge_2_wrt_ego_on_lane)):
+            return other_edge_1_wrt_ego_on_lane
         return self.lane.local_coordinates(vehicle.position)[0] - self.lane.local_coordinates(self.position)[0]
 
-    def check_collision(self, other ):
+    def check_collision(self, other):
         """
             Check for collision with another vehicle.
 
         :param other: the other vehicle
         """
-
-        if gym.Env.metadata['_predict_only']:
-            SCALE_= 0.9
-        else:
-            SCALE_=1.1
+        SCALE_=1.1
+        '''
+        if '_predict_only' in gym.Env.metadata:
+            if gym.Env.metadata['_predict_only']:
+                SCALE_= 0.9'''
+            
 
         if not self.COLLISIONS_ENABLED or not other.COLLISIONS_ENABLED or self.crashed or other is self:
             return
+
 
         # Fast spherical pre-check
         if np.linalg.norm(other.position - self.position) > self.LENGTH:
@@ -194,9 +223,10 @@ class Vehicle(Loggable):
             'vy': self.velocity * self.direction[1],
             'cos_h': self.direction[0],
             'sin_h': self.direction[1],
-            'length_': self.LENGTH,
+            'length': self.LENGTH,
             'width_': self.WIDTH,
-            'psi': self.heading
+            'psi': self.heading,
+            'lane_psi': self.lane.heading_at(self.position[0]),
         }
         if origin_vehicle:
             origin_dict = origin_vehicle.to_dict()
@@ -214,6 +244,7 @@ class Vehicle(Loggable):
             'x': self.position[0],
             'y': self.position[1],
             'psi': self.heading,
+            'lane_psi': self.lane.heading_at(self.position[0]),
             'vx': self.velocity * np.cos(self.heading),
             'vy': self.velocity * np.sin(self.heading),
             'v': self.velocity,

@@ -1,7 +1,7 @@
 ######################################################################
 #          Deep Reinforcement Learning for Autonomous Driving
 #                  Created/Modified on: February 5, 2019
-#                      Author: Munir Jojo-Verge
+#                      Author: Munir Jojo-Verge, Pinaki Gupta
 #######################################################################
 
 from __future__ import division, print_function, absolute_import
@@ -19,7 +19,7 @@ from urban_env.road.lane import AbstractLane
 from urban_env.vehicle.behavior import IDMVehicle
 from urban_env.vehicle.control import MDPVehicle
 from urban_env.vehicle.dynamics import Obstacle
-
+from urban_env.envdict import RED, GREEN, BLUE, YELLOW, BLACK, PURPLE, DEFAULT_COLOR, EGO_COLOR, WHITE
 
 class ObservationType(object):
     def space(self):
@@ -62,9 +62,10 @@ class KinematicObservation(ObservationType):
     """
         Observe the kinematics of nearby vehicles.
     """
-    FEATURES = ['presence', 'x', 'y', 'vx', 'vy', 'psi']
+    FEATURES = ['presence', 'x', 'y', 'vx', 'vy', 'psi', 'lane_psi', 'length']
+    STACK_SIZE = 2
 
-    def __init__(self, env, features=FEATURES, vehicles_count=5, **kwargs):
+    def __init__(self, env, features=FEATURES, vehicles_count=9, **kwargs):
         """
         :param env: The environment to observe
         :param features: Names of features used in the observation
@@ -73,9 +74,18 @@ class KinematicObservation(ObservationType):
         self.env = env
         self.features = features
         self.vehicles_count = vehicles_count
+        self.virtual_vehicles_count = 0
+        self.close_vehicles = None
+        self.observations = None
+        for v in self.env.road.vehicles:
+            if v.virtual:
+                self.virtual_vehicles_count += 1
 
     def space(self):
-        return spaces.Box(shape=(len(self.features) * self.vehicles_count,), low=-1, high=1, dtype=np.float32)
+        one_obs_space = spaces.Box(shape=(len(self.features) * (self.vehicles_count + self.virtual_vehicles_count),), low=-1, high=1, dtype=np.float32)
+        if(self.STACK_SIZE == 1):
+            return one_obs_space
+        return spaces.Tuple((one_obs_space, one_obs_space))
 
     def normalize(self, df):
         """
@@ -92,20 +102,32 @@ class KinematicObservation(ObservationType):
         df['y'] = utils.remap(df['y'], [-y_position_range, y_position_range], [-1, 1])
         df['vx'] = utils.remap(df['vx'] , [-velocity_range, velocity_range], [-1, 1])
         df['vy'] = utils.remap(df['vy'], [-velocity_range, velocity_range], [-1, 1])
-        #df['length_'] = df['length_']/10
-        df['psi'] = df['psi']/(2*np.pi)
+
+        if 'psi' in df:
+            df['psi'] = df['psi']/(2*np.pi)
+        if 'lane_psi' in df:
+            df['lane_psi'] = df['lane_psi']/(2*np.pi)
+        if 'length' in df:
+            df['length'] = df['length']/400
         return df
 
     def observe(self):
         # Add ego-vehicle
         df = pandas.DataFrame.from_records([self.env.vehicle.to_dict(self.env.vehicle)])[self.features]
+
+
+
+                
         # Add nearby traffic
-        close_vehicles = self.env.road.closest_vehicles_to(self.env.vehicle, self.vehicles_count - 1,7.0 * MDPVehicle.SPEED_MAX)
+        self.close_vehicles = self.env.road.closest_vehicles_to(self.env.vehicle,
+                                                           self.vehicles_count+self.virtual_vehicles_count - 1,
+                                                           7.0 * MDPVehicle.SPEED_MAX)
+
         
-        if close_vehicles:
+        if self.close_vehicles:
             df = df.append(pandas.DataFrame.from_records(
                 [v.to_dict(self.env.vehicle)
-                 for v in close_vehicles[-self.vehicles_count + 1:]])[self.features],
+                 for v in self.close_vehicles[-self.vehicles_count - self.virtual_vehicles_count + 1:]])[self.features],
                            ignore_index=True)
 
             
@@ -113,17 +135,28 @@ class KinematicObservation(ObservationType):
         #df = df.iloc[1:]
         df = self.normalize(df)
         # Fill missing rows
-        if df.shape[0] < self.vehicles_count:
-            rows = -np.ones((self.vehicles_count - df.shape[0], len(self.features)))
+        if df.shape[0] < self.vehicles_count+self.virtual_vehicles_count:
+            rows = -np.ones((self.vehicles_count + self.virtual_vehicles_count - df.shape[0], len(self.features)))
             df = df.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
-            
+
+        for v in self.env.road.vehicles:
+            v.color = GREEN if v in self.close_vehicles else None
         # Reorder
         df = df[self.features]
         # Clip
         obs = np.clip(df.values, -1, 1)
         # Flatten
         obs = np.ravel(obs)
-        return obs
+        if(self.STACK_SIZE == 1):
+            return obs
+        if self.observations is None:
+            self.observations = [obs]*self.STACK_SIZE
+            return tuple(self.observations)
+        else:
+            self.observations.pop(len(self.observations)-1)
+            self.observations.insert(0, obs)
+            return tuple(self.observations)
+        return None
 
 
 class KinematicsGoalObservation(KinematicObservation):

@@ -1,7 +1,7 @@
 ######################################################################
 #          Deep Reinforcement Learning for Autonomous Driving
 #                  Created/Modified on: February 5, 2019
-#                      Author: Munir Jojo-Verge
+#                      Author: Munir Jojo-Verge, Pinaki Gupta
 #######################################################################
 from __future__ import division, print_function
 import abc
@@ -95,17 +95,17 @@ class ControlledVehicle(Vehicle):
         elif action == "SLOWER":
             self.target_velocity -= self.DELTA_VELOCITY
         el'''
-        if action == "LANE_RIGHT" :
+        if action == "LANE_RIGHT":
             _from, _to, _id = self.target_lane_index
             target_lane_index = _from, _to, np.clip(_id + 1, 0, len(self.road.network.graph[_from][_to]) - 1)
             if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
                 self.target_lane_index = target_lane_index
-        elif action == "LANE_LEFT" :
+        elif action == "LANE_LEFT":
             _from, _to, _id = self.target_lane_index
             target_lane_index = _from, _to, np.clip(_id - 1, 0, len(self.road.network.graph[_from][_to]) - 1)
             if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
                 self.target_lane_index = target_lane_index
-        elif action ==  "LANE_RIGHT_AGGRESSIVE":
+        elif action == "LANE_RIGHT_AGGRESSIVE":
             _from, _to, _id = self.target_lane_index
             target_lane_index = _from, _to, np.clip(_id + 1, 0, len(self.road.network.graph[_from][_to]) - 1)
             if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
@@ -118,10 +118,22 @@ class ControlledVehicle(Vehicle):
             if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
                 self.target_lane_index = target_lane_index
                 is_aggressive_lcx = True
-            # print("LANE_LEFT_AGGRESSIVE")
-        action = {'steering': self.steering_control(self.target_lane_index,is_aggressive_lcx),
-                  'acceleration': self.velocity_control(self.target_velocity)}
-        super(ControlledVehicle, self).act(action)
+                
+        default_offset = 0
+        if 'target_lane_index' in locals(): # Means lane change
+            if (self.target_lane_index == self.lane_index):
+                if action == "LANE_LEFT_AGGRESSIVE" or action == "LANE_LEFT_AGGRESSIVE":
+                    default_offset = 4
+                else :
+                    default_offset = -4
+                self.action_validity = True
+                
+        steering = self.steering_control(self.target_lane_index, is_aggressive_lcx, default_offset)
+        acceleration = self.velocity_control(self.target_velocity)
+        self.control_action = {'steering': steering,
+                                'acceleration': acceleration}
+
+        super(ControlledVehicle, self).act(self.control_action)
 
     def follow_road(self):
         """
@@ -133,7 +145,7 @@ class ControlledVehicle(Vehicle):
                                                                  position=self.position,
                                                                  np_random=self.road.np_random)
 
-    def steering_control(self, target_lane_index, is_agressive = False ):
+    def steering_control(self, target_lane_index, is_agressive = False, default_offset=0 ):
         """
             Steer the vehicle to follow the center of an given lane.
 
@@ -150,8 +162,10 @@ class ControlledVehicle(Vehicle):
         lane_next_coords = lane_coords[0] + self.velocity * self.PURSUIT_TAU
         lane_future_heading = target_lane.heading_at(lane_next_coords)
 
+
         # Lateral position control
-        lateral_velocity_command = (- 2* self.KP_LATERAL * lane_coords[1]) if is_agressive else (- self.KP_LATERAL * lane_coords[1])
+        target_offset = default_offset + lane_coords[1]
+        lateral_velocity_command = (- 2* self.KP_LATERAL * target_offset) if is_agressive else (- self.KP_LATERAL * target_offset)
 
         # Lateral velocity to heading
         heading_command = np.arcsin(np.clip(lateral_velocity_command/utils.not_zero(self.velocity), -1, 1))
@@ -162,6 +176,12 @@ class ControlledVehicle(Vehicle):
         # Heading rate to steering angle
         steering_angle = self.LENGTH / utils.not_zero(self.velocity) * np.arctan(heading_rate_command)
         steering_angle = np.clip(steering_angle, -self.MAX_STEERING_ANGLE, self.MAX_STEERING_ANGLE)
+
+        '''if isinstance(self, MDPVehicle) and is_agressive:
+            print("Id: ",self.Id(), " lane_future_heading ", lane_future_heading,\
+                  "steering_angle ", steering_angle," lateral_velocity_command ", lateral_velocity_command)
+            print("lane_coords ",lane_coords,"self.action ", self.action)'''
+
         return steering_angle
 
     def velocity_control(self, target_velocity):
@@ -200,6 +220,13 @@ class ControlledVehicle(Vehicle):
         self.route = self.route[0:index+1] + \
                      [(self.route[index][1], next_destinations_from[next_index], self.route[index][2])]
 
+    def check_collision(self, other):
+        if not (isinstance(self, MDPVehicle) or isinstance(other, MDPVehicle)): #MDP is not learning from 
+            #collision experiences of other vehicles, yet
+            return
+        return super(ControlledVehicle, self).check_collision(other)
+
+
     @abc.abstractmethod
     def Id(self):
         raise NotImplementedError()
@@ -207,6 +234,7 @@ class ControlledVehicle(Vehicle):
     @abc.abstractmethod
     def __str__(self):
         raise NotImplementedError()
+
 
 class MDPVehicle(ControlledVehicle):
     """
@@ -259,7 +287,6 @@ class MDPVehicle(ControlledVehicle):
             super(MDPVehicle, self).act(action)
         else:
             super(MDPVehicle, self).act(action)
-        return
 
 
     @classmethod

@@ -1,0 +1,24 @@
+// See https://aka.ms/vscode-remote/devcontainer.json for format details.
+{
+    "dockerFile": "dockerfiles/Dockerfile",
+	"extensions": [
+        "ms-python.python",
+        "Pylint",
+        "ms-vscode-remote.vscode-remote-extensionpack",
+        "ms-azuretools.vscode-docker",
+        "elken.mux"
+    ],
+    	"runArgs": [
+        "--net", "host", 
+        "-e", "DISPLAY=${env:DISPLAY}",
+        "-v", "/tmp/.X11-unix:/tmp/.X11-unix",
+        "-v","/var/run/docker.sock:/var/run/docker.sock",
+//        "-v","${env:HOME}${env:USERPROFILE}/.aws/:/root/.aws/"    
+                   ],
+
+            "remote.SSH.defaultExtensions": [
+                "ms-python.python",
+                "Pylint"
+            ]
+        },
+}

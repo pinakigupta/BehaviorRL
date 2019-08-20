@@ -1,13 +1,13 @@
 ######################################################################
 #          Deep Reinforcement Learning for Autonomous Driving
 #                  Created/Modified on: February 5, 2019
-#                      Author: Munir Jojo-Verge
+#                      Author: Munir Jojo-Verge, Pinaki Gupta
 #######################################################################
 
 from __future__ import division, print_function, absolute_import
 import numpy as np
 import gym
-
+from gym import GoalEnv
 from urban_env import utils
 from urban_env.envs.abstract import AbstractEnv
 from urban_env.road.lane import LineType, StraightLane, SineLane
@@ -15,6 +15,8 @@ from urban_env.road.road import Road, RoadNetwork
 from urban_env.envs.graphics import EnvViewer
 from urban_env.vehicle.control import ControlledVehicle, MDPVehicle
 from urban_env.vehicle.dynamics import Obstacle
+from handle_model_files import is_predict_only
+from urban_env.envs.graphics import EnvViewer
 
 
 class TwoWayEnv(AbstractEnv):
@@ -27,12 +29,12 @@ class TwoWayEnv(AbstractEnv):
     """
 
     COLLISION_REWARD = -200
-    #LEFT_LANE_CONSTRAINT = 1
-    LEFT_LANE_REWARD = 0
+    INVALID_ACTION_REWARD = 0
     VELOCITY_REWARD = 5
     GOAL_REWARD = 2000
     ROAD_LENGTH = 1000
-
+    ROAD_SPEED = 25
+    
     DEFAULT_CONFIG = {
         "observation": {
             "type": "Kinematics",
@@ -40,20 +42,51 @@ class TwoWayEnv(AbstractEnv):
             "vehicles_count": 6
         },
         "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
-        "centering_position": [0.3, 0.5]
+        "duration": 250,
+        "_predict_only": is_predict_only(),
+        "screen_width": 2600,
+        "screen_height": 400,
+        "DIFFICULTY_LEVELS": 3,
     }
 
-    def __init__(self):
+    def __init__(self, config=DEFAULT_CONFIG):
         super(TwoWayEnv, self).__init__()
-        self.steps = 0
-        self.reset()
-        self.goal_achieved = False
+        #self.goal_achieved = False
+        EnvViewer.SCREEN_HEIGHT = self.config['screen_height']
+        EnvViewer.SCREEN_WIDTH = self.config['screen_width']         
         self.ego_x0 = None
-        
+        self.reset()
 
+        
     def step(self, action):
         self.steps += 1
-        return super(TwoWayEnv, self).step(action)
+        self.previous_action = action
+        obs, rew, done, info = super(TwoWayEnv, self).step(action)
+        self.episode_travel = self.vehicle.position[0] - self.ego_x0 
+        self.goal = (self.ROAD_LENGTH - self.vehicle.position[0]) / (7.0 * MDPVehicle.SPEED_MAX) # Normalize
+        self.goal = min(1.0, max(-1.0, self.goal)) # Clip
+        obs[0][0] = self.goal # Just a temporary implementation wo explicitly mentioning the goal
+        self.previous_obs = obs
+        #self.print_obs_space()
+        return (obs, rew, done, info)
+
+    def _on_route(self, veh=None):
+        if veh is None:
+            veh = self.vehicle
+        lane_ID = veh.lane_index[2]
+        onroute = (lane_ID == 1)
+        return onroute
+    
+    def _on_road(self, veh=None):
+        if veh is None:
+            veh = self.vehicle
+        return (veh.position[0] < self.ROAD_LENGTH) and (veh.position[0] > 0)
+
+    def _goal_achieved(self, veh=None):
+        if veh is None:
+            veh = self.vehicle
+        return (veh.position[0] > 0.99 * self.ROAD_LENGTH) and \
+                self._on_route(veh)
 
     def _reward(self, action):
         """
@@ -61,42 +94,33 @@ class TwoWayEnv(AbstractEnv):
         :param action: the action performed
         :return: the reward of the state-action transition
         """
-        lane_ID = self.vehicle.lane_index[2]
-        on_route = (lane_ID==1)
 
-        #print("self.vehicle.position  ",self.vehicle.position)
-        if self.ego_x0 is not None:
-            if not gym.Env.metadata['_predict_only']:
-                if '_mega_batch_itr' in gym.Env.metadata:
-                    low = 60*gym.Env.metadata['_mega_batch_itr']
-                    high = low + 20*gym.Env.metadata['_mega_batch_itr']
-                else:
-                    low = 180 
-                    high = low + 40
-                self.goal_achieved =  (self.vehicle.position[0] > self.ego_x0+np.random.randint(low = low,high=high))
         #neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
         collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
         velocity_reward = self.VELOCITY_REWARD * (self.vehicle.velocity_index -1) / (self.vehicle.SPEED_COUNT - 1)
-        if (velocity_reward>0):
-            velocity_reward *= on_route
-        #lane_reward = 0 #self.LEFT_LANE_REWARD * (len(neighbours) - 1 - self.vehicle.target_lane_index[2]) / (len(neighbours) - 1)
-        goal_reward = self.GOAL_REWARD 
-        #print("collision_reward ",collision_reward, " velocity_reward ",velocity_reward, " lane_reward ",lane_reward," goal_reward ",goal_reward)
+        if (velocity_reward > 0):
+            velocity_reward *= self._on_route()
+        goal_reward = self.GOAL_REWARD
         if self.vehicle.crashed:
-            reward =  collision_reward + min(0,velocity_reward)
-        elif self.goal_achieved and on_route:
+            reward = collision_reward + min(0.0, velocity_reward)
+        elif self._goal_achieved():
             reward = goal_reward + velocity_reward
-        else :
-            reward =   velocity_reward  
+        else:
+            reward = velocity_reward
+        if not self.vehicle.action_validity:
+            reward = reward + self.INVALID_ACTION_REWARD
         return reward
 
     def _is_terminal(self):
         """
             The episode is over if the ego vehicle crashed or the time is out.
         """
-        lane_ID = self.vehicle.lane_index[2]
-        on_road = self.vehicle.position[0] < self.ROAD_LENGTH
-        terminal = self.vehicle.crashed or self.goal_achieved or (not on_road)
+        terminal = self.vehicle.crashed or \
+                   self._goal_achieved() or \
+                  (not self._on_road()) or \
+                  (self.steps >= self.config["duration"]) or\
+                   (self.vehicle.action_validity == False)
+        #print("self.steps ",self.steps," terminal ", terminal)
         return terminal
 
     def _constraint(self, action):
@@ -129,48 +153,66 @@ class TwoWayEnv(AbstractEnv):
         road = Road(network=net, np_random=self.np_random)
         self.road = road
 
+
     def _make_vehicles(self):
         """
             Populate a road with several vehicles on the road
         :return: the ego-vehicle
         """
         road = self.road
-        ego_vehicle = MDPVehicle(road, road.network.get_lane(("a", "b", 1)).position(np.random.randint(low=360,high=420), 0),\
-             velocity=np.random.randint(low=15,high=35))
+        ego_lane = road.network.get_lane(("a", "b", 1))
+        low = 400 if self.config["_predict_only"] else 660
+        ego_init_position = ego_lane.position(np.random.randint(low=low, 
+                                                                high=low+60
+                                                                ),
+                                               0
+                                             )
+        ego_vehicle = MDPVehicle(road,
+                                 position=ego_init_position,
+                                 velocity=np.random.randint(low=15,high=35),
+                                 )
         road.vehicles.append(ego_vehicle)
         self.vehicle = ego_vehicle
         self.ego_x0 = ego_vehicle.position[0]
-        #print("ego_x",self.ego_x0)
+
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
         scene_complexity = 3
-        if '_mega_batch_itr' in gym.Env.metadata:
-            scene_complexity = gym.Env.metadata['_mega_batch_itr']
+        if 'DIFFICULTY_LEVELS' in self.config:
+            scene_complexity = self.config['DIFFICULTY_LEVELS']
 
-        if '_predict_only' in gym.Env.metadata:
-            if gym.Env.metadata['_predict_only']:
-                scene_complexity = 3
+        if '_predict_only' in self.config:
+            if self.config['_predict_only']:
+                scene_complexity = 4
         
         # stationary vehicles
-        for i in range(np.random.randint(low=0,high=scene_complexity)):
-            x0 = self.ego_x0+90+90*i + 10*self.np_random.randn()
+        stat_veh_x0 = []
+        rand_stat_veh_count = np.random.randint(low=0,high=2*scene_complexity)
+        for i in range(rand_stat_veh_count):
+            x0 = self.ego_x0 + 90 + 90*i + 10*self.np_random.randn()
+            stat_veh_x0.append(x0)
             self.road.vehicles.append(
                 vehicles_type(road,
                               position=road.network.get_lane(("a", "b", 1))
                               .position(x0, 1),
                               heading=road.network.get_lane(("a", "b", 1)).heading_at(100),
-                              velocity=0,target_velocity = 0,
-                              target_lane_index = ("a", "b", 1), lane_index = ("a", "b", 1),                             
+                              velocity=0,
+                              target_velocity=0,
+                              target_lane_index=("a", "b", 1),
+                              lane_index=("a", "b", 1),                             
                               enable_lane_change=False)
             )
             
-        for i in range(np.random.randint(low=0,high=2*scene_complexity)):
+        rand_veh_count = np.random.randint(low=0,high=2*scene_complexity)
+        for i in range(rand_veh_count):
             x0 = self.ego_x0+90+40*i + 10*self.np_random.randn()
             v = vehicles_type(road,
                               position=road.network.get_lane(("a", "b", 1))
-                              .position( x0, 0),
+                              .position(x0, 0),
                               heading=road.network.get_lane(("a", "b", 1)).heading_at(100),
                               velocity=max(0,10 + 2*self.np_random.randn()),
-                              target_lane_index = ("a", "b", 1), lane_index = ("a", "b", 1),                             
+                              target_velocity=self.ROAD_SPEED,
+                              target_lane_index=("a", "b", 1), 
+                              lane_index=("a", "b", 1),                             
                               enable_lane_change=False)
             front_vehicle, _ = self.road.neighbour_vehicles(v)
             d = v.lane_distance_to(front_vehicle) 
@@ -181,40 +223,124 @@ class TwoWayEnv(AbstractEnv):
             self.road.vehicles.append(v)
         
         
-        '''
-        # stationary vehicles Left Lane
-        for i in range(np.random.randint(low=0,high=2*scene_complexity)):
-            x0 = self.ROAD_LENGTH-self.ego_x0-100-120*i + 10*self.np_random.randn()
-            v = vehicles_type(road,
-                              position=road.network.get_lane(("b", "a", 0))
-                              .position(x0 , 1),
-                              heading=road.network.get_lane(("b", "a", 0)).heading_at(x0),
-                              velocity=0,target_velocity = 0,
-                              target_lane_index = ("b", "a", 0), lane_index = ("b", "a", 0),
-                              enable_lane_change=False)
-            v.target_lane_index = ("b", "a", 0)
-            v.lane_index = ("b", "a", 0)
-            self.road.vehicles.append(v)'''
-
         
+        # stationary vehicles Left Lane
+        #if (rand_stat_veh_count == 0):
+        rand_oncoming_stat_veh_count = np.random.randint(low=0, high=2*scene_complexity)
+        #else:
+        #    rand_stat_veh_count = 0
+        for i in range(rand_oncoming_stat_veh_count):
+            x0 = self.ROAD_LENGTH-self.ego_x0-100-120*i + 10*self.np_random.randn()
+            x0_wrt_ego_lane = self.ROAD_LENGTH - x0
+            min_offset = 1e6
+
+            if stat_veh_x0:
+                dist_from_ego_lane_parked_vehs = [x - x0_wrt_ego_lane for x in stat_veh_x0]
+                min_offset = min([abs(y) for y in dist_from_ego_lane_parked_vehs])
+            if (min_offset < 20):
+                break
+            else:
+                v = vehicles_type(road,
+                                  position=road.network.get_lane(("b", "a", 0)).position(x0, 1),
+                                  heading=road.network.get_lane(("b", "a", 0)).heading_at(x0),
+                                  velocity=0,
+                                  target_velocity=0,
+                                  target_lane_index=("b", "a", 0),
+                                  lane_index=("b", "a", 0),
+                                  enable_lane_change=False)
+                v.target_lane_index = ("b", "a", 0)
+                v.lane_index = ("b", "a", 0)
+                self.road.vehicles.append(v)
+       
         for i in range(np.random.randint(low=0,high=2*scene_complexity)):
             x0 = self.ROAD_LENGTH-self.ego_x0-20-120*i + 10*self.np_random.randn()
             v = vehicles_type(road,
                               position=road.network.get_lane(("b", "a", 0))
                               .position(x0, 0.1),
                               heading=road.network.get_lane(("b", "a", 0)).heading_at(100),
-                              velocity=max(0,20 + 5*self.np_random.randn()),
-                              target_lane_index = ("b", "a", 0), lane_index = ("b", "a", 0),
-                              enable_lane_change=True)
+                              velocity=max(0, 20 + 5*self.np_random.randn()),
+                              target_velocity=self.ROAD_SPEED,
+                              target_lane_index=("b", "a", 0),
+                              lane_index=("b", "a", 0),
+                              enable_lane_change=False)
             v.target_lane_index = ("b", "a", 0)
             v.lane_index = ("b", "a", 0)
             front_vehicle, _ = self.road.neighbour_vehicles(v)
             d = v.lane_distance_to(front_vehicle)
-            if(d<5):
+            if(d < 5):
                 continue 
-            elif(d<20):
+            elif(d < 20):
                 v.velocity = max(0,4 + self.np_random.randn())
             self.road.vehicles.append(v)
+        
 
 
+            # Add the virtual obstacles/constraints
+        lane_index = ("b", "a", 0)
+        lane = self.road.network.get_lane(lane_index)
+        x0 = lane.length/2
+        position = lane.position(x0, 3.5)
+        lane_index = self.road.network.get_closest_lane_index(
+                                                            position=position,
+                                                            heading=0  
+                                                             )  
+        virtual_obstacle_left = vehicles_type(self.road,
+                                               position=position,
+                                               heading=lane.heading_at(x0),
+                                               velocity=0,
+                                               target_velocity=0,
+                                               lane_index=lane_index,
+                                               target_lane_index=lane_index,                     
+                                               enable_lane_change=False)
+        virtual_obstacle_left.virtual = True
+        virtual_obstacle_left.LENGTH = lane.length
+        self.road.vehicles.append(virtual_obstacle_left)
 
+        lane_index = ("a", "b", 1)
+        lane = self.road.network.get_lane(lane_index)
+        x0 = lane.length/2
+        position = lane.position(x0, 3.5)
+        virtual_obstacle_right = vehicles_type(self.road,
+                                               position=position,
+                                               heading=lane.heading_at(x0),
+                                               velocity=0,
+                                               target_velocity=0,
+                                               lane_index=lane_index,
+                                               target_lane_index=lane_index,                
+                                               enable_lane_change=False)
+        virtual_obstacle_right.virtual = True                                       
+        virtual_obstacle_right.LENGTH = lane.length
+        self.road.vehicles.append(virtual_obstacle_right)
+
+        
+
+    def print_obs_space(self):
+        print("obs space ")
+        import pprint
+        pp = pprint.PrettyPrinter(indent=4)
+        numoffeatures = len(self.config["observation"]["features"])
+        numfofobs = len(self.previous_obs)
+        numofvehicles = numfofobs//numoffeatures
+        close_vehicle_ids = [int(self.vehicle.Id())]
+        modified_obs = self.previous_obs
+        for v in self.close_vehicles:
+            close_vehicle_ids.append(int(v.Id()))
+        close_vehicle_ids.extend([-1]*(numofvehicles-len(close_vehicle_ids)))
+        Idx = 0
+        obs_Idx = 0
+        while True:
+            temp = modified_obs
+            del(modified_obs)
+            modified_obs = np.insert(temp, obs_Idx, close_vehicle_ids[Idx])
+            del(temp)
+            Idx += 1
+            obs_Idx += numoffeatures+1
+            if Idx >= len(close_vehicle_ids):
+                break
+
+        np.set_printoptions(precision=3, suppress=True)
+        obs_format = pp.pformat(np.round(np.reshape(modified_obs, (numofvehicles, numoffeatures+1 )), 3))
+        obs_format = obs_format.rstrip("\n")
+        print(obs_format)
+
+    

@@ -1,7 +1,8 @@
 #!/bin/bash
 
 #HOST_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-sudo bash ./docker-PreStart.sh ${HOST_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"}
+sudo bash ./dockerfiles/docker-PreStart.sh ${HOST_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"}
+HOST_DIR="$(dirname "$HOST_DIR")"
 
 EC2Instance=false
 # This first, simple check will work for many older instance types.
@@ -18,14 +19,22 @@ elif [ -r /sys/devices/virtual/dmi/id/product_uuid ]; then
   fi
 fi
 
+AWS_ACCESS_KEY_ID=$(aws --profile default configure get aws_access_key_id)
+AWS_SECRET_ACCESS_KEY=$(aws --profile default configure get aws_secret_access_key)
+
+docker_name=ray_docker_local
 echo "We are ready to run the main docker container"
 if [ $EC2Instance == true ]; then
         echo "docker run EC2Instance version"
-	sudo docker run -it  pinakigupta/rl_baselines /bin/bash
+	sudo docker run -it --name $docker_name --runtime=nvidia -v $HOST_DIR:/rl_baselines_ad \
+	-v ~/.aws:/tmp/.aws -v ~/.ssh:/tmp/.ssh pinakigupta/rl_baselines /bin/bash 
 else
         echo "docker run Ubuntu version"
 	xhost +
-	sudo docker run -it --runtime=nvidia -v $HOST_DIR:/rl_baselines_ad -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix  pinakigupta/rl_baselines /bin/bash
+	sudo docker stop $docker_name && sudo docker container rm $docker_name
+	sudo docker run -it --name $docker_name --runtime=nvidia -v $HOST_DIR:/rl_baselines_ad -e DISPLAY=unix$DISPLAY\
+	-v ~/.aws:/tmp/.aws -v ~/.ssh:/tmp/.ssh\
+	-v /tmp/.X11-unix:/tmp/.X11-unix pinakigupta/rl_baselines /bin/bash 
 fi
 
 
