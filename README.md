@@ -1,5 +1,5 @@
-# rl_baselines for Autonomous Driving (AD)
-Author: **Munir Jojo-Verge**
+# Reinforcement Learning based Autonomous Driving (AD)
+
 
 ## Introduction
 
