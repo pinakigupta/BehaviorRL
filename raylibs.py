@@ -86,7 +86,7 @@ def purge_ray_dirs():
         import shutil
         print("purging folder ", folder)
         shutil.rmtree(folder)
-#purge_ray_dirs()
+purge_ray_dirs()
 
 def ray_node_ips():
     @ray.remote
@@ -123,7 +123,9 @@ def ray_cluster_status_check(init=True):
             print("cluster_resources ", ray.cluster_resources())
             print("available_resources ", ray.available_resources())
 
-LOCAL_MODE = True
+
+
+LOCAL_MODE = False #Use local mode for debug purposes
 if is_predict_only():
     try:
         subprocess.run(["sudo", "pkill", "redis-server"])
@@ -146,12 +148,13 @@ else:
         except:
             print("ray shutdown failed. Perhaps ray was not initialized ?")
 
-        ray.init(num_gpus=1, local_mode=LOCAL_MODE)
-        if not LOCAL_MODE:
+        ray.init(num_gpus=0, local_mode=LOCAL_MODE)
+        available_cluster_cpus = int(ray.available_resources().get("CPU"))
+        if LOCAL_MODE:
             print("ray nodes  ", ray.nodes())
             print("cluster_resources ", ray.cluster_resources())
             print("available_resources ", ray.available_resources())
-            available_cluster_cpus = int(ray.available_resources().get("CPU"))
+            
 
 
 
@@ -355,7 +358,7 @@ def ray_play():
     #algo = "IMPALA"
     #checkpt = 629  # which checkpoint file to play
     subprocess.run(["xhost", "+"], shell=True)
-    results_folder, _ , algo = retrieve_ray_folder_info("20190806-183517")
+    results_folder, _ , algo = retrieve_ray_folder_info("20190821-183949")
     print("results_folder = ", results_folder)
     subprocess.run(["rllib", "rollout", results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])

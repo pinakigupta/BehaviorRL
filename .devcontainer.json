@@ -6,7 +6,8 @@
         "Pylint",
         "ms-vscode-remote.vscode-remote-extensionpack",
         "ms-azuretools.vscode-docker",
-        "elken.mux"
+        "elken.mux",
+        "eamodio.gitlens"
     ],
     	"runArgs": [
         "--net", "host", 
