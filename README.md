@@ -19,6 +19,7 @@ The Original version of these environments were created by **Edouard Leurent** a
    * Python 3
    * OpenAI Gym (https://github.com/openai/gym)
    * OpenAI Baselines (https://github.com/openai/baselines)
+   * RLLIB
 
 1) **Docker Installation**
    1) For a clean and encapsulated installation we will use Docker. Follow the instructions on https://docs.docker.com/install/linux/docker-ce/ubuntu/
@@ -42,7 +43,7 @@ Older versions of Docker were called docker, docker.io , or docker-engine. If th
 
 1) Clone this repository and make sure you include the openai baselines submodules by typing the following command
 ```bash
-git clone --recurse-submodules  https://gitlab.com/havalus-gemini/behavior/rl_baselines_ad.git
+git clone  https://github.com/pinakigupta/BehaviorRL.git
 ```
 2) Navigate to the folder where you cloned this repo. 
 ```bash
@@ -50,7 +51,7 @@ git clone --recurse-submodules  https://gitlab.com/havalus-gemini/behavior/rl_ba
 ```
 3) Run the following command to build the Docker image. This wil take some time, be patient!
 ```bash
-docker build -t munirjojoverge/rl_baselines .
+docker build -t pinakigupta/rl_baselines .
 ```
 4) Run the following command to start the Docker. Make sure you can run it by makeint executable:   
 ```bash
