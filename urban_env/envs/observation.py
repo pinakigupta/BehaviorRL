@@ -11,6 +11,7 @@ import pandas
 from gym import spaces, logger
 from gym.utils import seeding
 import numpy as np
+from collections import deque
 
 from urban_env import utils
 from urban_env.envs.finite_mdp import  compute_ttc_grid
@@ -85,7 +86,7 @@ class KinematicObservation(ObservationType):
         one_obs_space = spaces.Box(shape=(len(self.features) * (self.vehicles_count + self.virtual_vehicles_count),), low=-1, high=1, dtype=np.float32)
         if(self.env.OBS_STACK_SIZE == 1):
             return one_obs_space
-        return spaces.Tuple((one_obs_space, one_obs_space))
+        return spaces.Tuple(tuple([one_obs_space]*self.env.OBS_STACK_SIZE))
 
     def normalize(self, df):
         """
@@ -153,11 +154,11 @@ class KinematicObservation(ObservationType):
         if(self.env.OBS_STACK_SIZE == 1):
             return obs
         if self.observations is None:
-            self.observations = [obs]*self.env.OBS_STACK_SIZE
+            self.observations = deque([obs]*self.env.OBS_STACK_SIZE, maxlen=self.env.OBS_STACK_SIZE)
             return tuple(self.observations)
         else:
-            self.observations.pop(len(self.observations)-1)
-            self.observations.insert(0, obs)
+            #self.observations.pop(len(self.observations)-1)
+            self.observations.append(obs)
             return tuple(self.observations)
         return None
 

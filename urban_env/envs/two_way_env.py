@@ -34,7 +34,7 @@ class TwoWayEnv(AbstractEnv):
     GOAL_REWARD = 2000
     ROAD_LENGTH = 1000
     ROAD_SPEED = 25
-    OBS_STACK_SIZE = 2
+    OBS_STACK_SIZE = 1
     
     DEFAULT_CONFIG = {
         "observation": {
