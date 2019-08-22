@@ -327,8 +327,10 @@ def ray_train(save_in_sub_folder=None):
                 "num_workers": delegated_cpus,
                 "num_envs_per_worker": 2,
                 "env": train_env_id,
+                "remote_worker_envs": False,
                 "model": {
                             #    "use_lstm": True,
+                            #    "fcnet_hiddens": [256, 256, 128],
                          },                
                 #"callbacks": {
                               #  "on_episode_start": ray.tune.function(on_episode_start),
