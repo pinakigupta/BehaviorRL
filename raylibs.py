@@ -360,7 +360,7 @@ def ray_play():
     #algo = "IMPALA"
     #checkpt = 629  # which checkpoint file to play
     subprocess.run(["xhost", "+"], shell=True)
-    results_folder, _ , algo = retrieve_ray_folder_info("20190821-212447")
+    results_folder, _ , algo = retrieve_ray_folder_info("20190822-161831")
     print("results_folder = ", results_folder)
     subprocess.run(["rllib", "rollout", results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])

@@ -159,7 +159,7 @@ class TwoWayEnv(AbstractEnv):
         """
         road = self.road
         ego_lane = road.network.get_lane(("a", "b", 1))
-        low = 400 if self.config["_predict_only"] else 660
+        low = 400 if self.config["_predict_only"] else 760
         ego_init_position = ego_lane.position(np.random.randint(low=low, 
                                                                 high=low+60
                                                                 ),
