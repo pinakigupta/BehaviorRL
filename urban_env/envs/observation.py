@@ -78,9 +78,9 @@ class KinematicObservation(ObservationType):
         self.virtual_vehicles_count = 0
         self.close_vehicles = None
         self.observations = None
-        for v in self.env.road.vehicles:
+        '''for v in self.env.road.vehicles:
             if v.virtual:
-                self.virtual_vehicles_count += 1
+                self.virtual_vehicles_count += 1'''
 
     def space(self):
         one_obs_space = spaces.Box(shape=(len(self.features) * (self.vehicles_count + self.virtual_vehicles_count),), low=-1, high=1, dtype=np.float32)

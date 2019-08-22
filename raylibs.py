@@ -285,7 +285,7 @@ def ray_train(save_in_sub_folder=None):
     else:
         delegated_cpus = available_cluster_cpus-2
 
-    restore_folder, local_restore_path, _ = retrieve_ray_folder_info("20190805-132549")
+    restore_folder, local_restore_path, _ = retrieve_ray_folder_info("20190822-135133")
 
     RESTORE_COND = "NONE"
     if RESTORE_COND == "RESTORE_AND_RESUME":
