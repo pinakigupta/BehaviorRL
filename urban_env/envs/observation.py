@@ -150,7 +150,7 @@ class KinematicObservation(ObservationType):
         obs = np.ravel(obs)
         goal = (self.env.ROAD_LENGTH - self.env.vehicle.position[0]) / (7.0 * MDPVehicle.SPEED_MAX) # Normalize
         goal = min(1.0, max(-1.0, goal)) # Clip
-        obs[0] = 0 # Just a temporary implementation wo explicitly mentioning the goal
+        obs[0] = goal # Just a temporary implementation wo explicitly mentioning the goal
         if(self.env.OBS_STACK_SIZE == 1):
             return obs
         if self.observations is None:

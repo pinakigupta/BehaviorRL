@@ -65,7 +65,7 @@ class TwoWayEnv(AbstractEnv):
         obs, rew, done, info = super(TwoWayEnv, self).step(action)
         self.episode_travel = self.vehicle.position[0] - self.ego_x0 
         self.previous_obs = obs
-        #self.print_obs_space()
+        self.print_obs_space()
         return (obs, rew, done, info)
 
     def _on_route(self, veh=None):

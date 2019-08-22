@@ -149,8 +149,8 @@ else:
             print("ray shutdown failed. Perhaps ray was not initialized ?")
 
         ray.init(num_gpus=0, local_mode=LOCAL_MODE)
-        available_cluster_cpus = int(ray.available_resources().get("CPU"))
-        if LOCAL_MODE:
+        if not LOCAL_MODE:
+            available_cluster_cpus = int(ray.available_resources().get("CPU"))
             print("ray nodes  ", ray.nodes())
             print("cluster_resources ", ray.cluster_resources())
             print("available_resources ", ray.available_resources())
