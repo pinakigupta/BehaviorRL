@@ -57,9 +57,9 @@ class TwoWayEnv(AbstractEnv):
         EnvViewer.SCREEN_WIDTH = self.config['screen_width']         
         self.ego_x0 = None
         self.reset()
-
         
     def step(self, action):
+        self.DEFAULT_CONFIG["_predict_only"] = is_predict_only()
         self.steps += 1
         self.previous_action = action
         obs, rew, done, info = super(TwoWayEnv, self).step(action)
@@ -159,7 +159,7 @@ class TwoWayEnv(AbstractEnv):
         """
         road = self.road
         ego_lane = road.network.get_lane(("a", "b", 1))
-        low = 400 if self.config["_predict_only"] else 600
+        low = 600 if self.config["_predict_only"] else 600
         ego_init_position = ego_lane.position(np.random.randint(low=low, 
                                                                 high=low+60
                                                                 ),

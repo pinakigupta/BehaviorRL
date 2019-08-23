@@ -53,16 +53,15 @@ warnings.filterwarnings("ignore")
 #################################################################
 
 
-if __name__ == "__main__":
-
+def main(**kwargs):
+    predict_only = is_predict_only(**kwargs)
     mega_batch_itr = 1
     sys_args = sys.argv
-
     
     policy = None
     play_env = None
     max_iteration = 1
-    if not is_predict_only():
+    if not predict_only:
         while mega_batch_itr <= max_iteration:
             sess = tf_util.get_session()
             sess.close()
@@ -113,3 +112,7 @@ if __name__ == "__main__":
             # Just try to Play
             while loaded_file_correctly:
                 baselines_play(play_env, policy)
+
+
+if __name__ == "__main__":
+    main(**dict(arg.split('=') for arg in sys.argv[1:]))

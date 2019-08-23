@@ -24,6 +24,16 @@ first_default_args_call = True
 LOAD_PREV_MODEL = True
 RUN_WITH_RAY = True
 
+
+def is_predict_only(**kwargs):
+    global num_timesteps
+    if 'predict' in kwargs:
+        if kwargs['predict'] == "True":
+            num_timesteps = '1'  
+    if 'predict' in sys.argv:
+        num_timesteps = '1'
+    return float(num_timesteps) == 1
+
 ###############################################################
 #        DEFINE YOUR "BASELINE" (AGENT) PARAMETERS HERE
 ###############################################################
@@ -79,8 +89,6 @@ else:
 InceptcurrentDT = MPI.COMM_WORLD.bcast(InceptcurrentDT, root=0)
 
 
-def is_predict_only():
-    return float(num_timesteps) == 1
 
 
 
