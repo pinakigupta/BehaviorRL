@@ -285,9 +285,9 @@ def ray_train(save_in_sub_folder=None):
     else:
         delegated_cpus = available_cluster_cpus-2
 
-    restore_folder, local_restore_path, _ = retrieve_ray_folder_info("20190822-135133")
+    restore_folder, local_restore_path, _ = retrieve_ray_folder_info("20190823-040904")
 
-    RESTORE_COND = "NONE"
+    RESTORE_COND = "RESTORE"
     if RESTORE_COND == "RESTORE_AND_RESUME":
         local_dir=local_restore_path
         resume=True
@@ -330,7 +330,7 @@ def ray_train(save_in_sub_folder=None):
                 "remote_worker_envs": False,
                 "model": {
                             #    "use_lstm": True,
-                            #    "fcnet_hiddens": [256, 256, 128],
+                                 "fcnet_hiddens": [256, 256, 256],
                          },                
                 #"callbacks": {
                               #  "on_episode_start": ray.tune.function(on_episode_start),
@@ -360,7 +360,7 @@ def ray_play():
     #algo = "IMPALA"
     #checkpt = 629  # which checkpoint file to play
     subprocess.run(["xhost", "+"], shell=True)
-    results_folder, _ , algo = retrieve_ray_folder_info("20190822-161831")
+    results_folder, _ , algo = retrieve_ray_folder_info("20190823-040904")
     print("results_folder = ", results_folder)
     subprocess.run(["rllib", "rollout", results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
