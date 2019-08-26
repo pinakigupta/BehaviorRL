@@ -47,7 +47,7 @@ class TwoWayEnv(AbstractEnv):
         "_predict_only": is_predict_only(),
         "screen_width": 2600,
         "screen_height": 400,
-        "DIFFICULTY_LEVELS": 3,
+        "DIFFICULTY_LEVELS": 2,
     }
 
     def __init__(self, config=DEFAULT_CONFIG):
