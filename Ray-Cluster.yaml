@@ -68,7 +68,7 @@ auth:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
-    InstanceType: p2.xlarge
+    InstanceType: c5.18xlarge
     ImageId: ami-02c0cd52bbdab9574 #ami-024c28da9b15ecda5 
     KeyName: KEY-Pinaki.Gupta
 
