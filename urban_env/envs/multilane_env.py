@@ -113,7 +113,7 @@ class MultilaneEnv(AbstractEnv):
         self.goal = min(1.0, max(-1.0, self.goal)) # Clip
         obs[0] = self.goal # Just a temporary implementation wo explicitly mentioning the goal
         self.episode_travel = self.vehicle.position[0] - self.ego_x0
-        self.previous_obs = obs
+        self.obs = obs
         return (obs, rew, done, info)
 
     def _create_road(self):
@@ -240,7 +240,7 @@ class MultilaneEnv(AbstractEnv):
         import pprint
         pp = pprint.PrettyPrinter(indent=4)
         numoffeatures = len(self.config["observation"]["features"])
-        numfofobs = len(self.previous_obs)
-        obs_format = pp.pformat(np.round(np.reshape(self.previous_obs,(numfofobs//numoffeatures, numoffeatures)), 3))
+        numfofobs = len(self.obs)
+        obs_format = pp.pformat(np.round(np.reshape(self.obs,(numfofobs//numoffeatures, numoffeatures)), 3))
         obs_format = obs_format.rstrip("\n")
         print(obs_format)

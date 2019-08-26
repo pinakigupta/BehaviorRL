@@ -287,7 +287,7 @@ def ray_train(save_in_sub_folder=None):
 
     restore_folder, local_restore_path, _ = retrieve_ray_folder_info("20190823-040904")
 
-    RESTORE_COND = "RESTORE"
+    RESTORE_COND = "NONE"
     if RESTORE_COND == "RESTORE_AND_RESUME":
         local_dir=local_restore_path
         resume=True
@@ -360,7 +360,7 @@ def ray_play():
     #algo = "IMPALA"
     #checkpt = 629  # which checkpoint file to play
     subprocess.run(["xhost", "+"], shell=True)
-    results_folder, _ , algo = retrieve_ray_folder_info("20190823-040904")
+    results_folder, _ , algo = retrieve_ray_folder_info("20190823-163131")
     print("results_folder = ", results_folder)
     subprocess.run(["rllib", "rollout", results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])

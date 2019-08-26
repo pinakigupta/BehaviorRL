@@ -11,6 +11,7 @@ import pandas
 from gym import spaces, logger
 from gym.utils import seeding
 import numpy as np
+from collections import deque
 
 from urban_env import utils
 from urban_env.envs.observation import observation_factory
@@ -100,10 +101,12 @@ class AbstractEnv(gym.Env):
         self.rendering_mode = 'human'
         self.enable_auto_render = False
 
-        # Action and reward 
+        # Action , obs and reward 
         self.action = None
         self.reward = None
+        self.obs = None
         self.episode_reward = 0
+        self.episode_reward_deque = deque(maxlen=100)
 
 
         
@@ -192,6 +195,9 @@ class AbstractEnv(gym.Env):
         self.action = action
         self.reward = reward
         self.episode_reward += self.reward
+        
+
+
         return obs, reward, terminal, info
 
     def _simulate(self, action=None):
@@ -365,11 +371,11 @@ class AbstractEnv(gym.Env):
                 setattr(result, k, None)
         return result
 
-    def set_config(key, value):
+    def set_config(self, key, value):
         self.config[key] = value
 
-    def set_curriculam(value):
+    def set_curriculam(self, value):
         self.set_config("DIFFICULTY_LEVELS", value)
 
-    def get_curriculam():
+    def get_curriculam(self):
         return self.config["DIFFICULTY_LEVELS"]

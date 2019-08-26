@@ -64,8 +64,8 @@ class TwoWayEnv(AbstractEnv):
         self.previous_action = action
         obs, rew, done, info = super(TwoWayEnv, self).step(action)
         self.episode_travel = self.vehicle.position[0] - self.ego_x0 
-        self.previous_obs = obs
         #self.print_obs_space()
+        self._set_curriculam()
         return (obs, rew, done, info)
 
     def _on_route(self, veh=None):
@@ -119,6 +119,8 @@ class TwoWayEnv(AbstractEnv):
                   (self.steps >= self.config["duration"]) or\
                    (self.vehicle.action_validity == False)
         #print("self.steps ",self.steps," terminal ", terminal)
+        if terminal:
+            self.episode_reward_deque.append(self.episode_reward)
         return terminal
 
     def _constraint(self, action):
@@ -157,9 +159,18 @@ class TwoWayEnv(AbstractEnv):
             Populate a road with several vehicles on the road
         :return: the ego-vehicle
         """
+        scene_complexity = 3
+        if 'DIFFICULTY_LEVELS' in self.config:
+            scene_complexity = self.config['DIFFICULTY_LEVELS']
+
+        if '_predict_only' in self.config:
+            if self.config['_predict_only']:
+                scene_complexity = 4
+        
+
         road = self.road
         ego_lane = road.network.get_lane(("a", "b", 1))
-        low = 600 if self.config["_predict_only"] else 600
+        low = 600 if self.config["_predict_only"] else max(0, (700 - 30*scene_complexity))
         ego_init_position = ego_lane.position(np.random.randint(low=low, 
                                                                 high=low+60
                                                                 ),
@@ -174,14 +185,7 @@ class TwoWayEnv(AbstractEnv):
         self.ego_x0 = ego_vehicle.position[0]
 
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
-        scene_complexity = 3
-        if 'DIFFICULTY_LEVELS' in self.config:
-            scene_complexity = self.config['DIFFICULTY_LEVELS']
 
-        if '_predict_only' in self.config:
-            if self.config['_predict_only']:
-                scene_complexity = 4
-        
         # stationary vehicles
         stat_veh_x0 = []
         rand_stat_veh_count = np.random.randint(low=0, high=2*scene_complexity)
@@ -317,10 +321,10 @@ class TwoWayEnv(AbstractEnv):
         import pprint
         pp = pprint.PrettyPrinter(indent=4)
         numoffeatures = len(self.config["observation"]["features"])
-        numfofobs = len(self.previous_obs)
+        numfofobs = len(self.obs)
         numofvehicles = numfofobs//numoffeatures
         close_vehicle_ids = [int(self.vehicle.Id())]
-        modified_obs = self.previous_obs
+        modified_obs = self.obs
         for v in self.close_vehicles:
             close_vehicle_ids.append(int(v.Id()))
         close_vehicle_ids.extend([-1]*(numofvehicles-len(close_vehicle_ids)))
@@ -341,4 +345,15 @@ class TwoWayEnv(AbstractEnv):
         obs_format = obs_format.rstrip("\n")
         print(obs_format)
 
-    
+    def _set_curriculam(self):
+        from color import color
+        if (len(self.episode_reward_deque)==100):
+            if np.mean(self.episode_reward_deque) > 1200:
+                self.episode_reward_deque.clear()
+                new_curriculam = self.get_curriculam()+1
+                self.set_curriculam(new_curriculam)
+                print("self.episode_reward ", self.episode_reward)
+                print(color.BOLD + 'updating curriculam to ' + str(new_curriculam) + color.END)
+                self.reset()
+
+
