@@ -327,8 +327,7 @@ def ray_train(save_in_sub_folder=None):
                 "num_workers": delegated_cpus,
                 "num_envs_per_worker": 2,
                 "env": train_env_id,
-                "remote_worker_envs": False,
-                "remote_worker_env_timeout_ms": 100, # Default is async (timeout 0), setting it to large number would be equal to sync, but timeout now can be set to any value. 
+                "remote_worker_envs": True,
                 "model": {
                             #    "use_lstm": True,
                                  "fcnet_hiddens": [256, 256, 256],
