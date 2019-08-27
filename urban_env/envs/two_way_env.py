@@ -60,9 +60,6 @@ class TwoWayEnv(AbstractEnv):
         self.reset()
         
     def step(self, action):
-        if is_predict_only() and not self.DEFAULT_CONFIG["_predict_only"]:
-            self.DEFAULT_CONFIG["_predict_only"] = True
-            self.reset()
         self.steps += 1
         self.previous_action = action
         obs, rew, done, info = super(TwoWayEnv, self).step(action)

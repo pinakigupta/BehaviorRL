@@ -22,7 +22,7 @@ from urban_env.vehicle.behavior import IDMVehicle
 from urban_env.vehicle.control import MDPVehicle
 from urban_env.vehicle.dynamics import Obstacle
 from urban_env.envdict import ACTIONS_DICT
-
+from handle_model_files import is_predict_only
 
 
 class AbstractEnv(gym.Env):
@@ -175,10 +175,17 @@ class AbstractEnv(gym.Env):
         if self.road is None or self.vehicle is None:
             raise NotImplementedError("The road and vehicle must be initialized in the environment implementation")
 
+        if is_predict_only() and not self.DEFAULT_CONFIG["_predict_only"]:
+            self.DEFAULT_CONFIG["_predict_only"] = True
+            self.reset()
+
         self._simulate(action)
 
         obs = self.observation.observe()
         reward = self._reward(action)
+        self.action = action
+        self.reward = reward
+        self.episode_reward += self.reward
         terminal = self._is_terminal()
 
         self.close_vehicles = self.observation.close_vehicles
@@ -192,11 +199,6 @@ class AbstractEnv(gym.Env):
         constraint = self._constraint(action)
         info = {'constraint': constraint, "c_": constraint, "extra_obs": extra_obs}
         #print("self.steps ", self.steps, " obs ", obs)
-        self.action = action
-        self.reward = reward
-        self.episode_reward += self.reward
-        
-
 
         return obs, reward, terminal, info
 
@@ -383,10 +385,13 @@ class AbstractEnv(gym.Env):
     def _set_curriculam(self, curriculam_reward_threshold):
         from color import color
         if (len(self.episode_reward_buffer)==self.BUFFER_LENGTH):
-            if np.mean(self.episode_reward_buffer) > curriculam_reward_threshold:
+            mean_episode_reward = np.mean(self.episode_reward_buffer)
+            if mean_episode_reward > curriculam_reward_threshold:
                 self.episode_reward_buffer.clear()
                 new_curriculam = self.get_curriculam()+1
                 self.set_curriculam(new_curriculam)
-                print("self.episode_reward ", self.episode_reward)
+                print("mean episode_reward ", np.mean(self.episode_reward_buffer))
                 print(color.BOLD + 'updating curriculam to ' + str(new_curriculam) + color.END)
                 self.reset()
+            #else:
+                #print("mean_episode_reward ", mean_episode_reward)
