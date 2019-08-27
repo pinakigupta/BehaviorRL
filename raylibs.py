@@ -302,50 +302,50 @@ def ray_train(save_in_sub_folder=None):
 
 
 
-    ray.tune.run(
-        "PPO",
-        name="pygame-ray",
-        stop={"training_iteration": int(num_timesteps)},
-        # scheduler=pbt,
-        checkpoint_freq=int(num_timesteps)//10,
-        checkpoint_at_end=True,
-        local_dir=local_dir,
-        # upload_dir=upload_dir_path,
-        verbose=True,
-        queue_trials=False,
-        resume=resume,
-        # trial_executor=RayTrialExecutor(),
-        #resources_per_trial={"cpu": delegated_cpus, "gpu": 0},
-        restore=restore_folder,
-        **{
-            "num_samples": 1,
-            "config": {
-                "num_gpus_per_worker": 0,
-                #"num_cpus_per_worker": 1,
-                # "gpus": 0,
-                "gamma": 0.85,
-                "num_workers": delegated_cpus,
-                "num_envs_per_worker": 2,
-                "env": train_env_id,
-                "remote_worker_envs": True,
-                "model": {
-                            #    "use_lstm": True,
-                                 "fcnet_hiddens": [256, 256, 256],
-                         },                
-                #"callbacks": {
-                              #  "on_episode_start": ray.tune.function(on_episode_start),
-                #             },
-                # These params are tuned from a fixed starting value.
-                # "lambda": 0.95,
-                # "clip_param": 0.2,
-                # "lr": 1e-4,
-                # These params start off randomly drawn from a set.
-                # "num_sgd_iter": sample_from(lambda spec: random.choice([10, 20, 30])),
-                # "sgd_minibatch_size": sample_from(lambda spec: random.choice([128, 512, 2048])),
-                # "train_batch_size": sample_from(lambda spec: random.choice([10000, 20000, 40000])),
-            },
-        }
-    )
+    ray_trials = ray.tune.run(
+            "PPO",
+            name="pygame-ray",
+            stop={"training_iteration": int(num_timesteps)},
+            # scheduler=pbt,
+            checkpoint_freq=int(num_timesteps)//10,
+            checkpoint_at_end=True,
+            local_dir=local_dir,
+            # upload_dir=upload_dir_path,
+            verbose=True,
+            queue_trials=False,
+            resume=resume,
+            # trial_executor=RayTrialExecutor(),
+            #resources_per_trial={"cpu": delegated_cpus, "gpu": 0},
+            restore=restore_folder,
+            **{
+                "num_samples": 1,
+                "config": {
+                    "num_gpus_per_worker": 0,
+                    #"num_cpus_per_worker": 1,
+                    # "gpus": 0,
+                    "gamma": 0.85,
+                    "num_workers": delegated_cpus,
+                    "num_envs_per_worker": 2,
+                    "env": train_env_id,
+                    "remote_worker_envs": True,
+                    "model": {
+                                #    "use_lstm": True,
+                                    "fcnet_hiddens": [256, 256, 256],
+                            },                
+                    #"callbacks": {
+                                #  "on_episode_start": ray.tune.function(on_episode_start),
+                    #             },
+                    # These params are tuned from a fixed starting value.
+                    # "lambda": 0.95,
+                    # "clip_param": 0.2,
+                    # "lr": 1e-4,
+                    # These params start off randomly drawn from a set.
+                    # "num_sgd_iter": sample_from(lambda spec: random.choice([10, 20, 30])),
+                    # "sgd_minibatch_size": sample_from(lambda spec: random.choice([128, 512, 2048])),
+                    # "train_batch_size": sample_from(lambda spec: random.choice([10000, 20000, 40000])),
+                },
+            }
+        )
 
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
 
@@ -360,7 +360,7 @@ def ray_play():
     #algo = "IMPALA"
     #checkpt = 629  # which checkpoint file to play
     subprocess.run(["xhost", "+"], shell=True)
-    results_folder, _ , algo = retrieve_ray_folder_info("20190823-163131")
+    results_folder, _ , algo = retrieve_ray_folder_info("20190826-215829")
     print("results_folder = ", results_folder)
     subprocess.run(["rllib", "rollout", results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])

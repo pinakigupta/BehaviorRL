@@ -35,6 +35,7 @@ class TwoWayEnv(AbstractEnv):
     ROAD_LENGTH = 1000
     ROAD_SPEED = 25
     OBS_STACK_SIZE = 1
+    BUFFER_LENGTH = 100
     
     DEFAULT_CONFIG = {
         "observation": {
@@ -59,13 +60,15 @@ class TwoWayEnv(AbstractEnv):
         self.reset()
         
     def step(self, action):
-        self.DEFAULT_CONFIG["_predict_only"] = is_predict_only()
+        if is_predict_only() and not self.DEFAULT_CONFIG["_predict_only"]:
+            self.DEFAULT_CONFIG["_predict_only"] = True
+            self.reset()
         self.steps += 1
         self.previous_action = action
         obs, rew, done, info = super(TwoWayEnv, self).step(action)
         self.episode_travel = self.vehicle.position[0] - self.ego_x0 
         #self.print_obs_space()
-        self._set_curriculam()
+        self._set_curriculam(curriculam_reward_threshold=0.6*self.GOAL_REWARD)
         return (obs, rew, done, info)
 
     def _on_route(self, veh=None):
@@ -120,7 +123,7 @@ class TwoWayEnv(AbstractEnv):
                    (self.vehicle.action_validity == False)
         #print("self.steps ",self.steps," terminal ", terminal)
         if terminal:
-            self.episode_reward_deque.append(self.episode_reward)
+            self.episode_reward_buffer.append(self.episode_reward)
         return terminal
 
     def _constraint(self, action):
@@ -167,10 +170,9 @@ class TwoWayEnv(AbstractEnv):
             if self.config['_predict_only']:
                 scene_complexity = 4
         
-
         road = self.road
         ego_lane = road.network.get_lane(("a", "b", 1))
-        low = 600 if self.config["_predict_only"] else max(0, (700 - 30*scene_complexity))
+        low = 400 if self.config["_predict_only"] else max(0, (700 - 30*scene_complexity))
         ego_init_position = ego_lane.position(np.random.randint(low=low, 
                                                                 high=low+60
                                                                 ),
@@ -345,15 +347,5 @@ class TwoWayEnv(AbstractEnv):
         obs_format = obs_format.rstrip("\n")
         print(obs_format)
 
-    def _set_curriculam(self):
-        from color import color
-        if (len(self.episode_reward_deque)==100):
-            if np.mean(self.episode_reward_deque) > 1200:
-                self.episode_reward_deque.clear()
-                new_curriculam = self.get_curriculam()+1
-                self.set_curriculam(new_curriculam)
-                print("self.episode_reward ", self.episode_reward)
-                print(color.BOLD + 'updating curriculam to ' + str(new_curriculam) + color.END)
-                self.reset()
 
 

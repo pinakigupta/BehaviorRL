@@ -106,7 +106,7 @@ class AbstractEnv(gym.Env):
         self.reward = None
         self.obs = None
         self.episode_reward = 0
-        self.episode_reward_deque = deque(maxlen=100)
+        self.episode_reward_buffer = deque(maxlen=100)
 
 
         
@@ -379,3 +379,14 @@ class AbstractEnv(gym.Env):
 
     def get_curriculam(self):
         return self.config["DIFFICULTY_LEVELS"]
+    
+    def _set_curriculam(self, curriculam_reward_threshold):
+        from color import color
+        if (len(self.episode_reward_buffer)==self.BUFFER_LENGTH):
+            if np.mean(self.episode_reward_buffer) > curriculam_reward_threshold:
+                self.episode_reward_buffer.clear()
+                new_curriculam = self.get_curriculam()+1
+                self.set_curriculam(new_curriculam)
+                print("self.episode_reward ", self.episode_reward)
+                print(color.BOLD + 'updating curriculam to ' + str(new_curriculam) + color.END)
+                self.reset()
