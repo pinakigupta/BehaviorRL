@@ -68,6 +68,8 @@ class AbstractEnv(gym.Env):
         "DIFFICULTY_LEVELS": 2
     }
 
+    BUFFER_LENGTH = 25
+
     _max_episode_steps = None
     #_predict_only = False
 
@@ -106,7 +108,8 @@ class AbstractEnv(gym.Env):
         self.reward = None
         self.obs = None
         self.episode_reward = 0
-        self.episode_reward_buffer = deque(maxlen=100)
+        self.episode_count = 0
+        self.episode_reward_buffer = deque(maxlen=self.BUFFER_LENGTH)
 
 
         
@@ -161,6 +164,7 @@ class AbstractEnv(gym.Env):
         self.episode_reward = 0
         self.define_spaces()
         obs = self.observation.observe()
+        #print("resetting env", "current_curriculam = ", self.get_curriculam())
         return obs
 
     def step(self, action):
@@ -384,14 +388,22 @@ class AbstractEnv(gym.Env):
     
     def _set_curriculam(self, curriculam_reward_threshold):
         from color import color
-        if (len(self.episode_reward_buffer)==self.BUFFER_LENGTH):
+        episode_buffer_length = 0
+        for elem in self.episode_reward_buffer:
+            episode_buffer_length += 1
+        if(episode_buffer_length==self.BUFFER_LENGTH):
             mean_episode_reward = np.mean(self.episode_reward_buffer)
+            current_curriculam = self.get_curriculam()
             if mean_episode_reward > curriculam_reward_threshold:
                 self.episode_reward_buffer.clear()
-                new_curriculam = self.get_curriculam()+1
+                new_curriculam = current_curriculam+1
                 self.set_curriculam(new_curriculam)
-                print("mean episode_reward ", np.mean(self.episode_reward_buffer))
-                print(color.BOLD + 'updating curriculam to ' + str(new_curriculam) + color.END)
+                '''print("mean episode_reward ", np.mean(self.episode_reward_buffer), " episode count ", self.episode_count,)
+                print("self.episode_reward_buffer ", self.episode_reward_buffer, " episode_buffer_length ", episode_buffer_length)
+                print(color.BOLD + 'updating curriculam to ' + str(new_curriculam) + color.END)'''
                 self.reset()
-            #else:
-                #print("mean_episode_reward ", mean_episode_reward)
+            '''else:
+                print("mean_episode_reward ", mean_episode_reward, " episode count ", self.episode_count, 
+                "current_curriculam ", current_curriculam, " episode_buffer_length ", episode_buffer_length)
+        else :
+            print("episode_buffer_length ", episode_buffer_length, "self.BUFFER_LENGTH ", self.BUFFER_LENGTH )'''

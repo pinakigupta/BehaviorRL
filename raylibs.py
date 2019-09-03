@@ -99,19 +99,19 @@ def ray_node_ips():
     return list_of_ips
 
 
-def ray_cluster_status_check(init=True):
+def ray_cluster_status_check(ray_yaml_file="Ray-Cluster.yaml" , initial_workers_check=True):
     import yaml
-    with open("Ray-Cluster.yaml", 'r') as stream:
+    with open(ray_yaml_file, 'r') as stream:
         try:
             yaml_data = yaml.safe_load(stream)
         except yaml.YAMLError as exc:
             print(exc)
-    min_cluster_nodes = yaml_data['min_workers']+1 #one for head node
-    init_cluster_nodes = yaml_data['initial_workers']+1 #one for head node
-    if init:
+    min_cluster_nodes = yaml_data['min_workers']+1 #+1 for head node, parse yaml file for min workers
+    init_cluster_nodes = yaml_data['initial_workers']+1 #+1 for head node, , parse yaml file for initial workers
+    if initial_workers_check:
         min_cluster_nodes = max(min_cluster_nodes,init_cluster_nodes)
     while True: #run waiting for the entire cluster to be initialized (or something else is wrong ?)
-        available_nodes = len(ray.nodes())
+        available_nodes = len(ray.nodes()) # gives all available nodes "ready" for compute (ex: not initializing)
         if available_nodes >= min_cluster_nodes:
             print("All nodes available. min_cluster_nodes count ", min_cluster_nodes,
                   "available_nodes count ", available_nodes)
@@ -135,15 +135,15 @@ if is_predict_only():
     LOCAL_MODE = True    
     ray.init(num_gpus=0, local_mode=True)
 else:
-    try:
+    try: # to init in the cluster
         ray.init(redis_add)
         ray_cluster_status_check()
         available_cluster_cpus = int(ray.cluster_resources().get("CPU"))
-    except:
+    except: # try to init in your machine/isolated compute instance
         # Kill the redis-server. This seems the surest way to kill it
         subprocess.run(["sudo", "pkill", "redis-server"])
         subprocess.run(["sudo", "pkill", "ray_RolloutWork"])
-        try:
+        try: # shutting down for a freash init assuming ray init process started when attempted to run in a cluster
             ray.shutdown()
         except:
             print("ray shutdown failed. Perhaps ray was not initialized ?")
@@ -285,7 +285,7 @@ def ray_train(save_in_sub_folder=None):
     else:
         delegated_cpus = available_cluster_cpus-2
 
-    restore_folder, local_restore_path, _ = retrieve_ray_folder_info("20190826-215829")
+    restore_folder, local_restore_path, _ = retrieve_ray_folder_info("20190828-201729")
 
     RESTORE_COND = "RESTORE_AND_RESUME"
     if RESTORE_COND == "RESTORE_AND_RESUME":
@@ -327,7 +327,7 @@ def ray_train(save_in_sub_folder=None):
                     "num_workers": delegated_cpus,
                     "num_envs_per_worker": 2,
                     "env": train_env_id,
-                    "remote_worker_envs": True,
+                    "remote_worker_envs": False,
                     "model": {
                                 #    "use_lstm": True,
                                     "fcnet_hiddens": [256, 256, 256],
