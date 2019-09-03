@@ -192,12 +192,17 @@ class AbstractEnv(gym.Env):
         self.episode_reward += self.reward
         terminal = self._is_terminal()
 
+        if terminal:
+            self.episode_reward_buffer.append(self.episode_reward)
+            self.episode_count +=1
+            self._set_curriculam(curriculam_reward_threshold=1200)
+
         self.close_vehicles = self.observation.close_vehicles
         extra_obs = [self.vehicle.__str__()]
         if self.close_vehicles:
             for v in self.close_vehicles:
                 extra_obs.append(v.__str__())
-        for _ in  range(len(extra_obs),6):
+        for _ in  range(len(extra_obs), 6):
             extra_obs.append(None)
 
         constraint = self._constraint(action)
@@ -224,8 +229,10 @@ class AbstractEnv(gym.Env):
 
             # Stop at terminal states
             if self.done or self._is_terminal():
+                #print("self.done", self.done, " _is_terminal ", self._is_terminal())
                 break
         self.enable_auto_render = False
+
         
 
     def render(self, mode='human'):
@@ -264,6 +271,7 @@ class AbstractEnv(gym.Env):
         if self.viewer is not None:
             self.viewer.close()
         self.viewer = None
+        
 
     def get_available_actions(self):
         """
@@ -388,22 +396,39 @@ class AbstractEnv(gym.Env):
     
     def _set_curriculam(self, curriculam_reward_threshold):
         from color import color
-        episode_buffer_length = 0
-        for elem in self.episode_reward_buffer:
-            episode_buffer_length += 1
+        import sys
+
+        sys.stdout.flush()
+        
+        def length_(buffer):
+            buffer_length = 0
+            for elem in buffer:
+                buffer_length += 1
+            return buffer_length
+
+        def mean_(buffer):
+            buffer_length = 0
+            buffer_sum = 0
+            for elem in buffer:
+                buffer_length += 1
+                buffer_sum += elem
+            return (buffer_sum/buffer_length)        
+
+        episode_buffer_length = length_(self.episode_reward_buffer)
+
         if(episode_buffer_length==self.BUFFER_LENGTH):
-            mean_episode_reward = np.mean(self.episode_reward_buffer)
+            mean_episode_reward = mean_(self.episode_reward_buffer)
             current_curriculam = self.get_curriculam()
             if mean_episode_reward > curriculam_reward_threshold:
                 self.episode_reward_buffer.clear()
                 new_curriculam = current_curriculam+1
                 self.set_curriculam(new_curriculam)
-                '''print("mean episode_reward ", np.mean(self.episode_reward_buffer), " episode count ", self.episode_count,)
-                print("self.episode_reward_buffer ", self.episode_reward_buffer, " episode_buffer_length ", episode_buffer_length)
-                print(color.BOLD + 'updating curriculam to ' + str(new_curriculam) + color.END)'''
+                print(color.BOLD + 'updating curriculam to ' + str(new_curriculam) + 
+                " as mean episode_reward is " + str(mean_episode_reward) + color.END)
                 self.reset()
-            '''else:
-                print("mean_episode_reward ", mean_episode_reward, " episode count ", self.episode_count, 
-                "current_curriculam ", current_curriculam, " episode_buffer_length ", episode_buffer_length)
-        else :
-            print("episode_buffer_length ", episode_buffer_length, "self.BUFFER_LENGTH ", self.BUFFER_LENGTH )'''
+            else:
+                print(self.episode_count,':', mean_episode_reward, end='\t')
+                #print("mean_episode_reward ", mean_episode_reward, 
+                #"current_curriculam ", current_curriculam, " episode_buffer_length ", episode_buffer_length)
+        '''else :
+             print(self.episode_count,'::',episode_buffer_length, end='\t')'''

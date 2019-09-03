@@ -65,7 +65,7 @@ class TwoWayEnv(AbstractEnv):
         obs, rew, done, info = super(TwoWayEnv, self).step(action)
         self.episode_travel = self.vehicle.position[0] - self.ego_x0 
         #self.print_obs_space()
-        self._set_curriculam(curriculam_reward_threshold=0.4*self.GOAL_REWARD)
+        #self._set_curriculam(curriculam_reward_threshold=0.6*self.GOAL_REWARD)
         return (obs, rew, done, info)
 
     def _on_route(self, veh=None):
@@ -119,9 +119,6 @@ class TwoWayEnv(AbstractEnv):
                   (self.steps >= self.config["duration"]) or\
                    (self.vehicle.action_validity == False)
         #print("self.steps ",self.steps," terminal ", terminal)
-        if terminal:
-            self.episode_reward_buffer.append(self.episode_reward)
-            self.episode_count +=1
             #print("self.episode_reward ", self.episode_reward)
         return terminal
 
