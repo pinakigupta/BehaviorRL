@@ -287,7 +287,7 @@ def ray_train(save_in_sub_folder=None):
 
     restore_folder, local_restore_path, _ = retrieve_ray_folder_info("20190828-201729")
 
-    RESTORE_COND = "RESTORE"
+    RESTORE_COND = "NONE"
     if RESTORE_COND == "RESTORE_AND_RESUME":
         local_dir=local_restore_path
         resume=True
