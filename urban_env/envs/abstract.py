@@ -68,7 +68,7 @@ class AbstractEnv(gym.Env):
         "DIFFICULTY_LEVELS": 2
     }
 
-    BUFFER_LENGTH = 25
+    BUFFER_LENGTH = 50
 
     _max_episode_steps = None
     #_predict_only = False
@@ -195,7 +195,7 @@ class AbstractEnv(gym.Env):
         if terminal:
             self.episode_reward_buffer.append(self.episode_reward)
             self.episode_count +=1
-            self._set_curriculam(curriculam_reward_threshold=1200)
+            self._set_curriculam(curriculam_reward_threshold=1750)
 
         self.close_vehicles = self.observation.close_vehicles
         extra_obs = [self.vehicle.__str__()]
@@ -426,9 +426,9 @@ class AbstractEnv(gym.Env):
                 print(color.BOLD + 'updating curriculam to ' + str(new_curriculam) + 
                 " as mean episode_reward is " + str(mean_episode_reward) + color.END)
                 self.reset()
-            else:
+            '''else:
                 print(self.episode_count,':', mean_episode_reward, end='\t')
                 #print("mean_episode_reward ", mean_episode_reward, 
                 #"current_curriculam ", current_curriculam, " episode_buffer_length ", episode_buffer_length)
-        '''else :
+        else :
              print(self.episode_count,'::',episode_buffer_length, end='\t')'''
