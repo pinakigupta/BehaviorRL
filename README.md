@@ -47,7 +47,7 @@ git clone  https://github.com/pinakigupta/BehaviorRL.git
 ```
 2) Navigate to the folder where you cloned this repo. 
 ```bash
-   cd rl_baselines_ad
+   cd BehaviorRL
 ```
 3) Run the following command to build the Docker image. This wil take some time, be patient!
 ```bash
@@ -74,22 +74,14 @@ But launching it from the docker container is easy, no local installation requir
 6) Run the following command to install openai gym and all the required libraries to run. This step additionally moves the aws credentials to docker ~/ and assigns root
 uid/gid to the credential files.
 ```bash
-./docker-ini-script.sh
-```
-7) Run the following command to  
-    &nbsp;&nbsp;&nbsp;&nbsp;a) launch cluster in aws (cluster parameters can be changed in Ray-Cluster.yaml file). In aws cluster HEAD node a docker container "ray docker" will be launched.  
-    &nbsp;&nbsp;&nbsp;&nbsp;b)launches the main script within the ray_docker container (which uses the cluster WORKER nodes, and auto scales/descales according to compute need).  
-    &nbsp;&nbsp;&nbsp;&nbsp;c)copies result files to the local machine (using script ray_sync.sh).  
-    &nbsp;&nbsp;&nbsp;&nbsp;d)deletes the cluster in aws(this process is sometimes buggy. If cluster is not down type manually "ray down Ray-Cluster.yaml" to shutdown the cluster)  
-    
-```bash
-bash ray_cluster_launch.sh
+cd rl_baselines_ad
+dockerfiles/docker-ini-script.sh
 ```
 # RLLIB/RAY
 **raylibs.py** script contains two main methods ray_train(...) and ray_play() along with helper methods. 
 For details about using ray visit https://ray.readthedocs.io/en/latest/rllib.html
 
-## How to Run
+## How to Run on local machine
 
 On the command prompt run:
 
@@ -98,11 +90,78 @@ python baselines_run.py
 python baselines_run.py  predict=True (To run only prediction)
 python baselines_run.py  predict=False (To run only training)
 ```
-OR 
+OR
 
 ```bash
-./run_baseline.sh 
+./run_baseline.sh
+```
+
+## How to Run on aws cluster
+
+Run the following command to  
+    &nbsp;&nbsp;&nbsp;&nbsp;a) launch cluster in aws (cluster parameters can be changed in Ray-Cluster.yaml file). In aws cluster HEAD node a docker container "ray docker" will be launched.  
+    &nbsp;&nbsp;&nbsp;&nbsp;b)launches the main script within the ray_docker container (which uses the cluster WORKER nodes, and auto scales/descales according to compute need). This step 
+    runs the ./run_baseline.sh script on the HEAD node docker  
+    &nbsp;&nbsp;&nbsp;&nbsp;c)copies result files to the local machine (using script ray_sync.sh).  
+    &nbsp;&nbsp;&nbsp;&nbsp;d)deletes the cluster in aws(this process is sometimes buggy. If cluster is not down type manually "ray down Ray-Cluster.yaml" to shutdown the cluster)  
+    
 ```bash
+bash ray_cluster_launch.sh
+```
+## Training configurations
+
+Training can be done using ray Experiment API or ray tune API. Both examples have been provided in the ray_train(...) method with the ray tune API be the active choice. This 
+is because tune builds on Experiment and allows hyper parameter tuning.  
+    &nbsp;&nbsp;algo = "PPO" # RL Algorithm of choice  
+    &nbsp;&nbsp;LOAD_MODEL_FOLDER = "20190828-201729" # Location of previous model (if needed) for training  
+    &nbsp;&nbsp;RESTORE_COND = "NONE" # RESTORE: Use a previous model to start new training  
+    &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;# RESTORE_AND_RESUME: Use a previous model to finish previous unfinished training  
+    &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;# NONE: Start fresh  
+    Also the following config options are self explanatory  
+```bash
+                "config": {
+                    "num_gpus_per_worker": 0,
+                    #"num_cpus_per_worker": 1,
+                    # "gpus": 0,
+                    "gamma": 0.85,
+                    "num_workers": delegated_cpus,
+                    "num_envs_per_worker": 2,
+                    "env": train_env_id,
+                    "remote_worker_envs": False,
+                    "model": {
+                                #    "use_lstm": True,
+                                    "fcnet_hiddens": [256, 256, 256],
+                            },
+                     }   
+```   
+## Prediction configurations
+Prediction is using the ray_play() method defined  in raylibs.py. As it stands most configurations are directly extracted from the save model. So the only config parameter provided is the 
+model folder lcoation.  
+LOAD_MODEL_FOLDER = "20190903-200633" # Location of previous model for prediction 
+
+## Hyperparameter Tuning
+Ray tune API provides configuration choices for hyper parameter tuning. For details please visit https://ray.readthedocs.io/en/latest/tune.html  
+For using the current setup following lines can be  unhighlghted to get a population based training schedular. 
+
+```bash
+            # scheduler=pbt,
+            # trial_executor=RayTrialExecutor(),
+            # resources_per_trial={"cpu": delegated_cpus, "gpu": 0},
+
+                    # Following are some params to be tuned
+            
+                    # These params are tuned from a fixed starting value.
+                    # "lambda": 0.95,
+                    # "clip_param": 0.2,
+                    # "lr": 1e-4,
+                    
+                    # These params start off randomly drawn from a set.
+                    # "num_sgd_iter": sample_from(lambda spec: random.choice([10, 20, 30])),
+                    # "sgd_minibatch_size": sample_from(lambda spec: random.choice([128, 512, 2048])),
+                    # "train_batch_size": sample_from(lambda spec: random.choice([10000, 20000, 40000])),
+```   
+
+
 ## Benchmark Results
 By default the training results will be placed on
 
