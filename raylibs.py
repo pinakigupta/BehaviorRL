@@ -286,8 +286,11 @@ def ray_train(save_in_sub_folder=None):
         delegated_cpus = available_cluster_cpus-2
 
     restore_folder=None
-    LOAD_MODEL_FOLDER = "20190828-201729"
-    RESTORE_COND = "NONE"
+    algo = "PPO" # RL Algorithm of choice
+    LOAD_MODEL_FOLDER = "20190828-201729" # Location of previous model (if needed) for training 
+    RESTORE_COND = "NONE" # RESTORE: Use a previous model to start new training 
+                          # RESTORE_AND_RESUME: Use a previous model to finish previous unfinished training 
+                          # NONE: Start fresh
     if RESTORE_COND == "RESTORE_AND_RESUME":
         restore_folder, local_restore_path, _ = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
         local_dir=local_restore_path
@@ -303,10 +306,9 @@ def ray_train(save_in_sub_folder=None):
 
 
     ray_trials = ray.tune.run(
-            "PPO",
+            algo,
             name="pygame-ray",
             stop={"training_iteration": int(num_timesteps)},
-            # scheduler=pbt,
             checkpoint_freq=int(num_timesteps)//10,
             checkpoint_at_end=True,
             local_dir=local_dir,
@@ -314,8 +316,9 @@ def ray_train(save_in_sub_folder=None):
             verbose=True,
             queue_trials=False,
             resume=resume,
+            # scheduler=pbt,
             # trial_executor=RayTrialExecutor(),
-            #resources_per_trial={"cpu": delegated_cpus, "gpu": 0},
+            # resources_per_trial={"cpu": delegated_cpus, "gpu": 0},
             restore=restore_folder,
             **{
                 "num_samples": 1,
@@ -357,10 +360,9 @@ def ray_play():
     import gym
     gym.make(play_env_id).reset()
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
-    #algo = "IMPALA"
-    #checkpt = 629  # which checkpoint file to play
     subprocess.run(["xhost", "+"], shell=True)
-    results_folder, _ , algo = retrieve_ray_folder_info("20190903-200633")
-    print("results_folder = ", results_folder)
+    LOAD_MODEL_FOLDER = "20190903-200633" # Location of previous model for prediction 
+    results_folder, _ , algo = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
+    print("results_folder = ", results_folder) 
     subprocess.run(["rllib", "rollout", results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
