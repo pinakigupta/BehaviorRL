@@ -19,7 +19,7 @@ The Original version of these environments were created by **Edouard Leurent** a
    * Python 3
    * OpenAI Gym (https://github.com/openai/gym)
    * OpenAI Baselines (https://github.com/openai/baselines)
-   * RLLIB
+   * RLLIB (https://ray.readthedocs.io/en/latest/rllib.html)
 
 1) **Docker Installation**
    1) For a clean and encapsulated installation we will use Docker. Follow the instructions on https://docs.docker.com/install/linux/docker-ce/ubuntu/
@@ -51,22 +51,64 @@ git clone  https://github.com/pinakigupta/BehaviorRL.git
 ```
 3) Run the following command to build the Docker image. This wil take some time, be patient!
 ```bash
-docker build -t pinakigupta/rl_baselines .
+docker build -t pinakigupta/rl_baselines dockerfiles/
 ```
-4) Run the following command to start the Docker. Make sure you can run it by makeint executable:   
+Alternatively you can pull the latest docker image pushed to my public repo on docker hub. 
 ```bash
-chmod +x docker-start.sh
-./docker-start.sh
+docker pull pinakigupta/rl_baselines 
 ```
+4) Run the following command to start the Docker. Make sure you can run it by make it executable:   
+```bash
+chmod +x dockerfiles/docker-start.sh
+dockerfiles/docker-start.sh
+```
+This will launch a docker container named "ray_docker_local". You can change the container name in the docker-start.sh script.
+Additional disclaimer!!! This step will also try to copy your aws credentials from .aws and .ssh folders presuming they are located in the ~/ directory.
+This step is important to be able to launch a cluster on the aws cloud from your docker container. 
+If you have ray (or any similar 3rd party cloud compute package) installed on your local machine you may not need to launch compute clusters from the docker container.
+But launching it from the docker container is easy, no local installation required and gurantees version compatibility. 
+
 5) If everything went ok, you should see something like this: 
 ![Inside docker](/img/DockerStart.png)
 
-6) Run the following command to install openai gym and all the required libraries to run.
+6) Run the following command to install openai gym and all the required libraries to run. This step additionally moves the aws credentials to docker ~/ and assigns root
+uid/gid to the credential files.
 ```bash
 ./docker-ini-script.sh
 ```
+7) Run the following command to  
+    &nbsp;&nbsp;&nbsp;&nbsp;a) launch cluster in aws (cluster parameters can be changed in Ray-Cluster.yaml file). In aws cluster HEAD node a docker container "ray docker" will be launched.  
+    &nbsp;&nbsp;&nbsp;&nbsp;b)launches the main script within the ray_docker container (which uses the cluster WORKER nodes, and auto scales/descales according to compute need).  
+    &nbsp;&nbsp;&nbsp;&nbsp;c)copies result files to the local machine (using script ray_sync.sh).  
+    &nbsp;&nbsp;&nbsp;&nbsp;d)deletes the cluster in aws(this process is sometimes buggy. If cluster is not down type manually "ray down Ray-Cluster.yaml" to shutdown the cluster)  
+    
+```bash
+bash ray_cluster_launch.sh
+```
+# RLLIB/RAY
+**raylibs.py** script contains two main methods ray_train(...) and ray_play() along with helper methods. 
+For details about using ray visit https://ray.readthedocs.io/en/latest/rllib.html
 
-## Arguments and Config Files
+## How to Run
+
+On the command prompt run:
+
+```bash
+python baselines_run.py
+python baselines_run.py  predict=True (To run only prediction)
+python baselines_run.py  predict=False (To run only training)
+```
+OR 
+
+```bash
+./run_baseline.sh 
+```bash
+## Benchmark Results
+By default the training results will be placed on
+
+**./ray_results/"%Y%m%d-%H%M%S"/...**
+
+# OPEN AI BASELINES
 **baselines_run.py** script uses **2** clear defined sections to setup all the main OpenAI Baselines arguments.
 ```python
     ###############################################################
@@ -89,7 +131,7 @@ Check OpenAI Baselines for more information on how to change their default hyper
 ## Benchmark Results
 By default the training results will be placed on
 
-**/run/models/"algorithm"/"network"**
+**./run/models/"algorithm"/"network"**
 
 ### A2C
 To reproduce my results, run ***baselines_run.py*** use the following setup:
@@ -126,28 +168,6 @@ DEFAULT_ARGUMENTS = [
     ]
 ```
 
-### ACKTR
-To reproduce my results, follow the same instructions as above. As it is obvious, in this case the algorithm argument is now
-```python
-alg = 'acktr'
-```
-
-### PPO2
-To reproduce my results, follow the same instructions as above. As it is obvious, in this case the algorithm argument is now
-```python
-alg = 'ppo2'
-```
-### TRPO_MPI
-To reproduce my results, follow the same instructions as above. As it is obvious, in this case the algorithm argument is now
-```python
-alg = 'trpo_mpi'
-```
-
-### ON-POLICY Hindsight Experience Replay (HER) over DDPG
-To reproduce my results, follow the same instructions as above. As it is obvious, in this case the algorithm argument is now
-```python
-alg = 'her'
-```
 #### NOTE:
 1) To know which algorithms you can use, simply take a look at the /open_ai_baselines/baselines folder.
 2) Some algorithms will fail since are NOT suited for your problem. For example, DDPG was implemented for discrete actions spaces and will not take a "BOX" as an action space. Try the one you are interested in and find out why it will not run. Sometimes it will take just a few changes and other times, as metioned before, it might not even be meant for this type of problem. 
@@ -186,9 +206,12 @@ if you have a s3 Drive mounted uncomment the s3pathname with the full path to th
 On the command prompt run:
 
 ```bash
-python baselines_run.py
+python baselines_run.py 
+python baselines_run.py  predict=True (To run only prediction)
+python baselines_run.py  predict=False (To run only training)
 ```
 OR 
 
+```bash
 ./run_baseline.sh 70 (= number of workers/environments you want to parallely process. The parallelization uses MPI calls, which the baseline code supports)
-
+```bash
