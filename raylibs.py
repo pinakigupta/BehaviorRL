@@ -285,20 +285,20 @@ def ray_train(save_in_sub_folder=None):
     else:
         delegated_cpus = available_cluster_cpus-2
 
-    restore_folder, local_restore_path, _ = retrieve_ray_folder_info("20190828-201729")
-
+    restore_folder=None
+    LOAD_MODEL_FOLDER = "20190828-201729"
     RESTORE_COND = "NONE"
     if RESTORE_COND == "RESTORE_AND_RESUME":
+        restore_folder, local_restore_path, _ = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
         local_dir=local_restore_path
         resume=True
     elif RESTORE_COND == "RESTORE":
+        restore_folder, local_restore_path, _ = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
         local_dir=local_dir_path
         resume=False
     else:
         local_dir=local_dir_path
         resume=False
-        restore_folder=None
-
 
 
 
