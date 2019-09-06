@@ -75,12 +75,10 @@ class KinematicObservation(ObservationType):
         self.env = env
         self.features = features
         self.vehicles_count = vehicles_count
-        self.virtual_vehicles_count = 0
+        self.virtual_vehicles_count = 1
         self.close_vehicles = None
         self.observations = None
-        '''for v in self.env.road.vehicles:
-            if v.virtual:
-                self.virtual_vehicles_count += 1'''
+
 
     def space(self):
         one_obs_space = spaces.Box(shape=(len(self.features) * (self.vehicles_count + self.virtual_vehicles_count),), low=-1, high=1, dtype=np.float32)
@@ -96,13 +94,13 @@ class KinematicObservation(ObservationType):
         :param Dataframe df: observation data
         """
         side_lanes = self.env.road.network.all_side_lanes(self.env.vehicle.lane_index)
-        x_position_range = 7.0 * MDPVehicle.SPEED_MAX
-        y_position_range = AbstractLane.DEFAULT_WIDTH * len(side_lanes)
-        velocity_range = 1.5*MDPVehicle.SPEED_MAX
-        df['x'] = utils.remap(df['x']  , [-x_position_range, x_position_range], [-1, 1])
-        df['y'] = utils.remap(df['y'], [-y_position_range, y_position_range], [-1, 1])
-        df['vx'] = utils.remap(df['vx'] , [-velocity_range, velocity_range], [-1, 1])
-        df['vy'] = utils.remap(df['vy'], [-velocity_range, velocity_range], [-1, 1])
+        self.x_position_range = 7.0 * MDPVehicle.SPEED_MAX
+        self.y_position_range = AbstractLane.DEFAULT_WIDTH * len(side_lanes)
+        self.velocity_range = 1.5*MDPVehicle.SPEED_MAX
+        df['x'] = utils.remap(df['x']  , [- self.x_position_range,  self.x_position_range], [-1, 1])
+        df['y'] = utils.remap(df['y'], [-self.y_position_range, self.y_position_range], [-1, 1])
+        df['vx'] = utils.remap(df['vx'] , [-self.velocity_range, self.velocity_range], [-1, 1])
+        df['vy'] = utils.remap(df['vy'], [-self.velocity_range, self.velocity_range], [-1, 1])
 
         if 'psi' in df:
             df['psi'] = df['psi']/(2*np.pi)
@@ -116,28 +114,31 @@ class KinematicObservation(ObservationType):
         # Add ego-vehicle
         df = pandas.DataFrame.from_records([self.env.vehicle.to_dict(self.env.vehicle)])[self.features]
 
+        df = df.append(pandas.DataFrame.from_records([self.env.vehicle.to_dict(self.env.vehicle)])[self.features])
+
 
 
                 
         # Add nearby traffic
         self.close_vehicles = self.env.road.closest_vehicles_to(self.env.vehicle,
-                                                           self.vehicles_count+self.virtual_vehicles_count - 1,
+                                                           self.vehicles_count - 1,
                                                            7.0 * MDPVehicle.SPEED_MAX)
 
         
         if self.close_vehicles:
             df = df.append(pandas.DataFrame.from_records(
                 [v.to_dict(self.env.vehicle)
-                 for v in self.close_vehicles[-self.vehicles_count - self.virtual_vehicles_count + 1:]])[self.features],
+                 for v in self.close_vehicles[-self.vehicles_count + 1:]])[self.features],
                            ignore_index=True)
 
-            
+
+
         # Normalize
         #df = df.iloc[1:]
         df = self.normalize(df)
         # Fill missing rows
-        if df.shape[0] < self.vehicles_count+self.virtual_vehicles_count:
-            rows = -np.ones((self.vehicles_count + self.virtual_vehicles_count - df.shape[0], len(self.features)))
+        if df.shape[0] < self.vehicles_count+1:
+            rows = -np.ones((self.vehicles_count+1 - df.shape[0], len(self.features)))
             df = df.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
 
         for v in self.env.road.vehicles:
@@ -151,6 +152,10 @@ class KinematicObservation(ObservationType):
         goal = (self.env.ROAD_LENGTH - self.env.vehicle.position[0]) / (7.0 * MDPVehicle.SPEED_MAX) # Normalize
         goal = min(1.0, max(-1.0, goal)) # Clip
         obs[0] = goal # Just a temporary implementation wo explicitly mentioning the goal
+        obs_idx = 1
+        for virtual_v in self.env.road.virtual_vehicles:
+            obs[obs_idx] = virtual_v.position[1]/self.y_position_range
+            obs_idx += 1
         if(self.env.OBS_STACK_SIZE == 1):
             return obs
         if self.observations is None:

@@ -294,7 +294,8 @@ class TwoWayEnv(AbstractEnv):
                                               enable_lane_change=False)
         virtual_obstacle_left.virtual = True
         virtual_obstacle_left.LENGTH = lane.length
-        self.road.vehicles.append(virtual_obstacle_left)
+        #self.road.vehicles.append(virtual_obstacle_left)
+        self.road.virtual_vehicles.append(virtual_obstacle_left)
 
         lane_index = ("a", "b", 1)
         lane = self.road.network.get_lane(lane_index)
@@ -310,7 +311,8 @@ class TwoWayEnv(AbstractEnv):
                                                enable_lane_change=False)
         virtual_obstacle_right.virtual = True                                       
         virtual_obstacle_right.LENGTH = lane.length
-        self.road.vehicles.append(virtual_obstacle_right)
+        #self.road.vehicles.append(virtual_obstacle_right)
+        self.road.virtual_vehicles.append(virtual_obstacle_right)
 
         
 
@@ -321,7 +323,7 @@ class TwoWayEnv(AbstractEnv):
         numoffeatures = len(self.config["observation"]["features"])
         numfofobs = len(self.obs)
         numofvehicles = numfofobs//numoffeatures
-        close_vehicle_ids = [int(self.vehicle.Id())]
+        close_vehicle_ids = [-1 , int(self.vehicle.Id())]
         modified_obs = self.obs
         for v in self.close_vehicles:
             close_vehicle_ids.append(int(v.Id()))

@@ -125,7 +125,7 @@ def ray_cluster_status_check(ray_yaml_file="Ray-Cluster.yaml" , initial_workers_
 
 
 
-LOCAL_MODE = False #Use local mode for debug purposes
+LOCAL_MODE = True #Use local mode for debug purposes
 if is_predict_only():
     try:
         subprocess.run(["sudo", "pkill", "redis-server"])
@@ -361,7 +361,7 @@ def ray_play():
     gym.make(play_env_id).reset()
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
     subprocess.run(["xhost", "+"], shell=True)
-    LOAD_MODEL_FOLDER = "20190903-200633" # Location of previous model for prediction 
+    LOAD_MODEL_FOLDER = "20190905-173700" # Location of previous model for prediction 
     results_folder, _ , algo = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
     print("results_folder = ", results_folder) 
     subprocess.run(["rllib", "rollout", results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])

@@ -244,6 +244,7 @@ class Road(Loggable):
         """
         self.network = network or []
         self.vehicles = vehicles or []
+        self.virtual_vehicles = []
         self.np_random = np_random if np_random else np.random.RandomState()
 
     def close_vehicles_to(self, vehicle, distances):

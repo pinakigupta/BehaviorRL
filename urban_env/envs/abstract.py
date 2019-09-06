@@ -186,6 +186,7 @@ class AbstractEnv(gym.Env):
         self._simulate(action)
 
         obs = self.observation.observe()
+        self.obs = obs
         reward = self._reward(action)
         self.action = action
         self.reward = reward
