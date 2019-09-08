@@ -310,7 +310,7 @@ def ray_train(save_in_sub_folder=None):
             algo,
             name="pygame-ray",
             stop={"training_iteration": int(num_timesteps)},
-            checkpoint_freq=int(num_timesteps)//10,
+            checkpoint_freq=int(num_timesteps)//20,
             checkpoint_at_end=True,
             local_dir=local_dir,
             # upload_dir=upload_dir_path,

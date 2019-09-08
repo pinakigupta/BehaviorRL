@@ -184,6 +184,10 @@ class TwoWayEnv(AbstractEnv):
 
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
 
+        def lcx(scene_complexity):
+            percent = scene_complexity*10-20
+            return random.randrange(100) < percent
+
         # stationary vehicles
         stat_veh_x0 = []
         rand_stat_veh_count = np.random.randint(low=0, high=2*scene_complexity)
@@ -213,13 +217,13 @@ class TwoWayEnv(AbstractEnv):
                               target_velocity=self.ROAD_SPEED,
                               target_lane_index=("a", "b", 1), 
                               lane_index=("a", "b", 1),                             
-                              enable_lane_change=False)
+                              enable_lane_change=lcx(scene_complexity))
             front_vehicle, _ = self.road.neighbour_vehicles(v)
             d = v.lane_distance_to(front_vehicle) 
             if (d<5):
                 continue
             elif(d<20):
-                v.velocity = max(0,2.5 + 0.5*self.np_random.randn())
+                v.velocity = max(0, 2.5 + 0.5*self.np_random.randn())
             self.road.vehicles.append(v)
         
         
@@ -237,7 +241,7 @@ class TwoWayEnv(AbstractEnv):
             if stat_veh_x0:
                 dist_from_ego_lane_parked_vehs = [x - x0_wrt_ego_lane for x in stat_veh_x0]
                 min_offset = min([abs(y) for y in dist_from_ego_lane_parked_vehs])
-            if (min_offset < 20):
+            if (min_offset < 10):
                 break
             else:
                 v = vehicles_type(road,
@@ -252,6 +256,7 @@ class TwoWayEnv(AbstractEnv):
                 v.lane_index = ("b", "a", 0)
                 self.road.vehicles.append(v)
        
+        lane_change = (scene_complexity)
         for i in range(np.random.randint(low=0,high=2*scene_complexity)):
             x0 = self.ROAD_LENGTH-self.ego_x0-20-120*i + 10*self.np_random.randn()
             v = vehicles_type(road,
@@ -262,7 +267,7 @@ class TwoWayEnv(AbstractEnv):
                               target_velocity=self.ROAD_SPEED,
                               target_lane_index=("b", "a", 0),
                               lane_index=("b", "a", 0),
-                              enable_lane_change=False)
+                              enable_lane_change=lcx(scene_complexity))
             v.target_lane_index = ("b", "a", 0)
             v.lane_index = ("b", "a", 0)
             front_vehicle, _ = self.road.neighbour_vehicles(v)
@@ -270,7 +275,7 @@ class TwoWayEnv(AbstractEnv):
             if(d < 5):
                 continue 
             elif(d < 20):
-                v.velocity = max(0,4 + self.np_random.randn())
+                v.velocity = max(0, 4 + self.np_random.randn())
             self.road.vehicles.append(v)
         
 
