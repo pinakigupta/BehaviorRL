@@ -300,7 +300,7 @@ class TwoWayEnv(AbstractEnv):
                                               enable_lane_change=False)
         virtual_obstacle_left.virtual = True
         virtual_obstacle_left.LENGTH = lane.length
-        #self.road.vehicles.append(virtual_obstacle_left)
+        self.road.vehicles.append(virtual_obstacle_left)
         self.road.virtual_vehicles.append(virtual_obstacle_left)
 
         lane_index = ("a", "b", 1)
@@ -317,7 +317,7 @@ class TwoWayEnv(AbstractEnv):
                                                enable_lane_change=False)
         virtual_obstacle_right.virtual = True                                       
         virtual_obstacle_right.LENGTH = lane.length
-        #self.road.vehicles.append(virtual_obstacle_right)
+        self.road.vehicles.append(virtual_obstacle_right)
         self.road.virtual_vehicles.append(virtual_obstacle_right)
 
         
