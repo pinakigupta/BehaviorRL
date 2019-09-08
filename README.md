@@ -108,6 +108,18 @@ Run the following command to
 ```bash
 bash ray_cluster_launch.sh
 ```
+### Ray cluster setup
+Please vist https://ray.readthedocs.io/en/latest/autoscaling.html for details on setting up ray for aws cluster. Specifically the user will need to replace the following fields in 
+    Ray-Cluster.yaml. 
+    
+```bash
+ssh_private_key: ~/.ssh/KEY-Pinaki.Gupta.pem # replace with your own private key
+KeyName: KEY-Pinaki.Gupta #replace with tour own key name
+- --volume **/mnt/datastore/groups/behavior/Pinaki/rl_baselines/rl_baselines_ad**:/rl_baselines_ad 
+# replace the aws mount volume location with your own mount location. Alternatively you can embed
+# the code inside the docker container.
+```
+
 ## Training configurations
 
 Training can be done using ray Experiment API or ray tune API. Both examples have been provided in the ray_train(...) method with the ray tune API be the active choice. This 
@@ -137,7 +149,14 @@ is because tune builds on Experiment and allows hyper parameter tuning.
 ## Prediction configurations
 Prediction is using the ray_play() method defined  in raylibs.py. As it stands most configurations are directly extracted from the save model. So the only config parameter provided is the 
 model folder lcoation.  
-LOAD_MODEL_FOLDER = "20190903-200633" # Location of previous model for prediction 
+LOAD_MODEL_FOLDER = "20190903-200633" # Location of previous model for prediction.  
+Unfortunately the ray python API for worker rollout(used for the simulation) wasn't working properly. So the shell API was used. Also the following manual changes were necessary.
+```bash
+import urban_env # include this in rollout_worker.py
+#assert len(vector) == i, "Passed weight does not have the correct shape."
+# comment the assertion step as there seems to be one extra parameter between the saved and the actual model
+```   
+
 
 ## Hyperparameter Tuning
 Ray tune API provides configuration choices for hyper parameter tuning. For details please visit https://ray.readthedocs.io/en/latest/tune.html  
