@@ -139,6 +139,7 @@ else:
         ray.init(redis_add)
         ray_cluster_status_check()
         available_cluster_cpus = int(ray.cluster_resources().get("CPU"))
+        LOCAL_MODE = False
     except: # try to init in your machine/isolated compute instance
         # Kill the redis-server. This seems the surest way to kill it
         subprocess.run(["sudo", "pkill", "redis-server"])
