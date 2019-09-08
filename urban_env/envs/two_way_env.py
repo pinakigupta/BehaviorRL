@@ -17,6 +17,7 @@ from urban_env.vehicle.control import ControlledVehicle, MDPVehicle
 from urban_env.vehicle.dynamics import Obstacle
 from handle_model_files import is_predict_only
 from urban_env.envs.graphics import EnvViewer
+import random
 
 
 class TwoWayEnv(AbstractEnv):
