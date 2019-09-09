@@ -113,6 +113,8 @@ class KinematicObservation(ObservationType):
     def observe(self):
         # Add ego-vehicle
         df = pandas.DataFrame.from_records([self.env.vehicle.to_dict(self.env.vehicle)])[self.features]
+        for col in df.columns:
+            df[col].values[:] = 0
 
         df = df.append(pandas.DataFrame.from_records([self.env.vehicle.to_dict(self.env.vehicle)])[self.features])
 
@@ -156,6 +158,7 @@ class KinematicObservation(ObservationType):
         for virtual_v in self.env.road.virtual_vehicles:
             obs[obs_idx] = virtual_v.position[1]/self.y_position_range
             obs_idx += 1
+        
         if(self.env.OBS_STACK_SIZE == 1):
             return obs
         if self.observations is None:

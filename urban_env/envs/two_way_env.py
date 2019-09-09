@@ -18,7 +18,8 @@ from urban_env.vehicle.dynamics import Obstacle
 from handle_model_files import is_predict_only
 from urban_env.envs.graphics import EnvViewer
 import random
-
+import pprint
+import sys
 
 class TwoWayEnv(AbstractEnv):
     """
@@ -65,7 +66,7 @@ class TwoWayEnv(AbstractEnv):
         self.previous_action = action
         obs, rew, done, info = super(TwoWayEnv, self).step(action)
         self.episode_travel = self.vehicle.position[0] - self.ego_x0 
-        #self.print_obs_space()
+        self.print_obs_space()
         #self._set_curriculam(curriculam_reward_threshold=0.6*self.GOAL_REWARD)
         return (obs, rew, done, info)
 
@@ -120,7 +121,7 @@ class TwoWayEnv(AbstractEnv):
                   (self.steps >= self.config["duration"]) or\
                    (self.vehicle.action_validity == False)
         #print("self.steps ",self.steps," terminal ", terminal)
-            #print("self.episode_reward ", self.episode_reward)
+        #print("self.episode_reward ", self.episode_reward)
         return terminal
 
     def _constraint(self, action):
@@ -165,7 +166,7 @@ class TwoWayEnv(AbstractEnv):
 
         if '_predict_only' in self.config:
             if self.config['_predict_only']:
-                scene_complexity = 4
+                scene_complexity = 2
         
         road = self.road
         ego_lane = road.network.get_lane(("a", "b", 1))
@@ -323,8 +324,8 @@ class TwoWayEnv(AbstractEnv):
         
 
     def print_obs_space(self):
-        print("obs space ")
-        import pprint
+        print("obs space, step ", self.steps)
+        sys.stdout.flush()
         pp = pprint.PrettyPrinter(indent=4)
         numoffeatures = len(self.config["observation"]["features"])
         numfofobs = len(self.obs)

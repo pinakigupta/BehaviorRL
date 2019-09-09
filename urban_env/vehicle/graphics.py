@@ -17,7 +17,7 @@ class VehicleGraphics(object):
 
 
     @classmethod
-    def display(cls, vehicle, surface, transparent=False):
+    def display(cls, vehicle, surface, mdp_vehicle=None, transparent=False):
         """
             Display a vehicle on a pygame surface.
 
@@ -57,16 +57,21 @@ class VehicleGraphics(object):
         #     x = v.position[0] + length / 2
         #     y = v.position[1] - width
         #######################################################
-        
-        s = pygame.Surface((surface.pix(v.LENGTH), surface.pix(v.LENGTH)), pygame.SRCALPHA)  # per-pixel alpha
-        rect = (0, surface.pix(v.LENGTH) / 2 - surface.pix(v.WIDTH) / 2, surface.pix(v.LENGTH), surface.pix(v.WIDTH))        
-        pygame.draw.rect(s, cls.get_color(v, transparent), rect, 0)        
-        pygame.draw.rect(s, BLACK, rect, 1)      
+        veh_length = min(v.LENGTH, 200)
+        veh_width =  v.WIDTH
+        s = pygame.Surface((surface.pix(veh_length), surface.pix(veh_length)), pygame.SRCALPHA)  # per-pixel alpha
+        rect = (0, surface.pix(veh_length) / 2 - surface.pix(veh_width) / 2, surface.pix(veh_length), surface.pix(veh_width))
+        #if not v.virtual:       
+        pygame.draw.rect(s, cls.get_color(v, transparent), rect, 0)
+        pygame.draw.rect(s, BLACK, rect, 1)
 
         s = pygame.Surface.convert_alpha(s)
         h = v.heading if abs(v.heading) > 2 * np.pi / 180 else 0
         sr = pygame.transform.rotate(s, -h * 180 / np.pi)
-        surface.blit(sr, (surface.pos2pix(v.position[0] - v.LENGTH / 2, v.position[1] - v.LENGTH / 2))) 
+        if not v.virtual:
+            surface.blit(sr, (surface.pos2pix(v.position[0] - veh_length / 2, v.position[1] - veh_length / 2)))
+        else:
+            surface.blit(sr, (surface.pos2pix(mdp_vehicle.position[0] - veh_length / 2, v.position[1] - veh_length / 2)))
 
         font_type = 'freesansbold.ttf'
         size = 12
@@ -76,8 +81,8 @@ class VehicleGraphics(object):
         text = ""
         text = font.render(v.Id(), False, color) 
         
-        textRect = text.get_rect() 
-        textRect.center = (surface.pos2pix(v.position[0] , v.position[1] ))
+        textRect = text.get_rect()
+        textRect.center = (surface.pos2pix(v.position[0], v.position[1]))
         surface.blit(text, textRect)
         #print("Unable to render text", text)
                 
