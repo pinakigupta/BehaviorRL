@@ -166,7 +166,7 @@ class TwoWayEnv(AbstractEnv):
 
         if '_predict_only' in self.config:
             if self.config['_predict_only']:
-                scene_complexity = 2
+                scene_complexity = 1
         
         road = self.road
         ego_lane = road.network.get_lane(("a", "b", 1))
@@ -321,9 +321,9 @@ class TwoWayEnv(AbstractEnv):
         self.road.vehicles.append(virtual_obstacle_right)
         self.road.virtual_vehicles.append(virtual_obstacle_right)
 
-        lane_index = ("a", "b", 1)
+        lane_index = ("b", "a", 0)
         lane = self.road.network.get_lane(lane_index)
-        x0 = lane.length
+        x0 = 0
         position = lane.position(x0, 0)
         end_obstacle_right = vehicles_type(self.road,
                                            position=position,
