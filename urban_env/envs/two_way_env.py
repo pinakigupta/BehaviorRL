@@ -66,7 +66,7 @@ class TwoWayEnv(AbstractEnv):
         self.previous_action = action
         obs, rew, done, info = super(TwoWayEnv, self).step(action)
         self.episode_travel = self.vehicle.position[0] - self.ego_x0 
-        self.print_obs_space()
+        #self.print_obs_space()
         #self._set_curriculam(curriculam_reward_threshold=0.6*self.GOAL_REWARD)
         return (obs, rew, done, info)
 
@@ -286,7 +286,7 @@ class TwoWayEnv(AbstractEnv):
         lane_index = ("b", "a", 0)
         lane = self.road.network.get_lane(lane_index)
         x0 = lane.length/2
-        position = lane.position(x0, 3.5)
+        position = lane.position(x0, random.uniform(StraightLane.DEFAULT_WIDTH*0.9, StraightLane.DEFAULT_WIDTH*1.1))
         lane_index = self.road.network.get_closest_lane_index(
                                                             position=position,
                                                             heading=0  
@@ -307,7 +307,7 @@ class TwoWayEnv(AbstractEnv):
         lane_index = ("a", "b", 1)
         lane = self.road.network.get_lane(lane_index)
         x0 = lane.length/2
-        position = lane.position(x0, 3.5)
+        position = lane.position(x0, random.uniform(StraightLane.DEFAULT_WIDTH*0.9, StraightLane.DEFAULT_WIDTH*1.1))
         virtual_obstacle_right = vehicles_type(self.road,
                                                position=position,
                                                heading=lane.heading_at(x0),
@@ -321,7 +321,20 @@ class TwoWayEnv(AbstractEnv):
         self.road.vehicles.append(virtual_obstacle_right)
         self.road.virtual_vehicles.append(virtual_obstacle_right)
 
-        
+        lane_index = ("a", "b", 1)
+        lane = self.road.network.get_lane(lane_index)
+        x0 = lane.length
+        position = lane.position(x0, 0)
+        end_obstacle_right = vehicles_type(self.road,
+                                           position=position,
+                                           heading=lane.heading_at(x0),
+                                           velocity=0,
+                                           target_velocity=0,
+                                           lane_index=lane_index,
+                                           target_lane_index=lane_index,                
+                                           enable_lane_change=False)
+        end_obstacle_right.LENGTH = 4
+        self.road.vehicles.append(end_obstacle_right)                                    
 
     def print_obs_space(self):
         print("obs space, step ", self.steps)

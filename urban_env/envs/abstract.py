@@ -196,7 +196,7 @@ class AbstractEnv(gym.Env):
         if terminal:
             self.episode_reward_buffer.append(self.episode_reward)
             self.episode_count +=1
-            self._set_curriculam(curriculam_reward_threshold=1750)
+            self._set_curriculam(curriculam_reward_threshold=1200)
 
         self.close_vehicles = self.observation.close_vehicles
         extra_obs = [self.vehicle.__str__()]
