@@ -105,6 +105,7 @@ class AbstractEnv(gym.Env):
 
         # Action , obs and reward 
         self.action = None
+        self.actions = None
         self.reward = None
         self.obs = None
         self.episode_reward = 0
@@ -189,6 +190,7 @@ class AbstractEnv(gym.Env):
         self.obs = obs
         reward = self._reward(action)
         self.action = action
+        #self.actions = [action] * 10
         self.reward = reward
         self.episode_reward += self.reward
         terminal = self._is_terminal()

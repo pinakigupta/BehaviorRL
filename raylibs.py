@@ -376,11 +376,14 @@ def ray_play():
     with open(config_path, "rb") as f:
         config = pickle.load(f)
     if "num_workers" in config:
-        config["num_workers"] = min(2, config["num_workers"])
+        config["num_workers"] = min(1, config["num_workers"])
+
+    
     cls = get_agent_class(algo)
     agent = cls(env=play_env_id, config=config) 
     rollout(agent=agent,
-            env_name=play_env_id,
+            env_name=None,
             num_steps=10000,
-            no_render=False)
+            no_render=False,
+            out=None)
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])

@@ -61,8 +61,8 @@ class VehicleGraphics(object):
         veh_width =  v.WIDTH
         s = pygame.Surface((surface.pix(veh_length), surface.pix(veh_length)), pygame.SRCALPHA)  # per-pixel alpha
         rect = (0, surface.pix(veh_length) / 2 - surface.pix(veh_width) / 2, surface.pix(veh_length), surface.pix(veh_width))
-        #if not v.virtual:       
-        pygame.draw.rect(s, cls.get_color(v, transparent), rect, 0)
+        if not v.virtual:       
+            pygame.draw.rect(s, cls.get_color(v, transparent), rect, 0)
         pygame.draw.rect(s, BLACK, rect, 1)
 
         s = pygame.Surface.convert_alpha(s)
@@ -78,12 +78,12 @@ class VehicleGraphics(object):
         color = WHITE
         font = pygame.font.Font(font_type, size) 
 
-        text = ""
-        text = font.render(v.Id(), False, color) 
-        
-        textRect = text.get_rect()
-        textRect.center = (surface.pos2pix(v.position[0], v.position[1]))
-        surface.blit(text, textRect)
+        if not v.virtual:
+            text = ""
+            text = font.render(v.Id(), False, color) 
+            textRect = text.get_rect()
+            textRect.center = (surface.pos2pix(v.position[0], v.position[1]))
+            surface.blit(text, textRect)
         #print("Unable to render text", text)
                 
 
