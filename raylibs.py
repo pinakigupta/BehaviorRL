@@ -287,7 +287,7 @@ def ray_train(save_in_sub_folder=None):
         delegated_cpus = available_cluster_cpus-2
 
     restore_folder=None
-    algo = "PPO" # RL Algorithm of choice
+    algo = "DDQN" # RL Algorithm of choice
     LOAD_MODEL_FOLDER = "20190828-201729" # Location of previous model (if needed) for training 
     RESTORE_COND = "NONE" # RESTORE: Use a previous model to start new training 
                           # RESTORE_AND_RESUME: Use a previous model to finish previous unfinished training 
@@ -362,8 +362,16 @@ def ray_play():
     gym.make(play_env_id).reset()
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
     subprocess.run(["xhost", "+"], shell=True)
-    LOAD_MODEL_FOLDER = "20190905-173700" # Location of previous model for prediction 
+    LOAD_MODEL_FOLDER = "20190909-135353" # Location of previous model for prediction 
     results_folder, _ , algo = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
     print("results_folder = ", results_folder) 
-    subprocess.run(["rllib", "rollout", results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])
+    import os
+    def find(name, path):
+        for root, dirs, files in os.walk(path):
+            if name in files:
+                return os.path.join(root, name)
+    filepath = find("rollout.py","/")
+    #subprocess.run(["rllib", "rollout", results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])
+    subprocess.run(["chmod",  "a+rwx", filepath])
+    subprocess.run([filepath , results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
