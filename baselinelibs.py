@@ -17,9 +17,7 @@ def baselines_play(env, policy):
         print('episode_rew={}'.format(episode_rew), '  episode_len={}'.format(episode_len),
               'episode_travel = ', episode_travel)
         env.print_obs_space()
-        if "extra_obs" in info:
-            extra_obs = pp.pformat(info["extra_obs"])
-            print(extra_obs)
+
 
         #print("Optimal action ",AbstractEnv.ACTIONS[actions[0]], "\n")
 

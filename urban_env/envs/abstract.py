@@ -201,18 +201,15 @@ class AbstractEnv(gym.Env):
             self._set_curriculam(curriculam_reward_threshold=1200)
 
         self.close_vehicles = self.observation.close_vehicles
-        extra_obs = [self.vehicle.__str__()]
-        if self.close_vehicles:
-            for v in self.close_vehicles:
-                extra_obs.append(v.__str__())
-        for _ in  range(len(extra_obs), 6):
-            extra_obs.append(None)
 
-        constraint = self._constraint(action)
-        info = {'constraint': constraint, "c_": constraint, "extra_obs": extra_obs}
         #print("self.steps ", self.steps, " obs ", obs)
 
         return obs, reward, terminal, info
+
+    def predict(self):
+        predict_env = copy.deepcopy(self)
+        predict_env.DEFAULT_CONFIG["_predict_only"] = True
+        obs, _, terminal, _ = predict_env.step(self.action)
 
     def _simulate(self, action=None):
         """
