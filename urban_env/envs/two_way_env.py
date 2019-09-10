@@ -286,7 +286,7 @@ class TwoWayEnv(AbstractEnv):
         lane_index = ("b", "a", 0)
         lane = self.road.network.get_lane(lane_index)
         x0 = lane.length/2
-        position = lane.position(x0, random.uniform(StraightLane.DEFAULT_WIDTH*0.9, StraightLane.DEFAULT_WIDTH*1.1))
+        position = lane.position(x0, StraightLane.DEFAULT_WIDTH)
         lane_index = self.road.network.get_closest_lane_index(
                                                             position=position,
                                                             heading=0  
@@ -307,7 +307,7 @@ class TwoWayEnv(AbstractEnv):
         lane_index = ("a", "b", 1)
         lane = self.road.network.get_lane(lane_index)
         x0 = lane.length/2
-        position = lane.position(x0, random.uniform(StraightLane.DEFAULT_WIDTH*0.9, StraightLane.DEFAULT_WIDTH*1.1))
+        position = lane.position(x0, StraightLane.DEFAULT_WIDTH)
         virtual_obstacle_right = vehicles_type(self.road,
                                                position=position,
                                                heading=lane.heading_at(x0),
@@ -334,7 +334,7 @@ class TwoWayEnv(AbstractEnv):
                                            target_lane_index=lane_index,                
                                            enable_lane_change=False)
         end_obstacle_right.LENGTH = 4
-        self.road.vehicles.append(end_obstacle_right)                                    
+        #self.road.vehicles.append(end_obstacle_right)                                    
 
     def print_obs_space(self):
         print("obs space, step ", self.steps)
