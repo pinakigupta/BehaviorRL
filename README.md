@@ -150,11 +150,10 @@ is because tune builds on Experiment and allows hyper parameter tuning.
 Prediction is using the ray_play() method defined  in raylibs.py. As it stands most configurations are directly extracted from the save model. So the only config parameter provided is the 
 model folder lcoation.  
 LOAD_MODEL_FOLDER = "20190903-200633" # Location of previous model for prediction.  
-Unfortunately the ray python API for worker rollout(used for the simulation) wasn't working properly. So the shell API was used. Also the following manual changes were necessary.
+Unfortunately manually comment the assertion step as there seems to be one extra parameter between the saved and the actual model in tf_utils.py
 ```bash
-import urban_env # include this in rollout_worker.py
 #assert len(vector) == i, "Passed weight does not have the correct shape."
-# comment the assertion step as there seems to be one extra parameter between the saved and the actual model
+# 
 ```   
 
 

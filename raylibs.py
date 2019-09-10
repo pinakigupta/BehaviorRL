@@ -359,6 +359,7 @@ def ray_train(save_in_sub_folder=None):
 from ray.rllib.rollout import rollout
 from ray.rllib.agents.registry import get_agent_class
 import pickle
+import os
 
 def ray_play():
     import gym
@@ -368,16 +369,7 @@ def ray_play():
     LOAD_MODEL_FOLDER = "20190909-135353" # Location of previous model for prediction 
     results_folder, _ , algo = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
     print("results_folder = ", results_folder) 
-    import os
-    def find(name, path):
-        for root, dirs, files in os.walk(path):
-            if name in files:
-                return os.path.join(root, name)
-    filepath = find("rollout.py","/")
-    #subprocess.run(["rllib", "rollout", results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])
-    subprocess.run(["chmod",  "a+rwx", filepath])
-    #subprocess.run([filepath , results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])
-    #ray.init()
+    
     config_path = os.path.join(results_folder, "params.pkl")
     if not os.path.exists(config_path):
         two_up = os.path.abspath(os.path.join(results_folder ,"../.."))
