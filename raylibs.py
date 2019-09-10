@@ -356,10 +356,13 @@ def ray_train(save_in_sub_folder=None):
 
 
 
+from ray.rllib.rollout import rollout
+from ray.rllib.agents.registry import get_agent_class
+import pickle
 
 def ray_play():
     import gym
-    gym.make(play_env_id).reset()
+    env = gym.make(play_env_id).reset()
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
     subprocess.run(["xhost", "+"], shell=True)
     LOAD_MODEL_FOLDER = "20190909-135353" # Location of previous model for prediction 
@@ -373,5 +376,20 @@ def ray_play():
     filepath = find("rollout.py","/")
     #subprocess.run(["rllib", "rollout", results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])
     subprocess.run(["chmod",  "a+rwx", filepath])
-    subprocess.run([filepath , results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])
+    #subprocess.run([filepath , results_folder, "--run", algo, "--env", play_env_id, "--steps", "10000"])
+    #ray.init()
+    config_path = os.path.join(results_folder, "params.pkl")
+    if not os.path.exists(config_path):
+        two_up = os.path.abspath(os.path.join(results_folder ,"../.."))
+        config_path = os.path.join(two_up, "params.pkl")
+    with open(config_path, "rb") as f:
+        config = pickle.load(f)
+    if "num_workers" in config:
+        config["num_workers"] = min(2, config["num_workers"])
+    cls = get_agent_class(algo)
+    agent = cls(env=play_env_id, config=config) 
+    rollout(agent=agent,
+            env_name=play_env_id,
+            num_steps=10000,
+            no_render=False)
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
