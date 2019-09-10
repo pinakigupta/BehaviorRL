@@ -271,7 +271,6 @@ def ray_train(save_in_sub_folder=None):
 
     impala_config = impala.DEFAULT_CONFIG.copy()
     impala_config["num_gpus"] = 0
-    algo = "IMPALA"
     ImpalaTrainer = build_trainer(name="IMPALA",
                                   default_config=impala_config,
                                   default_policy=VTraceTFPolicy,
@@ -287,7 +286,7 @@ def ray_train(save_in_sub_folder=None):
         delegated_cpus = available_cluster_cpus-2
 
     restore_folder=None
-    algo = "DDQN" # RL Algorithm of choice
+    algo = "PPO" # RL Algorithm of choice
     LOAD_MODEL_FOLDER = "20190828-201729" # Location of previous model (if needed) for training 
     RESTORE_COND = "NONE" # RESTORE: Use a previous model to start new training 
                           # RESTORE_AND_RESUME: Use a previous model to finish previous unfinished training 
@@ -366,7 +365,7 @@ def ray_play():
     env = gym.make(play_env_id).reset()
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
     subprocess.run(["xhost", "+"], shell=True)
-    LOAD_MODEL_FOLDER = "20190909-135353" # Location of previous model for prediction 
+    LOAD_MODEL_FOLDER = "20190909-234319" # Location of previous model for prediction 
     results_folder, _ , algo = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
     print("results_folder = ", results_folder) 
     

@@ -66,7 +66,7 @@ class TwoWayEnv(AbstractEnv):
         self.previous_action = action
         obs, rew, done, info = super(TwoWayEnv, self).step(action)
         self.episode_travel = self.vehicle.position[0] - self.ego_x0 
-        #self.print_obs_space()
+        self.print_obs_space()
         #self._set_curriculam(curriculam_reward_threshold=0.6*self.GOAL_REWARD)
         return (obs, rew, done, info)
 
