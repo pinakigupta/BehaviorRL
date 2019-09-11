@@ -329,6 +329,7 @@ class MDPVehicle(ControlledVehicle):
         """
         states = []
         v = copy.deepcopy(self)
+        #v.virtual = True
         t = 0
         for action in actions:
             v.act(action)  # High-level decision

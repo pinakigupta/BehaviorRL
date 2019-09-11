@@ -17,7 +17,7 @@ class VehicleGraphics(object):
 
 
     @classmethod
-    def display(cls, vehicle, surface, mdp_vehicle=None, transparent=False):
+    def display(cls, vehicle, surface, mdp_vehicle=None, transparent=False, virtual=False):
         """
             Display a vehicle on a pygame surface.
 
@@ -78,7 +78,7 @@ class VehicleGraphics(object):
         color = WHITE
         font = pygame.font.Font(font_type, size) 
 
-        if not v.virtual:
+        if not(v.virtual or virtual):
             text = ""
             text = font.render(v.Id(), False, color) 
             textRect = text.get_rect()
@@ -249,7 +249,7 @@ class VehicleGraphics(object):
         :param surface: the surface to draw the vehicle future states on
         """
         for vehicle in states:
-            cls.display(vehicle, surface, transparent=True)
+            cls.display(vehicle, surface, transparent=True, virtual=True)
 
     @classmethod
     def get_color(cls, vehicle, transparent=False):
