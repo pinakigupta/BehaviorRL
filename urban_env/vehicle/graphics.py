@@ -234,7 +234,7 @@ class VehicleGraphics(object):
         surface.blit(text, (0, ini_line + line*next_line_step))        
 
         # Display EGO Goal                    
-        pix_pos= surface.pos2pix(vehicle.goal_state[0],vehicle.goal_state[1])
+        pix_pos= surface.pos2pix(vehicle.goal_state[0], vehicle.goal_state[1])
         radius = abs(pix_pos[0] - surface.pos2pix(vehicle.goal_state[0]+3, vehicle.goal_state[1])[0])
         pygame.draw.circle(surface, GREEN, pix_pos, radius)
 
