@@ -113,10 +113,10 @@ class KinematicObservation(ObservationType):
     def observe(self):
         # Add ego-vehicle
         df = pandas.DataFrame.from_records([self.env.vehicle.to_dict(self.env.vehicle)])[self.features]
-        for col in df.columns:
+        '''for col in df.columns:
             df[col].values[:] = 0
 
-        df = df.append(pandas.DataFrame.from_records([self.env.vehicle.to_dict(self.env.vehicle)])[self.features])
+        df = df.append(pandas.DataFrame.from_records([self.env.vehicle.to_dict(self.env.vehicle)])[self.features])'''
 
 
 
@@ -154,10 +154,10 @@ class KinematicObservation(ObservationType):
         goal = (self.env.ROAD_LENGTH - self.env.vehicle.position[0]) / (7.0 * MDPVehicle.SPEED_MAX) # Normalize
         goal = min(1.0, max(-1.0, goal)) # Clip
         obs[0] = goal # Just a temporary implementation wo explicitly mentioning the goal
-        obs_idx = 1
+        '''obs_idx = 1
         for virtual_v in self.env.road.virtual_vehicles:
             obs[obs_idx] = virtual_v.position[1]/self.y_position_range
-            obs_idx += 1
+            obs_idx += 1'''
         
         if(self.env.OBS_STACK_SIZE == 1):
             return obs

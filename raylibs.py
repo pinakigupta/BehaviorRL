@@ -125,7 +125,7 @@ def ray_cluster_status_check(ray_yaml_file="Ray-Cluster.yaml" , initial_workers_
 
 
 
-LOCAL_MODE = True #Use local mode for debug purposes
+LOCAL_MODE = False #Use local mode for debug purposes
 if is_predict_only():
     try:
         subprocess.run(["sudo", "pkill", "redis-server"])
