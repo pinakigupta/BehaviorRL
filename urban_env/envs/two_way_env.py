@@ -219,7 +219,7 @@ class TwoWayEnv(AbstractEnv):
                               target_velocity=self.ROAD_SPEED,
                               target_lane_index=("a", "b", 1), 
                               lane_index=("a", "b", 1),                             
-                              enable_lane_change=lcx(scene_complexity))
+                              enable_lane_change=False)
             front_vehicle, _ = self.road.neighbour_vehicles(v)
             d = v.lane_distance_to(front_vehicle) 
             if (d<5):
@@ -269,7 +269,7 @@ class TwoWayEnv(AbstractEnv):
                               target_velocity=self.ROAD_SPEED,
                               target_lane_index=("b", "a", 0),
                               lane_index=("b", "a", 0),
-                              enable_lane_change=lcx(scene_complexity))
+                              enable_lane_change=False)
             v.target_lane_index = ("b", "a", 0)
             v.lane_index = ("b", "a", 0)
             front_vehicle, _ = self.road.neighbour_vehicles(v)
