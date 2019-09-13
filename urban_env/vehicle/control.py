@@ -45,7 +45,8 @@ class ControlledVehicle(Vehicle):
                                                 heading = heading, 
                                                 velocity =velocity)
         self.target_lane_index = target_lane_index or self.lane_index
-        self.target_velocity = target_velocity or self.velocity
+        self.target_velocity = self.velocity if target_velocity is None else target_velocity 
+        self.lane_target_velocity = self.target_velocity
         self.route = route
         self.front_vehicle = None
         self.rear_vehicle = None
@@ -127,7 +128,6 @@ class ControlledVehicle(Vehicle):
                 else :
                     default_offset = -4
                 self.action_validity = True
-                
         steering = self.steering_control(self.target_lane_index, is_aggressive_lcx, default_offset)
         acceleration = self.velocity_control(self.target_velocity)
         self.control_action = {'steering': steering,
@@ -193,6 +193,7 @@ class ControlledVehicle(Vehicle):
         :param target_velocity: the desired velocity
         :return: an acceleration command [m/s2]
         """
+        
         return self.KP_A * (target_velocity - self.velocity)
 
     def set_route_at_intersection(self, _to):
@@ -286,6 +287,7 @@ class MDPVehicle(ControlledVehicle):
             self.target_velocity = self.index_to_speed(self.velocity_index)
             super(MDPVehicle, self).act(action)
         else:
+            self.target_velocity = self.lane_target_velocity
             super(MDPVehicle, self).act(action)
 
 

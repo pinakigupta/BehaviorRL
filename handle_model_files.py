@@ -50,7 +50,7 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '600' # Keeping steps at 1 will only sping off prediction/simulation. > 1 for training. 
+num_timesteps = '400' # Keeping steps at 1 will only sping off prediction/simulation. > 1 for training. 
 
 # To be compatible with Ray please keep this a normal integer representation. i.e 1000 not 1e3
 
@@ -164,7 +164,7 @@ def default_args(save_in_sub_folder=None):
         if os.path.exists(src):
             copyfile(src, dst)
         else:
-            print("out put file ",terminal_output_file_name,"doesn't exist")
+            print("out put file ", terminal_output_file_name, "doesn't exist")
 
     def create_save_folder(save_folder):
         try:

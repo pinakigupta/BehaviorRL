@@ -119,7 +119,6 @@ class KinematicObservation(ObservationType):
         df = df.append(pandas.DataFrame.from_records([self.env.vehicle.to_dict(self.env.vehicle)])[self.features])'''
 
 
-
                 
         # Add nearby traffic
         self.close_vehicles = self.env.road.closest_vehicles_to(self.env.vehicle,

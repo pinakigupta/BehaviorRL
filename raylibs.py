@@ -448,7 +448,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True):
             pred_reward = reward
             policy_id = mapping_cache.setdefault(
                         _DUMMY_AGENT_ID, policy_agent_mapping(_DUMMY_AGENT_ID))
-            while not pred_done and pred_steps < 10:
+            while not pred_done and pred_steps < 4:
                 pred_action = agent.compute_action(
                             pred_obs,
                             prev_action=pred_action,
@@ -479,15 +479,15 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True):
         pickle.dump(rollouts, open(out, "wb"))
 
 
-
 def ray_play():
     import gym
-    env = gym.make(play_env_id).reset()
+    #env = gym.make(play_env_id).reset()
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
     subprocess.run(["xhost", "+"], shell=True)
-    LOAD_MODEL_FOLDER = "20190910-163529" # Location of previous model for prediction 
+    LOAD_MODEL_FOLDER = "20190912-222710" # Location of previous model for prediction 
     results_folder, _ , algo = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
     print("results_folder = ", results_folder) 
+    print("algo = ", algo)
     
     config_path = os.path.join(results_folder, "params.pkl")
     if not os.path.exists(config_path):
@@ -496,14 +496,16 @@ def ray_play():
     with open(config_path, "rb") as f:
         config = pickle.load(f)
     if "num_workers" in config:
-        config["num_workers"] = min(1, config["num_workers"])
+        config["num_workers"] = min(2, config["num_workers"])
 
-    
     cls = get_agent_class(algo)
     agent = cls(env=play_env_id, config=config) 
+    agent.restore(results_folder)
     rollout(agent=agent,
             env_name=None,
             num_steps=10000,
             no_render=False,
             out=None)
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
+
+

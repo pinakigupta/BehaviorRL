@@ -48,7 +48,7 @@ class TwoWayEnv(AbstractEnv):
         "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
         "duration": 250,
         "_predict_only": is_predict_only(),
-        "screen_width": 2600,
+        "screen_width": 3600,
         "screen_height": 400,
         "DIFFICULTY_LEVELS": 2,
     }
@@ -166,11 +166,11 @@ class TwoWayEnv(AbstractEnv):
 
         if '_predict_only' in self.config:
             if self.config['_predict_only']:
-                scene_complexity = 1
+                scene_complexity = 2
         
         road = self.road
         ego_lane = road.network.get_lane(("a", "b", 1))
-        low = 400 if self.config["_predict_only"] else max(0, (700 - 30*scene_complexity))
+        low = 700 if self.config["_predict_only"] else max(0, (700 - 30*scene_complexity))
         ego_init_position = ego_lane.position(np.random.randint(low=low, 
                                                                 high=low+60
                                                                 ),
@@ -179,6 +179,7 @@ class TwoWayEnv(AbstractEnv):
         ego_vehicle = MDPVehicle(road,
                                  position=ego_init_position,
                                  velocity=np.random.randint(low=15, high=35),
+                                 target_velocity=self.ROAD_SPEED,
                                  )
         road.vehicles.append(ego_vehicle)
         self.vehicle = ego_vehicle
@@ -338,12 +339,12 @@ class TwoWayEnv(AbstractEnv):
 
     def print_obs_space(self):
         print("obs space, step ", self.steps)
-        sys.stdout.flush()
+        #sys.stdout.flush()
         pp = pprint.PrettyPrinter(indent=4)
         numoffeatures = len(self.config["observation"]["features"])
         numfofobs = len(self.obs)
         numofvehicles = numfofobs//numoffeatures
-        close_vehicle_ids = [-1 , int(self.vehicle.Id())]
+        close_vehicle_ids =  [int(self.vehicle.Id())]
         modified_obs = self.obs
         for v in self.close_vehicles:
             close_vehicle_ids.append(int(v.Id()))
