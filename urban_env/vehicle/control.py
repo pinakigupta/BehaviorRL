@@ -354,10 +354,10 @@ class MDPVehicle(ControlledVehicle):
         #v.virtual = True
         t = 0
         for action in actions:
-            v.act(action)  # High-level decision
+            #v.act(action)  # High-level decision
             for _ in range(int(action_duration / dt)):
                 t += 1
-                v.act()  # Low-level control action
+                v.act(action)  # High and Low-level control action
                 v.step(dt)
                 if (t % int(trajectory_timestep / dt)) == 0:
                     states.append(copy.deepcopy(v))
