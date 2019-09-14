@@ -212,13 +212,18 @@ class AbstractEnv(gym.Env):
         """
             Perform several steps of simulation with constant action
         """
+        SCALE = 1.0
+        if '_predict_only' in self.config:
+            if not self.config['_predict_only']:
+                SCALE = 1.4
+
         for k in range(int(self.SIMULATION_FREQUENCY // self.POLICY_FREQUENCY)):
             if action is not None : # and self.time % int(self.SIMULATION_FREQUENCY // self.POLICY_FREQUENCY) == 0:
                 # Forward action to the vehicle
                 self.vehicle.act(self.ACTIONS[action])
 
-            self.road.act(ego_MDPVehicle = self.vehicle)
-            self.road.step(1 / self.SIMULATION_FREQUENCY)
+            self.road.act()
+            self.road.step(1 / self.SIMULATION_FREQUENCY, SCALE)
             self.time += 1
 
             # Automatically render intermediate simulation steps if a viewer has been launched

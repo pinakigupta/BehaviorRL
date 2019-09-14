@@ -183,17 +183,17 @@ class Vehicle(Loggable):
             return other_edge_1_wrt_ego_on_lane
         return self.lane.local_coordinates(vehicle.position)[0] - self.lane.local_coordinates(self.position)[0]
 
-    def check_collision(self, other):
+    def check_collision(self, other, SCALE=1.1):
         """
             Check for collision with another vehicle.
 
         :param other: the other vehicle
         """
-        SCALE_=1.1
+        
         '''
         if '_predict_only' in gym.Env.metadata:
             if gym.Env.metadata['_predict_only']:
-                SCALE_= 0.9'''
+                SCALE= 0.9'''
             
 
         if not self.COLLISIONS_ENABLED or not other.COLLISIONS_ENABLED or self.crashed or other is self:
@@ -205,8 +205,8 @@ class Vehicle(Loggable):
             return
 
         # Accurate rectangular check
-        if utils.rotated_rectangles_intersect((self.position, SCALE_*self.LENGTH, SCALE_*self.WIDTH, self.heading),
-                                              (other.position, SCALE_*other.LENGTH, SCALE_*other.WIDTH, other.heading)):
+        if utils.rotated_rectangles_intersect((self.position, self.LENGTH, self.WIDTH, self.heading),
+                                              (other.position, SCALE*other.LENGTH, SCALE*other.WIDTH, other.heading)):
             self.velocity = other.velocity = min(self.velocity, other.velocity)
             self.crashed = other.crashed = True
 

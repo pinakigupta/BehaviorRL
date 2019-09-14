@@ -166,7 +166,7 @@ class TwoWayEnv(AbstractEnv):
 
         if '_predict_only' in self.config:
             if self.config['_predict_only']:
-                scene_complexity = 2
+                scene_complexity = 3
         
         road = self.road
         ego_lane = road.network.get_lane(("a", "b", 1))
@@ -176,12 +176,13 @@ class TwoWayEnv(AbstractEnv):
                                                                 ),
                                                0
                                              )
-        ego_vehicle = MDPVehicle(road,
+        ego_vehicle = MDPVehicle(self.road,
                                  position=ego_init_position,
                                  velocity=np.random.randint(low=15, high=35),
                                  target_velocity=self.ROAD_SPEED,
                                  )
-        road.vehicles.append(ego_vehicle)
+        self.road.vehicles.append(ego_vehicle)
+        self.road.ego_vehicle = ego_vehicle
         self.vehicle = ego_vehicle
         self.ego_x0 = ego_vehicle.position[0]
 
@@ -198,7 +199,7 @@ class TwoWayEnv(AbstractEnv):
             x0 = self.ego_x0 + 90 + 90*i + 10*self.np_random.randn()
             stat_veh_x0.append(x0)
             self.road.vehicles.append(
-                vehicles_type(road,
+                vehicles_type(self.road,
                               position=road.network.get_lane(("a", "b", 1))
                               .position(x0, 1),
                               heading=road.network.get_lane(("a", "b", 1)).heading_at(100),

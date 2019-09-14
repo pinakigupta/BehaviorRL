@@ -238,7 +238,7 @@ class Road(Loggable):
         """
             New road.
 
-        :param network: the road network describing the lanes
+        :param network: the road network describing the lanes 
         :param vehicles: the vehicles driving on the road
         :param np.random.RandomState np_random: a random number generator for vehicle behaviour
         """
@@ -246,6 +246,7 @@ class Road(Loggable):
         self.vehicles = vehicles or []
         self.virtual_vehicles = []
         self.np_random = np_random if np_random else np.random.RandomState()
+        self.ego_vehicle = None
 
     def close_vehicles_to(self, vehicle, distances):
         return [v for v in self.vehicles if (distances[0] < vehicle.lane_distance_to(v) < distances[1]
@@ -261,15 +262,15 @@ class Road(Loggable):
                           key=lambda v: abs(vehicle.lane_distance_to(v)))
         return sorted_v[:count]
 
-    def act(self, ego_MDPVehicle = None):
+    def act(self):
         """
             Decide the actions of each entity on the road.
         """
         for vehicle in self.vehicles:
-            if vehicle is not ego_MDPVehicle:
+            if vehicle is not self.ego_vehicle:
                 vehicle.act()
 
-    def step(self, dt):
+    def step(self, dt, SCALE=1):
         """
             Step the dynamics of each entity on the road.
 
@@ -280,7 +281,10 @@ class Road(Loggable):
 
         for vehicle in self.vehicles:
             for other in self.vehicles:
-                vehicle.check_collision(other)
+                if (self.ego_vehicle is not None) and (self.ego_vehicle is vehicle):
+                    vehicle.check_collision(other, SCALE)
+                else:
+                    vehicle.check_collision(other)
 
     def neighbour_vehicles(self, vehicle, lane_index=None):
         """
