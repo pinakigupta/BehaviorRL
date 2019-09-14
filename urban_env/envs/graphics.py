@@ -67,7 +67,7 @@ class EnvViewer(object):
         self.vehicle_trajectories.clear()
         self.vehicle_trajectories = [self.env.vehicle.predict_trajectory(actions,
                                                                       1 / self.env.POLICY_FREQUENCY,
-                                                                      1 / 1 / self.env.POLICY_FREQUENCY,
+                                                                      1 / 3 / self.env.POLICY_FREQUENCY,
                                                                       1 / self.env.SIMULATION_FREQUENCY)]
         
         for v in self.env.road.closest_vehicles_to(self.env.vehicle, 4):

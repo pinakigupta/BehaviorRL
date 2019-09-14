@@ -51,7 +51,7 @@ class VehicleGraphics(object):
         #     y = v.position[1] - width / 2
         # else:
         #     length = v.LENGTH * 1.5
-        #     width  = v.WIDTH  * 1.5
+        #     width  = v.WIDTH  * 1.5transparent
         #     s = pygame.image.load('./urban_env/vehicle/img/car_3.png')
         #     s = pygame.transform.scale(s, (surface.pix(length),surface.pix(width)))
         #     x = v.position[0] + length / 2
@@ -248,8 +248,10 @@ class VehicleGraphics(object):
         :param states: the list of vehicle states within the trajectory to be displayed
         :param surface: the surface to draw the vehicle future states on
         """
+        transparent=2
         for vehicle in states:
-            cls.display(vehicle, surface, transparent=True, virtual=True)
+            cls.display(vehicle, surface, transparent=transparent, virtual=True)
+            transparent*=0.2
 
     @classmethod
     def get_color(cls, vehicle, transparent=False):
@@ -258,8 +260,7 @@ class VehicleGraphics(object):
             color = RED
 
         if vehicle.color is not None:
-            return vehicle.color
-
+            color = vehicle.color
         elif isinstance(vehicle, LinearVehicle):
             color = YELLOW
         elif isinstance(vehicle, IDMVehicle):
@@ -268,8 +269,10 @@ class VehicleGraphics(object):
             color = EGO_COLOR
         elif isinstance(vehicle, Obstacle):
             color = GREEN
+
         if transparent:
-            color = (color[0], color[1], color[2], 50)
+            color = (color[0], color[1], color[2], transparent*50)
+
         return color
 
     @classmethod
