@@ -40,6 +40,7 @@ class EnvViewer(object):
         self.agent_display = None
         self.agent_surface = None
         self.vehicle_trajectory = None
+        self.vehicle_trajectories = []
         self.frame = 0
 
     def set_agent_display(self, agent_display):
@@ -63,10 +64,19 @@ class EnvViewer(object):
         """
         if hasattr(self.env.action_space, 'n'):
             actions = [self.env.ACTIONS[a] for a in actions]
-        self.vehicle_trajectory = self.env.vehicle.predict_trajectory(actions,
+        self.vehicle_trajectories.clear()
+        self.vehicle_trajectories = [self.env.vehicle.predict_trajectory(actions,
                                                                       1 / self.env.POLICY_FREQUENCY,
-                                                                      1 / 3 / self.env.POLICY_FREQUENCY,
-                                                                      1 / self.env.SIMULATION_FREQUENCY)
+                                                                      1 / 1 / self.env.POLICY_FREQUENCY,
+                                                                      1 / self.env.SIMULATION_FREQUENCY)]
+        
+        for v in self.env.road.closest_vehicles_to(self.env.vehicle, 4):
+            if v not in self.env.road.virtual_vehicles:
+                self.vehicle_trajectories.append(v.predict_trajectory(actions,
+                                                                    1 / self.env.POLICY_FREQUENCY,
+                                                                    1 / 1/ self.env.POLICY_FREQUENCY,
+                                                                    1 / self.env.SIMULATION_FREQUENCY))
+
 
     def handle_events(self):
         """
@@ -92,10 +102,11 @@ class EnvViewer(object):
 
         self.sim_surface.move_display_window_to(self.window_position())
         RoadGraphics.display(self.env.road, self.sim_surface)
-        if self.vehicle_trajectory:
-            VehicleGraphics.display_trajectory(
-                self.vehicle_trajectory,
-                self.sim_surface)
+        if self.vehicle_trajectories:
+            for vehicle_trajectory in self.vehicle_trajectories:
+                VehicleGraphics.display_trajectory(
+                    vehicle_trajectory,
+                    self.sim_surface)
         RoadGraphics.display_traffic(self.env.road, self.sim_surface)
 
         if self.agent_display:

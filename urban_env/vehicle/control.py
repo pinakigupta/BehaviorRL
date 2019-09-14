@@ -80,7 +80,7 @@ class ControlledVehicle(Vehicle):
 
     def act(self, action):
         """
-            Perform a high-level action to change the desired lane or velocity.
+            Perform a low-level action to change the desired lane or velocity.
 
             - If a high-level action is provided, update the target velocity and lane;
             - then, perform longitudinal and lateral control.
@@ -90,12 +90,7 @@ class ControlledVehicle(Vehicle):
         self.front_vehicle, self.rear_vehicle = self.road.neighbour_vehicles(self)
         is_aggressive_lcx = False
         self.follow_road()
-        #print("action : ",action)
-        '''if action == "FASTER":
-            self.target_velocity += self.DELTA_VELOCITY
-        elif action == "SLOWER":
-            self.target_velocity -= self.DELTA_VELOCITY
-        el'''
+
         if action == "LANE_RIGHT":
             _from, _to, _id = self.target_lane_index
             target_lane_index = _from, _to, np.clip(_id + 1, 0, len(self.road.network.graph[_from][_to]) - 1)
@@ -121,13 +116,14 @@ class ControlledVehicle(Vehicle):
                 is_aggressive_lcx = True
                 
         default_offset = 0
-        if 'target_lane_index' in locals(): # Means lane change
+        '''if 'target_lane_index' in locals() and 'action' in locals(): # Means lane change
             if (self.target_lane_index == self.lane_index):
                 if action == "LANE_LEFT_AGGRESSIVE" or action == "LANE_LEFT_AGGRESSIVE":
                     default_offset = 4
                 else :
                     default_offset = -4
-                self.action_validity = True
+                self.action_validity = True'''
+
         steering = self.steering_control(self.target_lane_index, is_aggressive_lcx, default_offset)
         acceleration = self.velocity_control(self.target_velocity)
         self.control_action = {'steering': steering,
@@ -226,6 +222,30 @@ class ControlledVehicle(Vehicle):
             #collision experiences of other vehicles, yet
             return
         return super(ControlledVehicle, self).check_collision(other, SCALE)
+
+    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt):
+        """
+            Predict the future trajectory of the vehicle given a sequence of actions.
+
+        :param actions: a sequence of future actions.
+        :param action_duration: the duration of each action.
+        :param trajectory_timestep: the duration between each save of the vehicle state.
+        :param dt: the timestep of the simulation
+        :return: the sequence of future states
+        """
+        states = []
+        v = copy.deepcopy(self)
+        #v.virtual = True
+        t = 0
+        for action in actions: # only used to iterate (MDP # of actions)
+            #v.act(action)  # High-level decision
+            for _ in range(int(action_duration / dt)):
+                t += 1
+                v.act()  # Low-level control action
+                v.step(dt)
+                if (t % int(trajectory_timestep / dt)) == 0:
+                    states.append(copy.deepcopy(v))
+        return states
 
 
     @abc.abstractmethod
