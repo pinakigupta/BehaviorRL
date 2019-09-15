@@ -17,6 +17,7 @@ import pprint
 import atexit
 from color import color
 
+
 def exit_handler():
     subprocess.run(["chmod", "-R", "a+rwx", "."])
 
@@ -24,7 +25,12 @@ atexit.register(exit_handler)
 
 pp = pprint.PrettyPrinter(indent=4)
 ####################
-
+import git
+repo = git.Repo(search_parent_directories=True)
+sha = repo.head.object.hexsha
+print("git HEAD sha is ", sha)
+print("git branch is ", repo.active_branch)
+print("git HEAD sha is ", sha)
 
 
 ####################

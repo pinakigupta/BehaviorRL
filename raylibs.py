@@ -32,8 +32,9 @@ import ray.rllib.agents.ppo as ppo
 import ray.rllib.agents.impala as impala
 
 
-from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, homepath, RUN_WITH_RAY, InceptcurrentDT, is_predict_only
+from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, RUN_WITH_RAY, InceptcurrentDT, is_predict_only
 from handle_model_files import pathname
+import handle_model_files
 from urban_env.envs.two_way_env import TwoWayEnv
 from urban_env.envs.multilane_env import MultilaneEnv
 from urban_env.envs.multitask_env import MultiTaskEnv
@@ -349,7 +350,7 @@ def ray_train(save_in_sub_folder=None):
                 },
             }
         )
-
+    #handle_model_files.copy_terminal_output_file(save_folder=local_dir_path)
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
 
 
@@ -484,7 +485,7 @@ def ray_play():
     #env = gym.make(play_env_id).reset()
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
     subprocess.run(["xhost", "+"], shell=True)
-    LOAD_MODEL_FOLDER = "20190913-220331" # Location of previous model for prediction 
+    LOAD_MODEL_FOLDER = "20190914-234734" # Location of previous model for prediction 
     results_folder, _ , algo = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
     print("results_folder = ", results_folder) 
     print("algo = ", algo)

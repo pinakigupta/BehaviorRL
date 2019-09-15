@@ -1,4 +1,8 @@
-import os, sys, glob, time
+import site
+import os
+import sys
+import glob
+import time
 from mpi4py import MPI
 from settings import req_dirs, models_folder, ray_folder
 from shutil import copyfile
@@ -20,6 +24,7 @@ def makedirpath(pathname=None):
             print("Failed to created s3 drive at", pathname)
             pass
 
+
 first_default_args_call = True
 LOAD_PREV_MODEL = True
 RUN_WITH_RAY = True
@@ -29,10 +34,11 @@ def is_predict_only(**kwargs):
     global num_timesteps
     if 'predict' in kwargs:
         if kwargs['predict'] == "True":
-            num_timesteps = '1'  
+            num_timesteps = '1'
     if 'predict' in sys.argv:
         num_timesteps = '1'
     return float(num_timesteps) == 1
+
 
 ###############################################################
 #        DEFINE YOUR "BASELINE" (AGENT) PARAMETERS HERE
@@ -50,7 +56,8 @@ train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
 network = 'mlp'
-num_timesteps = '400' # Keeping steps at 1 will only sping off prediction/simulation. > 1 for training. 
+# Keeping steps at 1 will only sping off prediction/simulation. > 1 for training.
+num_timesteps = '1'
 
 # To be compatible with Ray please keep this a normal integer representation. i.e 1000 not 1e3
 
@@ -59,7 +66,6 @@ num_timesteps = '400' # Keeping steps at 1 will only sping off prediction/simula
 
 urban_AD_env_path = pathname + '/urban_env/envs'
 sys.path.append(urban_AD_env_path)
-import site
 site.addsitedir(urban_AD_env_path)
 site.addsitedir(pathname)
 
@@ -79,8 +85,6 @@ def is_master():
     return MPI.COMM_WORLD.Get_rank() == 0
 
 
-
-
 if is_master():
     InceptcurrentDT = time.strftime("%Y%m%d-%H%M%S")
 else:
@@ -89,9 +93,16 @@ else:
 InceptcurrentDT = MPI.COMM_WORLD.bcast(InceptcurrentDT, root=0)
 
 
-
-
-
+def copy_terminal_output_file(save_folder=None):
+    if save_folder is not None:
+        src = os.getcwd() + '/' + terminal_output_file_name
+        dst = save_folder + '/' + terminal_output_file_name
+        if not os.path.exists(save_folder):
+            os.mkdir(save_folder)
+        if os.path.exists(src):
+            copyfile(src, dst)
+        else:
+            print("out put file ", terminal_output_file_name, "doesn't exist")
 
 
 def default_args(save_in_sub_folder=None):
@@ -104,7 +115,7 @@ def default_args(save_in_sub_folder=None):
     ####################################################################
     modelpath = pathname
     if RUN_WITH_RAY:
-        modelpath += '/' + ray_folder 
+        modelpath += '/' + ray_folder
     '''try:
         if os.path.exists(s3pathname):
             modelpath = s3pathname
@@ -156,16 +167,6 @@ def default_args(save_in_sub_folder=None):
         'num_timesteps': num_timesteps
     }
 
-    def copy_terminal_output_file():
-        src = os.getcwd() + '/' + terminal_output_file_name
-        dst = save_folder + '/' + terminal_output_file_name
-        if not os.path.exists(save_folder):
-            os.mkdir(save_folder)
-        if os.path.exists(src):
-            copyfile(src, dst)
-        else:
-            print("out put file ", terminal_output_file_name, "doesn't exist")
-
     def create_save_folder(save_folder):
         try:
             os.makedirs(save_folder)
@@ -183,7 +184,7 @@ def default_args(save_in_sub_folder=None):
                     DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
                     DEFAULT_ARGUMENTS_DICT['save_path'] = save_file
                     print("Saving file", save_file)
-                    copy_terminal_output_file()
+                    copy_terminal_output_file(save_folder=save_folder)
                     # DEFAULT_ARGUMENTS.append('--tensorboard --logdir=' + tb_logger_path)
         return
 
@@ -264,4 +265,3 @@ def default_args(save_in_sub_folder=None):
         first_default_args_call = False
 
     return DEFAULT_ARGUMENTS, DEFAULT_ARGUMENTS_DICT
-
