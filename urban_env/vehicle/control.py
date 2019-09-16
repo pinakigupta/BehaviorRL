@@ -308,7 +308,7 @@ class MDPVehicle(ControlledVehicle):
             self.target_velocity = self.index_to_speed(self.velocity_index)
             super(MDPVehicle, self).act(action)
         else:
-            alpha = 0.9
+            alpha = 0.8
             self.target_velocity = self.lane_target_velocity + alpha * (self.target_velocity - self.lane_target_velocity)
             super(MDPVehicle, self).act(action)
 

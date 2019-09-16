@@ -38,11 +38,12 @@ class MultilaneEnv(AbstractEnv):
 
     ROAD_LENGTH = 500
     ROAD_SPEED = 35
+    OBS_STACK_SIZE = 1
 
     DEFAULT_CONFIG = {
         "observation": {
             "type": "Kinematics",
-            "features": ['x', 'y', 'vx', 'vy', 'psi', 'lane_psi', 'length'],
+            "features": ['x', 'y', 'vx', 'vy', 'psi'],
             "vehicles_count": 6
         },
         "initial_spacing": 2,
@@ -74,7 +75,7 @@ class MultilaneEnv(AbstractEnv):
 
     def __init__(self, config=DEFAULT_CONFIG):
         super(MultilaneEnv, self).__init__(config)
-        self.config.update(self.DIFFICULTY_LEVELS["HARD"])
+        self.config.update(self.DIFFICULTY_LEVELS["MEDIUM"])
         if self.config["_predict_only"]:
             self.ROAD_LENGTH = 1000
         self.steps = 0
@@ -100,20 +101,16 @@ class MultilaneEnv(AbstractEnv):
 
 
     def reset(self):
+        self.steps = 0
         self._create_road()
         self._create_vehicles()
-        self.steps = 0
         return super(MultilaneEnv, self).reset()
 
     def step(self, action):
         self.steps += 1
         self.previous_action = action
         obs, rew, done, info = super(MultilaneEnv, self).step(action)
-        self.goal = (self.ROAD_LENGTH - self.vehicle.position[0]) / (7.0 * MDPVehicle.SPEED_MAX) # Normalize
-        self.goal = min(1.0, max(-1.0, self.goal)) # Clip
-        obs[0] = self.goal # Just a temporary implementation wo explicitly mentioning the goal
         self.episode_travel = self.vehicle.position[0] - self.ego_x0
-        self.obs = obs
         return (obs, rew, done, info)
 
     def _create_road(self):
@@ -171,6 +168,7 @@ class MultilaneEnv(AbstractEnv):
         virtual_obstacle_left.LENGTH = lane.length
         virtual_obstacle_left.virtual = True
         self.road.vehicles.append(virtual_obstacle_left)
+        self.road.virtual_vehicles.append(virtual_obstacle_left)
 
 
         lane = self.road.network.lanes_list()[-1]
@@ -187,6 +185,7 @@ class MultilaneEnv(AbstractEnv):
         virtual_obstacle_right.LENGTH = lane.length
         virtual_obstacle_right.virtual = True
         self.road.vehicles.append(virtual_obstacle_right)
+        self.road.virtual_vehicles.append(virtual_obstacle_right)
 
 
     def _reward(self, action):
@@ -236,11 +235,30 @@ class MultilaneEnv(AbstractEnv):
         return float(self.vehicle.crashed)
 
     def print_obs_space(self):
-        print("obs space ")
-        import pprint
+        print("obs space, step ", self.steps)
+        #sys.stdout.flush()
         pp = pprint.PrettyPrinter(indent=4)
         numoffeatures = len(self.config["observation"]["features"])
         numfofobs = len(self.obs)
-        obs_format = pp.pformat(np.round(np.reshape(self.obs,(numfofobs//numoffeatures, numoffeatures)), 3))
+        numofvehicles = numfofobs//numoffeatures
+        close_vehicle_ids =  [int(self.vehicle.Id())]
+        modified_obs = self.obs
+        for v in self.close_vehicles:
+            close_vehicle_ids.append(int(v.Id()))
+        close_vehicle_ids.extend([-1]*(numofvehicles-len(close_vehicle_ids)))
+        Idx = 0
+        obs_Idx = 0
+        while True:
+            temp = modified_obs
+            del(modified_obs)
+            modified_obs = np.insert(temp, obs_Idx, close_vehicle_ids[Idx])
+            del(temp)
+            Idx += 1
+            obs_Idx += numoffeatures+1
+            if Idx >= len(close_vehicle_ids):
+                break
+
+        np.set_printoptions(precision=3, suppress=True)
+        obs_format = pp.pformat(np.round(np.reshape(modified_obs, (numofvehicles, numoffeatures+1 )), 3))
         obs_format = obs_format.rstrip("\n")
         print(obs_format)

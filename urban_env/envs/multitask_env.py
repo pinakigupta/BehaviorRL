@@ -38,6 +38,8 @@ class MultiTaskEnv(AbstractEnv):
         return self.env._reward(action)
     def print_obs_space(self):
         return self.env.print_obs_space()
+    def set_actions(self, actions):
+        return self.env.set_actions(actions)
     @classmethod
     def random_env(cls):
         return np.random.choice(cls.ENV_LIST)

@@ -459,7 +459,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True):
                 pred_actions.append(pred_action)
                 pred_steps += 1
 
-            env.actions = pred_actions
+            env.set_actions(pred_actions)
 
             if multiagent:
                 done = done["__all__"]

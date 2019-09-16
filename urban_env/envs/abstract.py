@@ -390,6 +390,9 @@ class AbstractEnv(gym.Env):
     def set_config(self, key, value):
         self.config[key] = value
 
+    def set_actions(self, actions):
+        self.actions = actions
+
     def set_curriculam(self, value):
         self.set_config("DIFFICULTY_LEVELS", value)
 
