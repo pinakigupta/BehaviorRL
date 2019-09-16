@@ -166,7 +166,7 @@ class TwoWayEnv(AbstractEnv):
 
         if '_predict_only' in self.config:
             if self.config['_predict_only']:
-                scene_complexity = 2
+                scene_complexity = 4
         
         road = self.road
         ego_lane = road.network.get_lane(("a", "b", 1))

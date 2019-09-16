@@ -11,6 +11,7 @@ from urban_env import utils
 from urban_env.vehicle.dynamics import Vehicle
 
 
+
 class ControlledVehicle(Vehicle):
     """
         A vehicle piloted by two low-level controller, allowing high-level actions
@@ -127,7 +128,7 @@ class ControlledVehicle(Vehicle):
         steering = self.steering_control(self.target_lane_index, is_aggressive_lcx, default_offset)
         acceleration = self.velocity_control(self.target_velocity)
         self.control_action = {'steering': steering,
-                                'acceleration': acceleration}
+                               'acceleration': acceleration}
 
         super(ControlledVehicle, self).act(self.control_action)
 
@@ -141,7 +142,7 @@ class ControlledVehicle(Vehicle):
                                                                  position=self.position,
                                                                  np_random=self.road.np_random)
 
-    def steering_control(self, target_lane_index, is_agressive = False, default_offset=0 ):
+    def steering_control(self, target_lane_index, is_agressive=False, default_offset=0 ):
         """
             Steer the vehicle to follow the center of an given lane.
 
@@ -307,7 +308,7 @@ class MDPVehicle(ControlledVehicle):
             self.target_velocity = self.index_to_speed(self.velocity_index)
             super(MDPVehicle, self).act(action)
         else:
-            alpha = 0.8
+            alpha = 0.9
             self.target_velocity = self.lane_target_velocity + alpha * (self.target_velocity - self.lane_target_velocity)
             super(MDPVehicle, self).act(action)
 

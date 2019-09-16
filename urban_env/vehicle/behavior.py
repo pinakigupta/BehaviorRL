@@ -8,7 +8,7 @@ from __future__ import division, print_function
 import numpy as np
 from urban_env.vehicle.control import ControlledVehicle, MDPVehicle
 from urban_env import utils
-
+from handle_model_files import is_predict_only
 
 class IDMVehicle(ControlledVehicle):
     """
@@ -88,7 +88,7 @@ class IDMVehicle(ControlledVehicle):
         
         self.front_vehicle, self.rear_vehicle = self.road.neighbour_vehicles(self)
 
-        if isinstance(self.front_vehicle, MDPVehicle):
+        if isinstance(self.front_vehicle, MDPVehicle) and (not is_predict_only()):
             self.front_vehicle = None # Forcing the MDPvehicle to crash and get penalized for bad behavior. 
             # Mainly applicable for head on collision. Ignore the rear ending MDP vehicle case.
 
@@ -143,7 +143,7 @@ class IDMVehicle(ControlledVehicle):
         if front_vehicle:
             buffer = control_vehicle.LENGTH /3
             d = control_vehicle.lane_distance_to(front_vehicle) - (control_vehicle.LENGTH + front_vehicle.LENGTH)/2 - buffer
-            d = max(d,0)
+            d = max(d, 0)
             d_star = self.desired_gap(control_vehicle, front_vehicle) 
             min_d = 30.0
             min_d = min(min_d,d)
@@ -152,7 +152,7 @@ class IDMVehicle(ControlledVehicle):
             acceleration -= self.COMFORT_ACC_MAX * np.power(d_star/ utils.not_zero(d), 2)
             acceleration = min(acceleration, min_acceleration)
             if (self.velocity <0):
-                acceleration = max(acceleration,0.1)
+                acceleration = max(acceleration, 0.1)
 
         return acceleration
 
