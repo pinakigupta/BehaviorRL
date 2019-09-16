@@ -25,12 +25,15 @@ atexit.register(exit_handler)
 
 pp = pprint.PrettyPrinter(indent=4)
 ####################
-import git
-repo = git.Repo(search_parent_directories=True)
-sha = repo.head.object.hexsha
-print("git HEAD sha is ", sha)
-print("git branch is ", repo.active_branch)
-print("git HEAD sha is ", sha)
+try:
+    import git
+    repo = git.Repo(search_parent_directories=True)
+    sha = repo.head.object.hexsha
+    print("git HEAD sha is ", sha)
+    print("git branch is ", repo.active_branch)
+    print("git HEAD sha is ", sha)
+except:
+    print("git python import not working")
 
 
 ####################

@@ -126,7 +126,7 @@ def ray_cluster_status_check(ray_yaml_file="Ray-Cluster.yaml" , initial_workers_
 
 
 
-LOCAL_MODE = False #Use local mode for debug purposes
+LOCAL_MODE = False  #Use local mode for debug purposes
 if is_predict_only():
     try:
         subprocess.run(["sudo", "pkill", "redis-server"])
@@ -304,13 +304,13 @@ def ray_train(save_in_sub_folder=None):
         local_dir=local_dir_path
         resume=False
 
-
+    checkpoint_freq=int(num_timesteps)//min(int(num_timesteps),20)
 
     ray_trials = ray.tune.run(
             algo,
             name="pygame-ray",
             stop={"training_iteration": int(num_timesteps)},
-            checkpoint_freq=int(num_timesteps)//20,
+            checkpoint_freq=checkpoint_freq,
             checkpoint_at_end=True,
             local_dir=local_dir,
             # upload_dir=upload_dir_path,
@@ -485,7 +485,7 @@ def ray_play():
     #env = gym.make(play_env_id).reset()
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
     subprocess.run(["xhost", "+"], shell=True)
-    LOAD_MODEL_FOLDER = "20190914-234734" # Location of previous model for prediction 
+    LOAD_MODEL_FOLDER = "20190915-232812" # Location of previous model for prediction 
     results_folder, _ , algo = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
     print("results_folder = ", results_folder) 
     print("algo = ", algo)

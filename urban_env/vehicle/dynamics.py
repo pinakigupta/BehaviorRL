@@ -150,11 +150,9 @@ class Vehicle(Loggable):
             self.action['acceleration'] = max(
                 self.action['acceleration'], 1.0*(self.MAX_VELOCITY - self.velocity))
 
-        v = self.velocity * \
-            np.array([np.cos(self.heading), np.sin(self.heading)])
+        v = self.velocity * np.array([np.cos(self.heading), np.sin(self.heading)])
         self.position += v * dt
-        self.heading += self.velocity * \
-            np.tan(self.action['steering']) / self.LENGTH * dt
+        self.heading += self.velocity * np.tan(self.action['steering']) / self.LENGTH * dt
         self.velocity += self.action['acceleration'] * dt
 
         if self.road:
