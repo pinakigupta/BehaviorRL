@@ -33,7 +33,7 @@ import ray.rllib.agents.impala as impala
 
 
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, RUN_WITH_RAY, InceptcurrentDT, is_predict_only
-from handle_model_files import pathname
+from handle_model_files import pathname, copy_terminal_output_file, terminal_output_file_name
 import handle_model_files
 from urban_env.envs.two_way_env import TwoWayEnv
 from urban_env.envs.multilane_env import MultilaneEnv
@@ -350,7 +350,7 @@ def ray_train(save_in_sub_folder=None):
                 },
             }
         )
-    #handle_model_files.copy_terminal_output_file(save_folder=local_dir_path)
+    copy_terminal_output_file(save_folder=local_dir_path, terminal_output_file_name=terminal_output_file_name)
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
 
 

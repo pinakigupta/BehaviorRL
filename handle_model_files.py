@@ -57,7 +57,7 @@ play_env_id = 'multitask-v0'
 alg = 'ppo2'
 network = 'mlp'
 # Keeping steps at 1 will only sping off prediction/simulation. > 1 for training.
-num_timesteps = '400'
+num_timesteps = '4'
 
 # To be compatible with Ray please keep this a normal integer representation. i.e 1000 not 1e3
 
@@ -92,9 +92,9 @@ else:
 
 InceptcurrentDT = MPI.COMM_WORLD.bcast(InceptcurrentDT, root=0)
 
-
-def copy_terminal_output_file(save_folder=None):
-    if save_folder is not None:
+terminal_output_file_name = 'output.txt'
+def copy_terminal_output_file(save_folder=None, terminal_output_file_name=None ):
+    if save_folder is not None and terminal_output_file_name is not None:
         src = os.getcwd() + '/' + terminal_output_file_name
         dst = save_folder + '/' + terminal_output_file_name
         if not os.path.exists(save_folder):
@@ -184,7 +184,8 @@ def default_args(save_in_sub_folder=None):
                     DEFAULT_ARGUMENTS.append('--save_path=' + save_file)
                     DEFAULT_ARGUMENTS_DICT['save_path'] = save_file
                     print("Saving file", save_file)
-                    copy_terminal_output_file(save_folder=save_folder)
+                    copy_terminal_output_file(save_folder=save_folder,
+                                              terminal_output_file_name=terminal_output_file_name)
                     # DEFAULT_ARGUMENTS.append('--tensorboard --logdir=' + tb_logger_path)
         return
 
@@ -197,7 +198,7 @@ def default_args(save_in_sub_folder=None):
             print("Loading file", load_file)
         return
 
-    terminal_output_file_name = 'output.txt'
+    
 
     def is_empty_directory(directorypath):
         if not os.path.isdir(directorypath):
