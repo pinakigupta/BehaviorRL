@@ -30,8 +30,8 @@ try:
     repo = git.Repo(search_parent_directories=True)
     sha = repo.head.object.hexsha
     print("git HEAD sha is ", sha)
+    print("git HEAD message is ", repo.head.object.message)
     print("git branch is ", repo.active_branch)
-    print("git HEAD sha is ", sha)
 except:
     print("git python import not working")
 

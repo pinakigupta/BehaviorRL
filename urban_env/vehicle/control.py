@@ -252,7 +252,7 @@ class ControlledVehicle(Vehicle):
             else:
                 continue
             break
-
+        del(v)
         out_q.append(states)
         return states
 
@@ -378,7 +378,7 @@ class MDPVehicle(ControlledVehicle):
             else:
                 continue
             break
-
+        del(v)
         return states
 
     def Id(self):
