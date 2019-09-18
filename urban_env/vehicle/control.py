@@ -224,7 +224,7 @@ class ControlledVehicle(Vehicle):
             return
         return super(ControlledVehicle, self).check_collision(other, SCALE)
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, pred_horizon=-1):
+    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q, pred_horizon=-1):
         """
             Predict the future trajectory of the vehicle given a sequence of actions.
 
@@ -253,7 +253,7 @@ class ControlledVehicle(Vehicle):
                 continue
             break
 
-
+        out_q.append(states)
         return states
 
 
