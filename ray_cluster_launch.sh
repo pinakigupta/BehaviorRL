@@ -11,7 +11,7 @@ if [ $# \> 1 ]
   then
     exec_cmd=$2
   else
-    exec_cmd="cd rl_baselines_ad;./run_baseline.sh" # Your default ray exec cmnd
+    exec_cmd="cd BehaviorRL;./run_baseline.sh" # Your default ray exec cmnd
 fi
 
 
@@ -25,6 +25,7 @@ ray up -y $ray_yaml_file
 # Ideally we want to take this decision in shell before launching the ray exec
 # command. Otherwise this will need to be put inside the dev code (ray_cluster_status_check())
 ray exec --docker $ray_yaml_file "$exec_cmd"  2>&1 | tee  $outputfile &&
-#ray exec --docker $ray_yaml_file "$exec_cmd"
+exec_cmd="rsync -avzh ray_results   ../rl_baselines_ad"
+ray exec --docker $ray_yaml_file "$exec_cmd"
 bash ray_sync.sh $ray_yaml_file  &&
 ray down -y $ray_yaml_file 
