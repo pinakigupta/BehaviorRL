@@ -103,7 +103,7 @@ worker_nodes:
 file_mounts: {
 #     "/mnt/rl_baselines_ad/": "./rl_baselines_ad/",
 #    "/path2/on/remote/machine": "/path2/on/local/machine",
-#     "/tmp/current_branch_sha": ".git/refs/heads/master",
+     "/tmp/current_branch_sha": ".git/refs/heads/master",
 }
 
 # List of commands that will be run before `setup_commands`. If docker is
@@ -120,8 +120,8 @@ setup_commands:
     # - pip install -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.8.0.dev1-cp27-cp27mu-manylinux1_x86_64.whl
     # - pip install -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.8.0.dev1-cp35-cp35m-manylinux1_x86_64.whl
     - pip install -U ray #https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.8.0.dev1-cp36-cp36m-manylinux1_x86_64.whl
-    #- git clone https://github.com/pinakigupta/BehaviorRL.git
-    #- cd BehaviorRL && git fetch && git checkout `cat /tmp/current_branch_sha`
+    - git clone https://github.com/pinakigupta/BehaviorRL.git
+    - cd BehaviorRL && git fetch && git checkout `cat /tmp/current_branch_sha`
     # Consider uncommenting these if you also want to run apt-get commands during setup
     # - sudo pkill -9 apt-get || true
     # - sudo pkill -9 dpkg || true
