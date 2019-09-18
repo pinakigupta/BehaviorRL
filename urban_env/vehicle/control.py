@@ -224,7 +224,7 @@ class ControlledVehicle(Vehicle):
             return
         return super(ControlledVehicle, self).check_collision(other, SCALE)
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt):
+    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, pred_horizon=-1):
         """
             Predict the future trajectory of the vehicle given a sequence of actions.
 
@@ -246,6 +246,14 @@ class ControlledVehicle(Vehicle):
                 v.step(dt)
                 if (t % int(trajectory_timestep / dt)) == 0:
                     states.append(copy.deepcopy(v))
+
+                if pred_horizon>0 and t>pred_horizon//dt:
+                    break
+            else:
+                continue
+            break
+
+
         return states
 
 
@@ -341,7 +349,7 @@ class MDPVehicle(ControlledVehicle):
         """
         return self.speed_to_index(self.velocity)
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt):
+    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, pred_horizon=-1):
         """
             Predict the future trajectory of the vehicle given a sequence of actions.
 
@@ -355,7 +363,8 @@ class MDPVehicle(ControlledVehicle):
         v = copy.deepcopy(self)
         #v.virtual = True
         t = 0
-        for action in actions:
+        action = actions[0]
+        for _ in actions:
             #v.act(action)  # High-level decision
             for _ in range(int(action_duration / dt)):
                 t += 1
@@ -363,6 +372,13 @@ class MDPVehicle(ControlledVehicle):
                 v.step(dt)
                 if (t % int(trajectory_timestep / dt)) == 0:
                     states.append(copy.deepcopy(v))
+
+                if pred_horizon>0 and t>pred_horizon//dt:
+                    break
+            else:
+                continue
+            break
+
         return states
 
     def Id(self):

@@ -77,7 +77,8 @@ class EnvViewer(object):
                     (v.predict_trajectory(actions=actions,
                                           action_duration=1/self.env.POLICY_FREQUENCY,
                                           trajectory_timestep=1/1/self.env.POLICY_FREQUENCY,
-                                          dt=1/self.env.SIMULATION_FREQUENCY))
+                                          dt=1/self.env.SIMULATION_FREQUENCY,
+                                          pred_horizon=2))
 
 
     def handle_events(self):
