@@ -25,7 +25,7 @@ ray up -y $ray_yaml_file
 # Ideally we want to take this decision in shell before launching the ray exec
 # command. Otherwise this will need to be put inside the dev code (ray_cluster_status_check())
 ray exec --docker $ray_yaml_file "$exec_cmd"  2>&1 | tee  $outputfile &&
-exec_cmd="rsync -avzh ray_results   ../rl_baselines_ad"
+exec_cmd="cp /BehaviorRL/ray_results/   /rl_baselines_ad/ray_results/" #copying from the volatile docker container to the persistent mount drive
 ray exec --docker $ray_yaml_file "$exec_cmd"
 bash ray_sync.sh $ray_yaml_file  &&
 ray down -y $ray_yaml_file 
