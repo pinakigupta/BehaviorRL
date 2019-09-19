@@ -13,6 +13,11 @@ The research will also address the differences (advantages and disadvantages) be
 
 The Original version of these environments were created by **Edouard Leurent** and can be found in https://github.com/eleurent/highway-env
 
+The agents are not primed yet but getting better. Here is one sample from a challening two-way environment, where the HV has to negotiate same direction as well as oncoming traffic. In addition
+there are parked cars in both lanes. 
+
+![](PPO2.gif)
+
 ## Getting Started (Docker)
 0) This code requires (Don't install anything yet):
 
