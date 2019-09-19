@@ -14,6 +14,9 @@ if [ $# \> 1 ]
     exec_cmd="cd BehaviorRL;./run_baseline.sh" # Your default ray exec cmnd
 fi
 
+#copying from the volatile docker container to the persistent mount drive
+sync_cmd="rsync -a  /BehaviorRL/ray_results/   /rl_baselines_ad/ray_results/" 
+
 
 outputfile="output_cluster.txt"
 dockerfiles/docker-ini-script.sh # script for custom docker setup. Not needed for 
@@ -25,7 +28,6 @@ ray up -y $ray_yaml_file
 # Ideally we want to take this decision in shell before launching the ray exec
 # command. Otherwise this will need to be put inside the dev code (ray_cluster_status_check())
 ray exec --docker $ray_yaml_file "$exec_cmd"  2>&1 | tee  $outputfile &&
-exec_cmd="cp /BehaviorRL/ray_results/   /rl_baselines_ad/ray_results/" #copying from the volatile docker container to the persistent mount drive
-ray exec --docker $ray_yaml_file "$exec_cmd"
+ray exec --docker $ray_yaml_file "$sync_cmd" &&
 bash ray_sync.sh $ray_yaml_file  &&
 ray down -y $ray_yaml_file 
