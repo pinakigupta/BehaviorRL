@@ -83,6 +83,8 @@ OR
 ```bash
 ./run_baseline.sh
 ```
+![](img/ray_arch_local.png)
+
 
 ## How to Run on aws cluster
 
@@ -107,6 +109,7 @@ KeyName: KEY-Pinaki.Gupta #replace with tour own key name
 # replace the aws mount volume location with your own mount location. Alternatively you can embed
 # the code inside the docker container.
 ```
+![](img/ray_arch_cloud_cluster.png)
 
 ## Training configurations
 
