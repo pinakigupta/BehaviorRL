@@ -27,7 +27,7 @@ from urban_env.envs.multilane_env import MultilaneEnv
 from urban_env.envs.multitask_env import MultiTaskEnv
 from urban_env.envs.abstract import AbstractEnv
 
-from ray_rollout import retrieve_ray_folder_info, filetonum
+from ray_rollout import retrieve_ray_folder_info, ray_retrieve_agent, filetonum, rollout
 
 register_env('multilane-v0', lambda config: urban_env.envs.MultilaneEnv(config))
 register_env('merge-v0', lambda config: urban_env.envs.MergeEnv(config))
@@ -110,7 +110,7 @@ if is_predict_only():
     except:
         print("ray process not running")
     LOCAL_MODE = True    
-    #ray.init(num_gpus=0, local_mode=True)
+    ray.init(num_gpus=0, local_mode=True)
 else:
     try: # to init in the cluster
         ray.init(redis_add)
@@ -306,4 +306,12 @@ def ray_train(save_in_sub_folder=None):
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
 
 
-
+def ray_play():
+    #subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
+    agent=ray_retrieve_agent()
+    rollout(agent=agent,
+            env_name=None,
+            num_steps=10000,
+            no_render=False,
+            out=None)
+    #subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])

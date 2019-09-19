@@ -105,7 +105,7 @@ def main(**kwargs):
 
     else:
         if RUN_WITH_RAY:
-            from ray_rollout import ray_play
+            from raylibs import ray_play
             ray_play()
         else:
             from baselines.common import tf_util, mpi_util
