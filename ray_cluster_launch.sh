@@ -27,7 +27,7 @@ ray up -y $ray_yaml_file
 # min number of nodes are up or waits (embedded within the exec cmd step)
 # Ideally we want to take this decision in shell before launching the ray exec
 # command. Otherwise this will need to be put inside the dev code (ray_cluster_status_check())
-ray exec --docker $ray_yaml_file "$exec_cmd"  2>&1 | tee  $outputfile &&
+ray exec --docker $ray_yaml_file "$exec_cmd"  #2>&1 | tee  $outputfile 
 ray exec --docker $ray_yaml_file "$sync_cmd" &&
 bash ray_sync.sh $ray_yaml_file  &&
 ray down -y $ray_yaml_file 
