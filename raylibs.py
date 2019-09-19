@@ -8,19 +8,6 @@ import os
 import time
 import glob
 import redis
-
-filename = '/usr/local/lib/python3.6/dist-packages/ray/rllib/rollout.py'
-with open(filename, 'r') as original: 
-    original_data = original.read()
-    linebylinecontent = original.readlines()
-
-#print(linebylinecontent)
-#for linecontent in linebylinecontent:
-    #print(linecontent)
-    #if "import ray" in linecontent :
-    #    exit("Exiting code")
-
-
 import ray
 from ray.tune import Experiment, Trainable, run_experiments, register_env, sample_from
 from ray.tune.schedulers import PopulationBasedTraining, AsyncHyperBandScheduler
@@ -40,6 +27,7 @@ from urban_env.envs.multilane_env import MultilaneEnv
 from urban_env.envs.multitask_env import MultiTaskEnv
 from urban_env.envs.abstract import AbstractEnv
 
+from ray_rollout import retrieve_ray_folder_info, filetonum
 
 register_env('multilane-v0', lambda config: urban_env.envs.MultilaneEnv(config))
 register_env('merge-v0', lambda config: urban_env.envs.MergeEnv(config))
@@ -122,7 +110,7 @@ if is_predict_only():
     except:
         print("ray process not running")
     LOCAL_MODE = True    
-    ray.init(num_gpus=0, local_mode=True)
+    #ray.init(num_gpus=0, local_mode=True)
 else:
     try: # to init in the cluster
         ray.init(redis_add)
@@ -146,11 +134,6 @@ else:
             print("available_resources ", ray.available_resources())
             
 
-
-
-
-
-
 def explore(config):
     # ensure we collect enough timesteps to do sgd
     if config["train_batch_size"] < config["sgd_minibatch_size"] * 2:
@@ -160,11 +143,6 @@ def explore(config):
         config["num_sgd_iter"] = 1
     return config
 
-def filetonum(filename):
-    try:
-        return int(filename.split('_')[-1])
-    except:
-        return -1
 
 
 pbt = PopulationBasedTraining(
@@ -188,21 +166,7 @@ pbt = PopulationBasedTraining(
 def on_episode_start(info):
     print(info.keys())  # -> "env", 'episode"
 
-def retrieve_ray_folder_info(target_folder):
-    local_restore_path = pathname + "/" + ray_folder + "/" + target_folder #"20190805-132549"
-    restore_folder = local_restore_path + "/pygame-ray/"
-    #checkpt = 2800
-    subdir = next(os.walk(restore_folder))[1][0]
-    restore_folder = restore_folder + subdir + "/" 
-    all_checkpt_folders = glob.glob(restore_folder+'/*')
-    last_checkpt_folder = max(all_checkpt_folders, key=filetonum)
-    if 'checkpt' not in locals():    
-        checkpt = filetonum(last_checkpt_folder)
-    restore_folder = restore_folder + "checkpoint_" + str(checkpt) + "/checkpoint-" + str(checkpt)
-    assert(os.path.exists(restore_folder))
-    if 'algo' not in locals():
-        algo = subdir.split('_')[0]
-    return restore_folder, local_restore_path, algo
+
 
 def on_train_result(info):
     result = info["result"]

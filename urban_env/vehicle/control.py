@@ -10,7 +10,10 @@ import copy
 from urban_env import utils
 from urban_env.vehicle.dynamics import Vehicle
 
-
+from ray.rllib.rollout import default_policy_agent_mapping, DefaultMapping
+from ray_rollout import ray_retrieve_agent
+from ray.rllib.env.base_env import _DUMMY_AGENT_ID
+from ray.rllib.policy.sample_batch import DEFAULT_POLICY_ID
 
 class ControlledVehicle(Vehicle):
     """
@@ -219,9 +222,9 @@ class ControlledVehicle(Vehicle):
                      [(self.route[index][1], next_destinations_from[next_index], self.route[index][2])]
 
     def check_collision(self, other, SCALE = 1.1):
-        if not (isinstance(self, MDPVehicle) or isinstance(other, MDPVehicle)): #MDP is not learning from 
+        #if not (isinstance(self, MDPVehicle) or isinstance(other, MDPVehicle)): #MDP is not learning from 
             #collision experiences of other vehicles, yet
-            return
+        #    return
         return super(ControlledVehicle, self).check_collision(other, SCALE)
 
     def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q, pred_horizon=-1):
@@ -316,7 +319,7 @@ class MDPVehicle(ControlledVehicle):
             self.target_velocity = self.index_to_speed(self.velocity_index)
             super(MDPVehicle, self).act(action)
         else:
-            alpha = 0.8
+            alpha = 0.9
             self.target_velocity = self.lane_target_velocity + alpha * (self.target_velocity - self.lane_target_velocity)
             super(MDPVehicle, self).act(action)
 
@@ -392,3 +395,68 @@ class MDPVehicle(ControlledVehicle):
         if self.rear_vehicle is not None: 
             str += " rear_vehicle = " + self.rear_vehicle.Id()
         return str    
+
+
+class IDMDPVehicle(MDPVehicle):
+    """
+        A MDP vehicle with a learned policy
+    """
+
+    def __init__(self,
+                 road,
+                 position,
+                 heading=0,
+                 velocity=0,
+                 lane_index = None,
+                 target_lane_index=None,
+                 target_velocity=None,
+                 route=None):
+        super(IDMDPVehicle, self).__init__(road = road, 
+                                           position = position, 
+                                           heading = heading, 
+                                           velocity = velocity, 
+                                           lane_index = lane_index,
+                                           target_lane_index = target_lane_index, 
+                                           target_velocity = target_velocity, 
+                                           route = route)
+
+        self.agent=ray_retrieve_agent()
+        agent_states = DefaultMapping(
+            lambda agent_id: state_init[mapping_cache[_DUMMY_AGENT_ID]])
+
+
+    def act(self):
+        policy_agent_mapping = default_policy_agent_mapping
+        policy_map = self.agent.workers.local_worker().policy_map
+        state_init = {p: m.get_initial_state() for p, m in policy_map.items()}
+        use_lstm = {p: len(s) > 0 for p, s in state_init.items()}
+        action_init = {
+            p: m.action_space.sample()
+            for p, m in policy_map.items()
+        }
+
+        multi_obs = {_DUMMY_AGENT_ID: obs}
+        mapping_cache = {}
+        for agent_id, a_obs in multi_obs.items():
+                if a_obs is not None:
+                    policy_id = mapping_cache.setdefault(
+                        agent_id, policy_agent_mapping(agent_id))
+                    p_use_lstm = use_lstm[policy_id]
+                    if p_use_lstm:
+                        a_action, p_state, _ = agent.compute_action(
+                            a_obs,
+                            state=agent_states[agent_id],
+                            prev_action=self.prev_action,
+                            prev_reward=None,
+                            policy_id=policy_id)
+                        agent_states[agent_id] = p_state
+                    else:
+                        a_action = agent.compute_action(
+                            a_obs,
+                            prev_action=self.prev_action,
+                            prev_reward=None,
+                            policy_id=policy_id)
+                    action_dict[agent_id] = a_action
+                    self.prev_action = a_action
+        action = action_dict
+        super(IDMDPVehicle, self).act(action)

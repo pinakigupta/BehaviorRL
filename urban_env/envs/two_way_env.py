@@ -48,7 +48,7 @@ class TwoWayEnv(AbstractEnv):
         "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
         "duration": 250,
         "_predict_only": is_predict_only(),
-        "screen_width": 3600,
+        "screen_width": 1600,
         "screen_height": 400,
         "DIFFICULTY_LEVELS": 2,
     }
@@ -166,7 +166,7 @@ class TwoWayEnv(AbstractEnv):
 
         if '_predict_only' in self.config:
             if self.config['_predict_only']:
-                scene_complexity = 2
+                scene_complexity = 3
         
         road = self.road
         ego_lane = road.network.get_lane(("a", "b", 1))
@@ -221,7 +221,7 @@ class TwoWayEnv(AbstractEnv):
                               target_velocity=self.ROAD_SPEED,
                               target_lane_index=("a", "b", 1), 
                               lane_index=("a", "b", 1),                             
-                              enable_lane_change=False)
+                              enable_lane_change=True)
             front_vehicle, _ = self.road.neighbour_vehicles(v)
             d = v.lane_distance_to(front_vehicle) 
             if (d<5):
@@ -271,7 +271,7 @@ class TwoWayEnv(AbstractEnv):
                               target_velocity=self.ROAD_SPEED,
                               target_lane_index=("b", "a", 0),
                               lane_index=("b", "a", 0),
-                              enable_lane_change=False)
+                              enable_lane_change=True)
             v.target_lane_index = ("b", "a", 0)
             v.lane_index = ("b", "a", 0)
             front_vehicle, _ = self.road.neighbour_vehicles(v)
