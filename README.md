@@ -14,9 +14,9 @@ The research will also address the differences (advantages and disadvantages) be
 The Original version of these environments were created by **Edouard Leurent** and can be found in https://github.com/eleurent/highway-env
 
 The agents are not primed yet but getting better. Here is one sample from a challening two-way environment, where the HV has to negotiate same direction as well as oncoming traffic. In addition
-there are parked cars in both lanes. 
+to the moving traffic there are parked cars in both lanes. 
 
-![](PPO2.gif)
+![](img/PPO2.gif)
 
 ## Getting Started (Docker)
 0) This code requires (Don't install anything yet):
@@ -28,23 +28,6 @@ there are parked cars in both lanes.
 
 1) **Docker Installation**
    1) For a clean and encapsulated installation we will use Docker. Follow the instructions on https://docs.docker.com/install/linux/docker-ce/ubuntu/
-      1) Uninstall old versions
-Older versions of Docker were called docker, docker.io , or docker-engine. If these are installed, uninstall them:
-            ```bash
-            sudo apt-get remove docker docker-engine docker.io containerd runc
-            ```
-        2) Update the apt package index.
-            ```bash
-            sudo apt-get update
-            ```
-        3) Install the latest version of Docker CE and containerd, or go to docker page mentioned above to install a specific version:
-            ```bash
-            sudo apt-get install docker-ce docker-ce-cli containerd.io
-            ```
-        4) Verify that Docker CE is installed correctly by running the hello-world image.
-            ```bash
-            sudo docker run hello-world
-            ```
 
 1) Clone this repository and make sure you include the openai baselines submodules by typing the following command
 ```bash
@@ -58,7 +41,7 @@ git clone  https://github.com/pinakigupta/BehaviorRL.git
 ```bash
 docker build -t pinakigupta/rl_baselines dockerfiles/
 ```
-Alternatively you can pull the latest docker image pushed to my public repo on docker hub. 
+Alternatively you can pull the latest docker image from my public repo on docker hub. 
 ```bash
 docker pull pinakigupta/rl_baselines 
 ```
@@ -74,7 +57,7 @@ If you have ray (or any similar 3rd party cloud compute package) installed on yo
 But launching it from the docker container is easy, no local installation required and gurantees version compatibility. 
 
 5) If everything went ok, you should see something like this: 
-![Inside docker](/img/DockerStart.png)
+![Inside docker](img/DockerStart.png)
 
 6) Run the following command to install openai gym and all the required libraries to run. This step additionally moves the aws credentials to docker ~/ and assigns root
 uid/gid to the credential files.
