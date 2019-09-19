@@ -13,7 +13,7 @@ The research will also address the differences (advantages and disadvantages) be
 
 The Original version of these environments were created by **Edouard Leurent** and can be found in https://github.com/eleurent/highway-env
 
-The agents are not primed yet but getting better. Here is one sample from a challening two-way environment, where the HV has to negotiate same direction as well as oncoming traffic. In addition
+The agents are not primed yet but getting better. Here is one sample from a challenging two-way environment, where the HV has to negotiate same direction as well as oncoming traffic. In addition
 to the moving traffic there are parked cars in both lanes. 
 
 ![](img/PPO2.gif)
@@ -85,6 +85,15 @@ OR
 ```
 ![](img/ray_arch_local.png)
 
+During training on the local machine the main steps as described in the above figure are,
+
+1) Launch the ray_docker_local container using image from docker hub (or using local volume dockerfile).  
+2) Attach the local volume containing code (actually this happens within step 1 as we launch the container).  
+3) Sync code with github (optional).  
+4) Run training code with ray APIs. In the background ray is rolling out workers parallely, with each worker interacting with one or multiple environments (as specified in the ray
+API configs.  
+5) Once training is complete the trained models and other results are saved in the attached volume.
+
 
 ## How to Run on aws cluster
 
@@ -104,12 +113,28 @@ Please vist https://ray.readthedocs.io/en/latest/autoscaling.html for details on
     
 ```bash
 ssh_private_key: ~/.ssh/KEY-Pinaki.Gupta.pem # replace with your own private key
-KeyName: KEY-Pinaki.Gupta #replace with tour own key name
+KeyName: KEY-Pinaki.Gupta #replace with your own key name
 - --volume **/mnt/datastore/groups/behavior/Pinaki/rl_baselines/rl_baselines_ad**:/rl_baselines_ad 
-# replace the aws mount volume location with your own mount location. Alternatively you can embed
-# the code inside the docker container.
+# replace the aws mount volume location with your own mount location. 
 ```
 ![](img/ray_arch_cloud_cluster.png)
+
+Training on the cloud cluster process is more complicated than running on local machine. Although there are several variants of this process, only the fully automated process is described
+here, which is also the most exhaustive.
+
+1) Launch the ray_docker_local container using image from docker hub (or using local volume dockerfile). Now in this case the local machine can be a remote server or even another aws (persistent) 
+compute node.  
+2) Attach the local volume (actually this happens within step 1 as we launch the container).  The actual python code will be present in the local volume, but it will not be used yet.  
+3) Launch the ray cluster(aws compute nodes of master and workers) using the cluster launch scripts.  
+4) Cluster launch scripts downloads the appropriate docker image from docker hub.  
+5) Cluster launch scripts also downloads the appropriate code version from github (it searched for the same branch and HEAD commit sha as the launcher script finds in the local volume. So 
+it is better for them to be synced). At this step we will also download any dependencies from github (like fresh commits from open AI baselines).  
+6) With the cluster set up, training code with the Ray APIs automatically launch parallel workers across the master and worker compute nodes, within the docker environment. You can imagine 
+at this point the master + worker(s) to be one single compute node/machine on which we are running our ray_docker. Additonally during training the ray APIs can auto scale up/down as per compute need.
+7) A persistent EFS drive is mounted on the docker container to save useful results. Once the training is complete trained model/results are saved from the docker container folders to this persistent drive.
+8) Models/Results are then copied to the local volume and the cloud cluster is destroyed.
+
+
 
 ## Training configurations
 
