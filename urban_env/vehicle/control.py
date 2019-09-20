@@ -442,7 +442,7 @@ class IDMDPVehicle(MDPVehicle):
         if self.observation is None:
             self.observation = observations[self]
         obs = self.observation.observe()
-        action = 0
+
         import settings
         retrieved_agent_policy = settings.retrieved_agent_policy
         action = retrieved_agent_policy.compute_single_action(obs, [])[0]

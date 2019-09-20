@@ -144,8 +144,10 @@ class KinematicObservation(ObservationType):
             rows = -np.ones((self.vehicles_count+1 - df.shape[0], len(self.features)))
             df = df.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
 
-        for v in self.env.road.vehicles:
-            v.color = GREEN if v in self.close_vehicles else None
+        if self.vehicle.is_ego():
+            for v in self.close_vehicles:
+                if (v.color==DEFAULT_COLOR) or (v.color is None):
+                    v.color = GREEN
         # Reorder
         df = df[self.features]
         # Clip

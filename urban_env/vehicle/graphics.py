@@ -9,7 +9,7 @@ import numpy as np
 import pygame
 
 from urban_env.vehicle.dynamics import Vehicle, Obstacle
-from urban_env.vehicle.control import ControlledVehicle, MDPVehicle
+from urban_env.vehicle.control import ControlledVehicle, MDPVehicle, IDMDPVehicle
 from urban_env.vehicle.behavior import IDMVehicle, LinearVehicle
 from urban_env.envdict import RED, GREEN, BLUE, YELLOW, BLACK, PURPLE, DEFAULT_COLOR, EGO_COLOR, WHITE
 
@@ -259,14 +259,14 @@ class VehicleGraphics(object):
         if vehicle.crashed:
             color = RED
 
-        if vehicle.color is not None:
-            color = vehicle.color
-        elif isinstance(vehicle, LinearVehicle):
+        if vehicle.is_ego():
+            color = EGO_COLOR
+        elif isinstance(vehicle, IDMDPVehicle):
             color = YELLOW
+        elif vehicle.color is not None:
+            color = vehicle.color
         elif isinstance(vehicle, IDMVehicle):
             color = BLUE
-        elif vehicle.is_ego():
-            color = EGO_COLOR
         elif isinstance(vehicle, Obstacle):
             color = GREEN
 

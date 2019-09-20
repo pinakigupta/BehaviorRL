@@ -42,7 +42,7 @@ def retrieve_ray_folder_info(target_folder):
         algo = subdir.split('_')[0]
     return restore_folder, local_restore_path, algo
 
-def rollout(agent, env_name, num_steps, out=None, no_render=True):
+def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False):
     policy_agent_mapping = default_policy_agent_mapping
 
     if hasattr(agent, "workers"):
@@ -116,27 +116,27 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True):
             else:
                 prev_rewards[_DUMMY_AGENT_ID] = reward
 
-            '''predict_env = copy.deepcopy(env)
-            predict_env.DEFAULT_CONFIG["_predict_only"] = True
-            pred_actions = []
-            pred_steps = 0
-            pred_obs = multi_obs[_DUMMY_AGENT_ID]
-            pred_done = False
-            pred_action = action
-            pred_reward = reward
-            policy_id = mapping_cache.setdefault(
-                        _DUMMY_AGENT_ID, policy_agent_mapping(_DUMMY_AGENT_ID))
-            while not pred_done and pred_steps < 4:
-                pred_action = agent.compute_action(
-                            pred_obs,
-                            prev_action=pred_action,
-                            prev_reward=pred_reward,
-                            policy_id=policy_id)
-                pred_obs, pred_reward, pred_done, _ = predict_env.step(pred_action)
-                pred_actions.append(pred_action)
-                pred_steps += 1
-
-            env.set_actions(pred_actions)'''
+            if predict:
+                predict_env = copy.deepcopy(env)
+                predict_env.DEFAULT_CONFIG["_predict_only"] = True
+                pred_actions = []
+                pred_steps = 0
+                pred_obs = multi_obs[_DUMMY_AGENT_ID]
+                pred_done = False
+                pred_action = action
+                pred_reward = reward
+                policy_id = mapping_cache.setdefault(
+                            _DUMMY_AGENT_ID, policy_agent_mapping(_DUMMY_AGENT_ID))
+                while not pred_done and pred_steps < 4:
+                    pred_action = agent.compute_action(
+                                pred_obs,
+                                prev_action=pred_action,
+                                prev_reward=pred_reward,
+                                policy_id=policy_id)
+                    pred_obs, pred_reward, pred_done, _ = predict_env.step(pred_action)
+                    pred_actions.append(pred_action)
+                    pred_steps += 1
+                env.set_actions(pred_actions)
 
             if multiagent:
                 done = done["__all__"]
