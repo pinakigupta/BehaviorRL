@@ -186,6 +186,8 @@ class TwoWayEnv(AbstractEnv):
         self.vehicle = ego_vehicle
         self.ego_x0 = ego_vehicle.position[0]
 
+        idmdp_init_position = ego_init_position
+        idmdp_init_position[0] -= 10
         idmdp_vehicle = IDMDPVehicle(self.road,
                                      position=ego_init_position,
                                      velocity=np.random.randint(low=15, high=35),

@@ -69,8 +69,10 @@ def main(**kwargs):
     if not predict_only:
         if RUN_WITH_RAY:
             from raylibs import ray_train
+            from ray_rollout import retrieved_agent, ray_retrieve_agent
             save_in_sub_folder = pathname + "/" + ray_folder + "/" + InceptcurrentDT
             print("save_in_sub_folder is ", save_in_sub_folder)
+            retrieved_agent = ray_retrieve_agent()
             ray_train(save_in_sub_folder=save_in_sub_folder)
         else:
             while mega_batch_itr <= max_iteration:
@@ -106,6 +108,12 @@ def main(**kwargs):
     else:
         if RUN_WITH_RAY:
             from raylibs import ray_play
+            from ray_rollout import ray_retrieve_agent
+            from settings import update_policy
+            play_env = gym.make(play_env_id)
+            retrieved_agent = ray_retrieve_agent(play_env_id)
+            retrieved_agent_policy = retrieved_agent.get_policy()
+            update_policy(retrieved_agent_policy)
             ray_play()
         else:
             from baselines.common import tf_util, mpi_util

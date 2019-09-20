@@ -10,3 +10,9 @@ logs_folder = run_folder + 'logs'
 models_folder = run_folder + 'models'
 
 req_dirs = [ray_folder,run_folder, logs_folder, models_folder]
+
+retrieved_agent = None
+retrieved_agent_policy = None
+
+def update_policy(new_policy):
+    retrieved_agent_policy = new_policy

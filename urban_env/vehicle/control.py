@@ -11,9 +11,10 @@ from urban_env import utils
 from urban_env.vehicle.dynamics import Vehicle
 
 from ray.rllib.rollout import default_policy_agent_mapping, DefaultMapping
-from ray_rollout import ray_retrieve_agent
+from settings import retrieved_agent_policy
 from ray.rllib.env.base_env import _DUMMY_AGENT_ID
 from ray.rllib.policy.sample_batch import DEFAULT_POLICY_ID
+
 
 class ControlledVehicle(Vehicle):
     """
@@ -39,17 +40,17 @@ class ControlledVehicle(Vehicle):
                  position,
                  heading=0,
                  velocity=0,
-                 lane_index = None,
+                 lane_index=None,
                  target_lane_index=None,
                  target_velocity=None,
                  route=None):
-        super(ControlledVehicle, self).__init__(road = road, 
-                                                position = position, 
-                                                lane_index = lane_index, 
-                                                heading = heading, 
-                                                velocity =velocity)
+        super(ControlledVehicle, self).__init__(road=road,
+                                                position=position,
+                                                lane_index=lane_index,
+                                                heading=heading,
+                                                velocity=velocity)
         self.target_lane_index = target_lane_index or self.lane_index
-        self.target_velocity = self.velocity if target_velocity is None else target_velocity 
+        self.target_velocity = self.velocity if target_velocity is None else target_velocity
         self.lane_target_velocity = self.target_velocity
         self.route = route
         self.front_vehicle = None
@@ -77,7 +78,8 @@ class ControlledVehicle(Vehicle):
         """
         path = self.road.network.shortest_path(self.lane_index[1], destination)
         if path:
-            self.route = [self.lane_index] + [(path[i], path[i + 1], None) for i in range(len(path) - 1)]
+            self.route = [self.lane_index] + \
+                [(path[i], path[i + 1], None) for i in range(len(path) - 1)]
         else:
             self.route = [self.lane_index]
         return self
@@ -91,34 +93,39 @@ class ControlledVehicle(Vehicle):
 
         :param action: a high-level action
         """
-        self.front_vehicle, self.rear_vehicle = self.road.neighbour_vehicles(self)
+        self.front_vehicle, self.rear_vehicle = self.road.neighbour_vehicles(
+            self)
         is_aggressive_lcx = False
         self.follow_road()
 
         if action == "LANE_RIGHT":
             _from, _to, _id = self.target_lane_index
-            target_lane_index = _from, _to, np.clip(_id + 1, 0, len(self.road.network.graph[_from][_to]) - 1)
+            target_lane_index = _from, _to, np.clip(
+                _id + 1, 0, len(self.road.network.graph[_from][_to]) - 1)
             if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
                 self.target_lane_index = target_lane_index
         elif action == "LANE_LEFT":
             _from, _to, _id = self.target_lane_index
-            target_lane_index = _from, _to, np.clip(_id - 1, 0, len(self.road.network.graph[_from][_to]) - 1)
+            target_lane_index = _from, _to, np.clip(
+                _id - 1, 0, len(self.road.network.graph[_from][_to]) - 1)
             if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
                 self.target_lane_index = target_lane_index
         elif action == "LANE_RIGHT_AGGRESSIVE":
             _from, _to, _id = self.target_lane_index
-            target_lane_index = _from, _to, np.clip(_id + 1, 0, len(self.road.network.graph[_from][_to]) - 1)
+            target_lane_index = _from, _to, np.clip(
+                _id + 1, 0, len(self.road.network.graph[_from][_to]) - 1)
             if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
                 self.target_lane_index = target_lane_index
                 is_aggressive_lcx = True
             # print("LANE_RIGHT_AGGRESSIVE")
         elif action == "LANE_LEFT_AGGRESSIVE":
             _from, _to, _id = self.target_lane_index
-            target_lane_index = _from, _to, np.clip(_id - 1, 0, len(self.road.network.graph[_from][_to]) - 1)
+            target_lane_index = _from, _to, np.clip(
+                _id - 1, 0, len(self.road.network.graph[_from][_to]) - 1)
             if self.road.network.get_lane(target_lane_index).is_reachable_from(self.position):
                 self.target_lane_index = target_lane_index
                 is_aggressive_lcx = True
-                
+
         default_offset = 0
         '''if 'target_lane_index' in locals() and 'action' in locals(): # Means lane change
             if (self.target_lane_index == self.lane_index):
@@ -128,7 +135,8 @@ class ControlledVehicle(Vehicle):
                     default_offset = -4
                 self.action_validity = True'''
 
-        steering = self.steering_control(self.target_lane_index, is_aggressive_lcx, default_offset)
+        steering = self.steering_control(
+            self.target_lane_index, is_aggressive_lcx, default_offset)
         acceleration = self.velocity_control(self.target_velocity)
         self.control_action = {'steering': steering,
                                'acceleration': acceleration}
@@ -145,7 +153,7 @@ class ControlledVehicle(Vehicle):
                                                                  position=self.position,
                                                                  np_random=self.road.np_random)
 
-    def steering_control(self, target_lane_index, is_agressive=False, default_offset=0 ):
+    def steering_control(self, target_lane_index, is_agressive=False, default_offset=0):
         """
             Steer the vehicle to follow the center of an given lane.
 
@@ -162,20 +170,26 @@ class ControlledVehicle(Vehicle):
         lane_next_coords = lane_coords[0] + self.velocity * self.PURSUIT_TAU
         lane_future_heading = target_lane.heading_at(lane_next_coords)
 
-
         # Lateral position control
         target_offset = default_offset + lane_coords[1]
-        lateral_velocity_command = (- 2* self.KP_LATERAL * target_offset) if is_agressive else (- self.KP_LATERAL * target_offset)
+        lateral_velocity_command = (- 2 * self.KP_LATERAL *
+                                    target_offset) if is_agressive else (- self.KP_LATERAL * target_offset)
 
         # Lateral velocity to heading
-        heading_command = np.arcsin(np.clip(lateral_velocity_command/utils.not_zero(self.velocity), -1, 1))
-        heading_ref = lane_future_heading + np.clip(heading_command, -np.pi/4, np.pi/4)
+        heading_command = np.arcsin(
+            np.clip(lateral_velocity_command/utils.not_zero(self.velocity), -1, 1))
+        heading_ref = lane_future_heading + \
+            np.clip(heading_command, -np.pi/4, np.pi/4)
         # Heading control
-        heading_rate_command = self.KP_HEADING * utils.wrap_to_pi(heading_ref - self.heading)
-        heading_rate_command = (2*heading_rate_command)  if is_agressive else heading_rate_command
+        heading_rate_command = self.KP_HEADING * \
+            utils.wrap_to_pi(heading_ref - self.heading)
+        heading_rate_command = (
+            2*heading_rate_command) if is_agressive else heading_rate_command
         # Heading rate to steering angle
-        steering_angle = self.LENGTH / utils.not_zero(self.velocity) * np.arctan(heading_rate_command)
-        steering_angle = np.clip(steering_angle, -self.MAX_STEERING_ANGLE, self.MAX_STEERING_ANGLE)
+        steering_angle = self.LENGTH / \
+            utils.not_zero(self.velocity) * np.arctan(heading_rate_command)
+        steering_angle = np.clip(
+            steering_angle, -self.MAX_STEERING_ANGLE, self.MAX_STEERING_ANGLE)
 
         '''if isinstance(self, MDPVehicle) and is_agressive:
             print("Id: ",self.Id(), " lane_future_heading ", lane_future_heading,\
@@ -193,7 +207,7 @@ class ControlledVehicle(Vehicle):
         :param target_velocity: the desired velocity
         :return: an acceleration command [m/s2]
         """
-        
+
         return self.KP_A * (target_velocity - self.velocity)
 
     def set_route_at_intersection(self, _to):
@@ -219,11 +233,11 @@ class ControlledVehicle(Vehicle):
             _to = self.road.np_random.randint(0, len(next_destinations_from))
         next_index = _to % len(next_destinations_from)
         self.route = self.route[0:index+1] + \
-                     [(self.route[index][1], next_destinations_from[next_index], self.route[index][2])]
+            [(self.route[index][1], next_destinations_from[next_index], self.route[index][2])]
 
-    def check_collision(self, other, SCALE = 1.1):
-        #if not (isinstance(self, MDPVehicle) or isinstance(other, MDPVehicle)): #MDP is not learning from 
-            #collision experiences of other vehicles, yet
+    def check_collision(self, other, SCALE=1.1):
+        # if not (isinstance(self, MDPVehicle) or isinstance(other, MDPVehicle)): #MDP is not learning from
+            # collision experiences of other vehicles, yet
         #    return
         return super(ControlledVehicle, self).check_collision(other, SCALE)
 
@@ -241,8 +255,8 @@ class ControlledVehicle(Vehicle):
         v = copy.deepcopy(self)
         #v.virtual = True
         t = 0
-        for action in actions: # only used to iterate (MDP # of actions)
-            #v.act(action)  # High-level decision
+        for action in actions:  # only used to iterate (MDP # of actions)
+            # v.act(action)  # High-level decision
             for _ in range(int(action_duration / dt)):
                 t += 1
                 v.act()  # Low-level control action
@@ -250,7 +264,7 @@ class ControlledVehicle(Vehicle):
                 if (t % int(trajectory_timestep / dt)) == 0:
                     states.append(copy.deepcopy(v))
 
-                if pred_horizon>0 and t>pred_horizon//dt:
+                if pred_horizon > 0 and t > pred_horizon//dt:
                     break
             else:
                 continue
@@ -258,7 +272,6 @@ class ControlledVehicle(Vehicle):
         del(v)
         out_q.append(states)
         return states
-
 
     @abc.abstractmethod
     def Id(self):
@@ -283,21 +296,20 @@ class MDPVehicle(ControlledVehicle):
                  position,
                  heading=0,
                  velocity=0,
-                 lane_index = None,
+                 lane_index=None,
                  target_lane_index=None,
                  target_velocity=None,
                  route=None):
-        super(MDPVehicle, self).__init__(road = road, 
-                                         position = position, 
-                                         heading = heading, 
-                                         velocity = velocity, 
-                                         lane_index = lane_index,
-                                         target_lane_index = target_lane_index, 
-                                         target_velocity = target_velocity, 
-                                         route = route)
+        super(MDPVehicle, self).__init__(road=road,
+                                         position=position,
+                                         heading=heading,
+                                         velocity=velocity,
+                                         lane_index=lane_index,
+                                         target_lane_index=target_lane_index,
+                                         target_velocity=target_velocity,
+                                         route=route)
         self.velocity_index = self.speed_to_index(self.target_velocity)
         self.target_velocity = self.index_to_speed(self.velocity_index)
-
 
     def act(self, action=None, **kwargs):
         """
@@ -310,19 +322,21 @@ class MDPVehicle(ControlledVehicle):
         """
         if action == "FASTER":
             self.velocity_index = self.speed_to_index(self.velocity) + 1
-            self.velocity_index = np.clip(self.velocity_index, 0, self.SPEED_COUNT - 1)
+            self.velocity_index = np.clip(
+                self.velocity_index, 0, self.SPEED_COUNT - 1)
             self.target_velocity = self.index_to_speed(self.velocity_index)
             super(MDPVehicle, self).act(action)
         elif action == "SLOWER":
             self.velocity_index = self.speed_to_index(self.velocity) - 1
-            self.velocity_index = np.clip(self.velocity_index, 0, self.SPEED_COUNT - 1)
+            self.velocity_index = np.clip(
+                self.velocity_index, 0, self.SPEED_COUNT - 1)
             self.target_velocity = self.index_to_speed(self.velocity_index)
             super(MDPVehicle, self).act(action)
         else:
             alpha = 0.9
-            self.target_velocity = self.lane_target_velocity + alpha * (self.target_velocity - self.lane_target_velocity)
+            self.target_velocity = self.lane_target_velocity + alpha * \
+                (self.target_velocity - self.lane_target_velocity)
             super(MDPVehicle, self).act(action)
-
 
     @classmethod
     def index_to_speed(cls, index):
@@ -352,7 +366,7 @@ class MDPVehicle(ControlledVehicle):
         """
         return self.speed_to_index(self.velocity)
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, pred_horizon=-1):
+    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q, pred_horizon=-1):
         """
             Predict the future trajectory of the vehicle given a sequence of actions.
 
@@ -368,7 +382,7 @@ class MDPVehicle(ControlledVehicle):
         t = 0
         action = actions[0]
         for _ in actions:
-            #v.act(action)  # High-level decision
+            # v.act(action)  # High-level decision
             for _ in range(int(action_duration / dt)):
                 t += 1
                 v.act(action)  # High and Low-level control action
@@ -376,12 +390,13 @@ class MDPVehicle(ControlledVehicle):
                 if (t % int(trajectory_timestep / dt)) == 0:
                     states.append(copy.deepcopy(v))
 
-                if pred_horizon>0 and t>pred_horizon//dt:
+                if pred_horizon > 0 and t > pred_horizon//dt:
                     break
             else:
                 continue
             break
         del(v)
+        out_q.append(states)
         return states
 
     def Id(self):
@@ -389,12 +404,12 @@ class MDPVehicle(ControlledVehicle):
 
     def __str__(self):
         str = ""
-        str = "vehicle = " + self.Id() 
+        str = "vehicle = " + self.Id()
         if self.front_vehicle is not None:
-            str += " front_vehicle = " + self.front_vehicle.Id()          
-        if self.rear_vehicle is not None: 
+            str += " front_vehicle = " + self.front_vehicle.Id()
+        if self.rear_vehicle is not None:
             str += " rear_vehicle = " + self.rear_vehicle.Id()
-        return str    
+        return str
 
 
 class IDMDPVehicle(MDPVehicle):
@@ -402,63 +417,31 @@ class IDMDPVehicle(MDPVehicle):
         A MDP vehicle with a learned policy
     """
 
-    
-
     def __init__(self,
                  road,
                  position,
                  heading=0,
                  velocity=0,
-                 lane_index = None,
+                 lane_index=None,
                  target_lane_index=None,
                  target_velocity=None,
                  route=None):
-        super(IDMDPVehicle, self).__init__(road = road, 
-                                           position = position, 
-                                           heading = heading, 
-                                           velocity = velocity, 
-                                           lane_index = lane_index,
-                                           target_lane_index = target_lane_index, 
-                                           target_velocity = target_velocity, 
-                                           route = route)
+        super(IDMDPVehicle, self).__init__(road=road,
+                                           position=position,
+                                           heading=heading,
+                                           velocity=velocity,
+                                           lane_index=lane_index,
+                                           target_lane_index=target_lane_index,
+                                           target_velocity=target_velocity,
+                                           route=route)
 
-        
+        self.prev_action = None
         #agent_states = DefaultMapping(lambda agent_id: state_init[mapping_cache[_DUMMY_AGENT_ID]])
 
-
     def act(self, observations=None, **kwargs):
-        self.agent = ray_retrieve_agent()
-        policy_agent_mapping = default_policy_agent_mapping
-        policy_map = self.agent.workers.local_worker().policy_map
-        state_init = {p: m.get_initial_state() for p, m in policy_map.items()}
-        use_lstm = {p: len(s) > 0 for p, s in state_init.items()}
-        action_init = {
-            p: m.action_space.sample()
-            for p, m in policy_map.items()
-        }
-        obs = observations[self]
-        multi_obs = {_DUMMY_AGENT_ID: obs}
-        mapping_cache = {}
-        for agent_id, a_obs in multi_obs.items():
-                if a_obs is not None:
-                    policy_id = mapping_cache.setdefault(
-                        agent_id, policy_agent_mapping(agent_id))
-                    p_use_lstm = use_lstm[policy_id]
-                    if p_use_lstm:
-                        a_action, p_state, _ = agent.compute_action(
-                            a_obs,
-                            state=agent_states[agent_id],
-                            prev_action=self.prev_action,
-                            prev_reward=None,
-                            policy_id=policy_id)
-                        agent_states[agent_id] = p_state
-                    else:
-                        a_action = agent.compute_action(
-                            a_obs,
-                            prev_action=self.prev_action,
-                            prev_reward=None,
-                            policy_id=policy_id)
-                    action_dict[agent_id] = a_action
-                    self.prev_action = a_action
-        action = action_dict
+        obs = observations[self].observe()
+        action = 0
+        #if retrieved_agent_policy is not None:
+        #    action = retrieved_agent_policy.compute_single_action(obs)
+        
         super(IDMDPVehicle, self).act(action)

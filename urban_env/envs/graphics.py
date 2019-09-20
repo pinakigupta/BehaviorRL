@@ -66,13 +66,14 @@ class EnvViewer(object):
         if hasattr(self.env.action_space, 'n'):
             actions = [self.env.ACTIONS[a] for a in actions]
         self.vehicle_trajectories.clear()
-        self.vehicle_trajectories = \
+        out_q =  Manager().list()
+        '''self.vehicle_trajectories = \
                 [self.env.vehicle.predict_trajectory(actions=actions,
                                                      action_duration=1/self.env.POLICY_FREQUENCY,
                                                      trajectory_timestep=1/3/self.env.POLICY_FREQUENCY,
                                                      dt=1/self.env.SIMULATION_FREQUENCY)]
 
-        '''for v in self.env.road.closest_vehicles_to(self.env.vehicle, 4):
+        for v in self.env.road.closest_vehicles_to(self.env.vehicle, 4):
             if v not in self.env.road.virtual_vehicles:
                 self.vehicle_trajectories.append\
                     (Process(target=v.predict_trajectory,
@@ -84,7 +85,7 @@ class EnvViewer(object):
                             )
                     )'''
         
-        out_q =  Manager().list()
+        
         p = [Process(target=v.predict_trajectory,
                       args=(actions,
                             1/self.env.POLICY_FREQUENCY,
@@ -94,6 +95,16 @@ class EnvViewer(object):
                             2)
                             ) for v in self.env.road.closest_vehicles_to(self.env.vehicle, 4) \
                                 if v not in self.env.road.virtual_vehicles]
+
+        p.append(Process(target=self.env.vehicle.predict_trajectory,
+                         args=(actions,
+                               1/self.env.POLICY_FREQUENCY,
+                               1/3/self.env.POLICY_FREQUENCY,
+                               1/self.env.SIMULATION_FREQUENCY,
+                               out_q
+                            )
+                        )
+                )
 
         if p:
             for process in p:
