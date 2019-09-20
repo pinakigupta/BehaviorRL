@@ -15,4 +15,5 @@ retrieved_agent = None
 retrieved_agent_policy = None
 
 def update_policy(new_policy):
+    global retrieved_agent_policy 
     retrieved_agent_policy = new_policy

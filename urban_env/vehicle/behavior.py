@@ -88,9 +88,10 @@ class IDMVehicle(ControlledVehicle):
         
         self.front_vehicle, self.rear_vehicle = self.road.neighbour_vehicles(self)
 
-        if isinstance(self.front_vehicle, MDPVehicle) and (not is_predict_only()):
-            self.front_vehicle = None # Forcing the MDPvehicle to crash and get penalized for bad behavior. 
-            # Mainly applicable for head on collision. Ignore the rear ending MDP vehicle case.
+        if self.front_vehicle is not None:
+            if self.front_vehicle.is_ego() and (not is_predict_only()):
+                self.front_vehicle = None # Forcing the MDPvehicle to crash and get penalized for bad behavior. 
+                # Mainly applicable for head on collision. Ignore the rear ending MDP vehicle case.
 
         # Lateral: MOBIL
         self.follow_road()

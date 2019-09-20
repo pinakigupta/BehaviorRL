@@ -51,6 +51,10 @@ class Vehicle(Loggable):
         self.crashed = False
         self.log = []
         self.virtual = virtual
+        self.is_ego_vehicle = False
+    
+    def is_ego(self):
+        return self.is_ego_vehicle
 
     @classmethod
     def make_on_lane(cls, road, lane_index, longitudinal, velocity=0):

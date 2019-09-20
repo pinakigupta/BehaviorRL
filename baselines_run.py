@@ -122,8 +122,7 @@ def main(**kwargs):
             from baselinelibs import baselines_play
             play_env = gym.make(play_env_id)
             DFLT_ARGS, _ = default_args()
-            loaded_file_correctly = (
-                'load_path' in stringarg for stringarg in DFLT_ARGS)
+            loaded_file_correctly = ('load_path' in stringarg for stringarg in DFLT_ARGS)
             policy = run.main(DFLT_ARGS)
             # Just try to Play
             while loaded_file_correctly:

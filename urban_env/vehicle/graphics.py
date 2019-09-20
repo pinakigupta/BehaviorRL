@@ -265,7 +265,7 @@ class VehicleGraphics(object):
             color = YELLOW
         elif isinstance(vehicle, IDMVehicle):
             color = BLUE
-        elif isinstance(vehicle, MDPVehicle):
+        elif vehicle.is_ego():
             color = EGO_COLOR
         elif isinstance(vehicle, Obstacle):
             color = GREEN

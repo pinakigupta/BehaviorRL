@@ -236,7 +236,7 @@ class ControlledVehicle(Vehicle):
             [(self.route[index][1], next_destinations_from[next_index], self.route[index][2])]
 
     def check_collision(self, other, SCALE=1.1):
-        # if not (isinstance(self, MDPVehicle) or isinstance(other, MDPVehicle)): #MDP is not learning from
+        # if not self.is_ego() or other.is_ego(): #MDP is not learning from
             # collision experiences of other vehicles, yet
         #    return
         return super(ControlledVehicle, self).check_collision(other, SCALE)
@@ -435,13 +435,23 @@ class IDMDPVehicle(MDPVehicle):
                                            target_velocity=target_velocity,
                                            route=route)
 
-        self.prev_action = None
-        #agent_states = DefaultMapping(lambda agent_id: state_init[mapping_cache[_DUMMY_AGENT_ID]])
+        self.retrieved_agent_policy = None
+        self.observation = None
 
     def act(self, observations=None, **kwargs):
-        obs = observations[self].observe()
+        if self.observation is None:
+            self.observation = observations[self]
+        obs = self.observation.observe()
         action = 0
-        #if retrieved_agent_policy is not None:
-        #    action = retrieved_agent_policy.compute_single_action(obs)
+
+        if self.retrieved_agent_policy is None:
+            import settings
+            self.retrieved_agent_policy = settings.retrieved_agent_policy
+        else:
+            action1 = self.retrieved_agent_policy.compute_single_action(obs, [])[0]
+            action = action1
+        
+        if "action1" in locals():
+            print("ID", self.Id(), "action ", action, "action1 ", action1)
         
         super(IDMDPVehicle, self).act(action)

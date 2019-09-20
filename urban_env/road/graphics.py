@@ -142,7 +142,7 @@ class RoadGraphics(object):
         :param surface: the pygame surface
         """
         for v in road.vehicles:
-            if isinstance(v, MDPVehicle):
+            if v.is_ego():
                 mdp_vehicle = v
                 break
         for v in road.vehicles:
