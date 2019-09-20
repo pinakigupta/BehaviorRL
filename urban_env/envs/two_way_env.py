@@ -13,7 +13,7 @@ from urban_env.envs.abstract import AbstractEnv
 from urban_env.road.lane import LineType, StraightLane, SineLane
 from urban_env.road.road import Road, RoadNetwork
 from urban_env.envs.graphics import EnvViewer
-from urban_env.vehicle.control import ControlledVehicle, MDPVehicle
+from urban_env.vehicle.control import ControlledVehicle, MDPVehicle, IDMDPVehicle
 from urban_env.vehicle.dynamics import Obstacle
 from handle_model_files import is_predict_only
 from urban_env.envs.graphics import EnvViewer
@@ -185,6 +185,14 @@ class TwoWayEnv(AbstractEnv):
         self.road.ego_vehicle = ego_vehicle
         self.vehicle = ego_vehicle
         self.ego_x0 = ego_vehicle.position[0]
+
+        idmdp_vehicle = IDMDPVehicle(self.road,
+                                     position=ego_init_position,
+                                     velocity=np.random.randint(low=15, high=35),
+                                     target_velocity=self.ROAD_SPEED,
+                                    )
+
+        #self.road.vehicles.append(idmdp_vehicle)
 
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
 

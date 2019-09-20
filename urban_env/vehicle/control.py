@@ -402,6 +402,8 @@ class IDMDPVehicle(MDPVehicle):
         A MDP vehicle with a learned policy
     """
 
+    
+
     def __init__(self,
                  road,
                  position,
@@ -420,12 +422,12 @@ class IDMDPVehicle(MDPVehicle):
                                            target_velocity = target_velocity, 
                                            route = route)
 
-        self.agent=ray_retrieve_agent()
-        agent_states = DefaultMapping(
-            lambda agent_id: state_init[mapping_cache[_DUMMY_AGENT_ID]])
+        
+        #agent_states = DefaultMapping(lambda agent_id: state_init[mapping_cache[_DUMMY_AGENT_ID]])
 
 
     def act(self):
+        self.agent = ray_retrieve_agent()
         policy_agent_mapping = default_policy_agent_mapping
         policy_map = self.agent.workers.local_worker().policy_map
         state_init = {p: m.get_initial_state() for p, m in policy_map.items()}
