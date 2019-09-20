@@ -127,7 +127,7 @@ class AbstractEnv(gym.Env):
 
         if "observation" not in self.config:
             raise ValueError("The observation configuration must be defined")
-        self.observation = observation_factory(self, self.config["observation"])
+        self.observation = observation_factory(self, self.vehicle, self.config["observation"])
         self.observation_space = self.observation.space()
 
     def _reward(self, action):
