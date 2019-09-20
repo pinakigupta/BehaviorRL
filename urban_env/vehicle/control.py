@@ -443,15 +443,14 @@ class IDMDPVehicle(MDPVehicle):
             self.observation = observations[self]
         obs = self.observation.observe()
         action = 0
+        import settings
+        retrieved_agent_policy = settings.retrieved_agent_policy
+        action = retrieved_agent_policy.compute_single_action(obs, [])[0]
+        
+        #print("ID", self.Id(), "action ", action)
+        
+        from urban_env import envdict
+        super(IDMDPVehicle, self).act(envdict.ACTIONS_DICT[action])
 
-        if self.retrieved_agent_policy is None:
-            import settings
-            self.retrieved_agent_policy = settings.retrieved_agent_policy
-        else:
-            action1 = self.retrieved_agent_policy.compute_single_action(obs, [])[0]
-            action = action1
-        
-        if "action1" in locals():
-            print("ID", self.Id(), "action ", action, "action1 ", action1)
-        
-        super(IDMDPVehicle, self).act(action)
+    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q, pred_horizon=-1):
+        return 
