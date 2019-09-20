@@ -166,7 +166,6 @@ class KinematicObservation(ObservationType):
             self.observations = deque([obs]*self.env.OBS_STACK_SIZE, maxlen=self.env.OBS_STACK_SIZE)
             return tuple(self.observations)
         else:
-            #self.observations.pop(len(self.observations)-1)
             self.observations.append(obs)
             return tuple(self.observations)
         return None

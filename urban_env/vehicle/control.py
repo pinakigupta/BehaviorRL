@@ -82,7 +82,7 @@ class ControlledVehicle(Vehicle):
             self.route = [self.lane_index]
         return self
 
-    def act(self, action):
+    def act(self, action=None, **kwargs):
         """
             Perform a low-level action to change the desired lane or velocity.
 
@@ -299,7 +299,7 @@ class MDPVehicle(ControlledVehicle):
         self.target_velocity = self.index_to_speed(self.velocity_index)
 
 
-    def act(self, action=None):
+    def act(self, action=None, **kwargs):
         """
             Perform a high-level action.
 
@@ -426,7 +426,7 @@ class IDMDPVehicle(MDPVehicle):
         #agent_states = DefaultMapping(lambda agent_id: state_init[mapping_cache[_DUMMY_AGENT_ID]])
 
 
-    def act(self):
+    def act(self, observations=None, **kwargs):
         self.agent = ray_retrieve_agent()
         policy_agent_mapping = default_policy_agent_mapping
         policy_map = self.agent.workers.local_worker().policy_map
@@ -436,7 +436,7 @@ class IDMDPVehicle(MDPVehicle):
             p: m.action_space.sample()
             for p, m in policy_map.items()
         }
-
+        obs = observations[self]
         multi_obs = {_DUMMY_AGENT_ID: obs}
         mapping_cache = {}
         for agent_id, a_obs in multi_obs.items():

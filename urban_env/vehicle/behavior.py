@@ -73,7 +73,7 @@ class IDMVehicle(ControlledVehicle):
                 route=vehicle.route, timer=getattr(vehicle, 'timer', None))
         return v
 
-    def act(self, action=None):
+    def act(self, action=None, **kwargs):
         """
             Execute an action.
 

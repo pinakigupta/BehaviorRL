@@ -121,7 +121,7 @@ class Vehicle(Loggable):
                 vehicle.heading, vehicle.velocity)
         return v
 
-    def act(self, action=None):
+    def act(self, action=None, **kwargs):
         """
             Store an action to be repeated.
 

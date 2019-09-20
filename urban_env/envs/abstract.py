@@ -129,6 +129,8 @@ class AbstractEnv(gym.Env):
             raise ValueError("The observation configuration must be defined")
         self.observation = observation_factory(self, self.vehicle, self.config["observation"])
         self.observation_space = self.observation.space()
+        self.observations = {v: observation_factory(self, v, self.config["observation"]) for v in self.road.vehicles}
+
 
     def _reward(self, action):
         """
@@ -190,7 +192,6 @@ class AbstractEnv(gym.Env):
         self.obs = obs
         reward = self._reward(action)
         self.action = action
-        #self.actions = [action] * 10
         self.reward = reward
         self.episode_reward += self.reward
         terminal = self._is_terminal()
@@ -222,7 +223,7 @@ class AbstractEnv(gym.Env):
                 # Forward action to the vehicle
                 self.vehicle.act(self.ACTIONS[action])
 
-            self.road.act()
+            self.road.act(self.observations)
             self.road.step(1 / self.SIMULATION_FREQUENCY, SCALE)
             self.time += 1
 
