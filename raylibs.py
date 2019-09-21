@@ -280,8 +280,8 @@ def ray_train(save_in_sub_folder=None):
                     #"num_cpus_per_worker": 1,
                     # "gpus": 0,
                     "gamma": 0.85,
-                    "num_workers": delegated_cpus,
-                    "num_envs_per_worker": 2,
+                    "num_workers": 1, #delegated_cpus,
+                    "num_envs_per_worker": 1,
                     "env": train_env_id,
                     "remote_worker_envs": False,
                     "model": {

@@ -124,8 +124,8 @@ class KinematicObservation(ObservationType):
                 
         # Add nearby traffic
         self.close_vehicles = self.env.road.closest_vehicles_to(self.vehicle,
-                                                           self.vehicles_count - 1,
-                                                           7.0 * MDPVehicle.SPEED_MAX)
+                                                                self.vehicles_count - 1,
+                                                                7.0 * MDPVehicle.SPEED_MAX)
 
         
         if self.close_vehicles:
@@ -191,8 +191,8 @@ class KinematicsGoalObservation(KinematicObservation):
             return None
 
     def observe(self):
-        obs = np.ravel(pandas.DataFrame.from_records([self.vehicle.to_dict()])[self.features])
-        goal = np.ravel(pandas.DataFrame.from_records([self.env.goal.to_dict()])[self.features])
+        obs = np.ravel(pandas.DataFrame.from_records([self.vehicle.to_dict(self.vehicle)])[self.features])
+        goal = np.ravel(pandas.DataFrame.from_records([self.env.goal.to_dict(self.vehicle)])[self.features])
         obs = {
             "observation": obs / self.scale,
             "achieved_goal": obs / self.scale,

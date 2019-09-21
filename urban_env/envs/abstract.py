@@ -187,6 +187,7 @@ class AbstractEnv(gym.Env):
             self.reset()
 
         self._simulate(action)
+        
 
         obs = self.observation.observe()
         self.obs = obs

@@ -9,6 +9,8 @@ import numpy as np
 import copy
 from urban_env import utils
 from urban_env.vehicle.dynamics import Vehicle
+from importlib import reload
+import settings
 
 from ray.rllib.rollout import default_policy_agent_mapping, DefaultMapping
 from settings import retrieved_agent_policy
@@ -334,6 +336,8 @@ class MDPVehicle(ControlledVehicle):
             super(MDPVehicle, self).act(action)
         else:
             alpha = 0.9
+            if self.target_velocity < self.velocity:
+                alpha = 1.0
             self.target_velocity = self.lane_target_velocity + alpha * \
                 (self.target_velocity - self.lane_target_velocity)
             super(MDPVehicle, self).act(action)
@@ -445,6 +449,9 @@ class IDMDPVehicle(MDPVehicle):
 
         import settings
         retrieved_agent_policy = settings.retrieved_agent_policy
+        if retrieved_agent_policy is None:
+            print("still none")
+            return
         action = retrieved_agent_policy.compute_single_action(obs, [])[0]
         
         #print("ID", self.Id(), "action ", action)

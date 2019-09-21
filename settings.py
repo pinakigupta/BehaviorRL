@@ -3,7 +3,7 @@
 #                  Created/Modified on: January 10, 2019
 #                      Author: Munir Jojo-Verge
 #######################################################################
-
+import dill
 ray_folder = 'ray_results'
 run_folder = 'run/'
 logs_folder = run_folder + 'logs'
@@ -15,5 +15,7 @@ retrieved_agent = None
 retrieved_agent_policy = None
 
 def update_policy(new_policy):
+
     global retrieved_agent_policy 
     retrieved_agent_policy = new_policy
+

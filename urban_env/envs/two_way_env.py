@@ -66,7 +66,7 @@ class TwoWayEnv(AbstractEnv):
         self.previous_action = action
         obs, rew, done, info = super(TwoWayEnv, self).step(action)
         self.episode_travel = self.vehicle.position[0] - self.ego_x0 
-        #self.print_obs_space()
+        self.print_obs_space(ref_vehicle=self.idmdp_opp_vehicle)
         #self._set_curriculam(curriculam_reward_threshold=0.6*self.GOAL_REWARD)
         return (obs, rew, done, info)
 
@@ -190,12 +190,28 @@ class TwoWayEnv(AbstractEnv):
         idmdp_init_position = ego_init_position
         idmdp_init_position[0] += 15
         idmdp_vehicle = IDMDPVehicle(self.road,
-                                     position=ego_init_position,
-                                     velocity=np.random.randint(low=15, high=35),
+                                     position=idmdp_init_position,
+                                     velocity=np.random.randint(low=15, high=25),
                                      target_velocity=self.ROAD_SPEED,
+                                     target_lane_index=("a", "b", 1),
+                                     lane_index=("a", "b", 1),
                                     )
 
         self.road.vehicles.append(idmdp_vehicle)
+        self.idmdp_vehicle = idmdp_vehicle
+
+        x0 = self.ROAD_LENGTH-self.ego_x0 - 50
+        idmdp_opp_init_position = road.network.get_lane(("b", "a", 0)).position(x0, 0)
+        idmdp_opp_vehicle = IDMDPVehicle(self.road,
+                                         position=idmdp_opp_init_position,
+                                         velocity=0*np.random.randint(low=15, high=25),
+                                         target_velocity=0*self.ROAD_SPEED,
+                                         target_lane_index=("b", "a", 0),
+                                         lane_index=("b", "a", 0),
+                                        )
+
+        self.road.vehicles.append(idmdp_opp_vehicle)
+        self.idmdp_opp_vehicle = idmdp_opp_vehicle
 
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
 
@@ -353,16 +369,20 @@ class TwoWayEnv(AbstractEnv):
         end_obstacle_right.LENGTH = 4
         self.road.vehicles.append(end_obstacle_right)'''                                    
 
-    def print_obs_space(self):
+    def print_obs_space(self, ref_vehicle):
         print("obs space, step ", self.steps)
         #sys.stdout.flush()
         pp = pprint.PrettyPrinter(indent=4)
         numoffeatures = len(self.config["observation"]["features"])
         numfofobs = len(self.obs)
         numofvehicles = numfofobs//numoffeatures
-        close_vehicle_ids =  [int(self.vehicle.Id())]
-        modified_obs = self.obs
-        for v in self.close_vehicles:
+        close_vehicle_ids = [int(ref_vehicle.Id())]
+        modified_obs = self.observations[ref_vehicle].observe()
+        close_vehicles = self.road.closest_vehicles_to(ref_vehicle,
+                                                           numofvehicles - 1,
+                                                           7.0 * MDPVehicle.SPEED_MAX
+                                                          )
+        for v in close_vehicles:
             close_vehicle_ids.append(int(v.Id()))
         close_vehicle_ids.extend([-1]*(numofvehicles-len(close_vehicle_ids)))
         Idx = 0

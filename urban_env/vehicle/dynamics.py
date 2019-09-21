@@ -209,7 +209,7 @@ class Vehicle(Loggable):
         # Accurate rectangular check
         if utils.rotated_rectangles_intersect((self.position, self.LENGTH, self.WIDTH, self.heading),
                                               (other.position, SCALE*other.LENGTH, SCALE*other.WIDTH, other.heading)):
-            self.velocity = other.velocity = min(self.velocity, other.velocity)
+            #self.velocity = other.velocity = min(self.velocity, other.velocity)
             self.crashed = other.crashed = True
 
     @property
