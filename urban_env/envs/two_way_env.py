@@ -67,6 +67,7 @@ class TwoWayEnv(AbstractEnv):
         obs, rew, done, info = super(TwoWayEnv, self).step(action)
         self.episode_travel = self.vehicle.position[0] - self.ego_x0 
         self.print_obs_space(ref_vehicle=self.idmdp_opp_vehicle)
+        self.print_obs_space(ref_vehicle=self.vehicle)
         #self._set_curriculam(curriculam_reward_threshold=0.6*self.GOAL_REWARD)
         return (obs, rew, done, info)
 
@@ -188,7 +189,7 @@ class TwoWayEnv(AbstractEnv):
         self.ego_x0 = ego_vehicle.position[0]
 
         idmdp_init_position = ego_init_position
-        idmdp_init_position[0] += 25
+        idmdp_init_position[0] += 40
         idmdp_vehicle = IDMDPVehicle(self.road,
                                      position=idmdp_init_position,
                                      velocity=np.random.randint(low=15, high=25),
@@ -198,9 +199,9 @@ class TwoWayEnv(AbstractEnv):
                                     )
 
         self.road.vehicles.append(idmdp_vehicle)
-        #self.idmdp_vehicle = idmdp_vehicle
+        self.idmdp_vehicle = idmdp_vehicle
 
-        x0 = self.ROAD_LENGTH-self.ego_x0 - 50
+        x0 = self.ROAD_LENGTH-self.ego_x0 - 150
         idmdp_opp_init_position = road.network.get_lane(("b", "a", 0)).position(x0, 0)
         idmdp_opp_vehicle = IDMDPVehicle(self.road,
                                          position=idmdp_opp_init_position,
@@ -248,7 +249,7 @@ class TwoWayEnv(AbstractEnv):
                               target_velocity=self.ROAD_SPEED,
                               target_lane_index=("a", "b", 1), 
                               lane_index=("a", "b", 1),                             
-                              enable_lane_change=True)
+                              enable_lane_change=False)
             front_vehicle, _ = self.road.neighbour_vehicles(v)
             d = v.lane_distance_to(front_vehicle) 
             if (d<5):
@@ -299,7 +300,7 @@ class TwoWayEnv(AbstractEnv):
                               target_velocity=self.ROAD_SPEED,
                               target_lane_index=("b", "a", 0),
                               lane_index=("b", "a", 0),
-                              enable_lane_change=True
+                              enable_lane_change=False
                               )
             v.target_lane_index = ("b", "a", 0)
             v.lane_index = ("b", "a", 0)

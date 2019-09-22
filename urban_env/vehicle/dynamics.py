@@ -153,8 +153,9 @@ class Vehicle(Loggable):
         elif self.velocity < -self.MAX_VELOCITY:
             self.action['acceleration'] = max(
                 self.action['acceleration'], 1.0*(self.MAX_VELOCITY - self.velocity))
-
-        v = self.velocity * np.array([np.cos(self.heading), np.sin(self.heading)])
+        
+        lane_heading = self.road.network.get_lane(self.route_lane_index).heading_at(self.position)
+        v = self.velocity * np.array([np.cos(self.heading+lane_heading), np.sin(self.heading+lane_heading)])
         self.position += v * dt
         self.heading += self.velocity * np.tan(self.action['steering']) / self.LENGTH * dt
         self.velocity += self.action['acceleration'] * dt
@@ -209,7 +210,7 @@ class Vehicle(Loggable):
         # Accurate rectangular check
         if utils.rotated_rectangles_intersect((self.position, self.LENGTH, self.WIDTH, self.heading),
                                               (other.position, SCALE*other.LENGTH, SCALE*other.WIDTH, other.heading)):
-            #self.velocity = other.velocity = min(self.velocity, other.velocity)
+            self.velocity = other.velocity = min(self.velocity, other.velocity)
             self.crashed = other.crashed = True
 
     @property

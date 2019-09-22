@@ -17,6 +17,8 @@ from settings import retrieved_agent_policy
 from ray.rllib.env.base_env import _DUMMY_AGENT_ID
 from ray.rllib.policy.sample_batch import DEFAULT_POLICY_ID
 
+from urban_env.envdict import ACTIONS_DICT
+
 
 class ControlledVehicle(Vehicle):
     """
@@ -172,6 +174,8 @@ class ControlledVehicle(Vehicle):
         lane_coords = target_lane.local_coordinates(self.position)
         lane_next_coords = lane_coords[0] + self.velocity * self.PURSUIT_TAU
         lane_future_heading = target_lane.heading_at(lane_next_coords)
+        lane_current_heading = target_lane.heading_at(self.position)
+
 
         # Lateral position control
         target_offset = default_offset + lane_coords[1]
@@ -181,7 +185,7 @@ class ControlledVehicle(Vehicle):
         # Lateral velocity to heading
         heading_command = np.arcsin(
             np.clip(lateral_velocity_command/utils.not_zero(self.velocity), -1, 1))
-        heading_ref = lane_future_heading + \
+        heading_ref = lane_future_heading - lane_current_heading + \
             np.clip(heading_command, -np.pi/4, np.pi/4)
         # Heading control
         heading_rate_command = self.KP_HEADING * \
@@ -455,7 +459,8 @@ class IDMDPVehicle(MDPVehicle):
             return
         action = retrieved_agent_policy.compute_single_action(obs, [])[0]
         
-        #print("ID", self.Id(), "action ", action)
+        #action = 3
+        #print("ID", self.Id(), "action ", ACTIONS_DICT[action])
         
         from urban_env import envdict
         super(IDMDPVehicle, self).act(envdict.ACTIONS_DICT[action])
