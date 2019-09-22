@@ -185,7 +185,7 @@ class ControlledVehicle(Vehicle):
         # Lateral velocity to heading
         heading_command = np.arcsin(
             np.clip(lateral_velocity_command/utils.not_zero(self.velocity), -1, 1))
-        heading_ref = lane_future_heading - lane_current_heading + \
+        heading_ref = lane_future_heading  + \
             np.clip(heading_command, -np.pi/4, np.pi/4)
         # Heading control
         heading_rate_command = self.KP_HEADING * \
