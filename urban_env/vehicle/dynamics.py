@@ -216,7 +216,7 @@ class Vehicle(Loggable):
     def direction(self):
         return np.array([np.cos(self.heading), np.sin(self.heading)])
 
-    def to_dict(self, origin_vehicle=None):
+    def to_dict(self, origin_vehicle):
         d = {
             'presence': 1,
             'x': self.position[0],
@@ -230,8 +230,8 @@ class Vehicle(Loggable):
             'psi': self.heading,
             'lane_psi': self.lane.heading_at(self.position[0]),
         }
-        if origin_vehicle:
-            origin_dict = origin_vehicle.to_dict()
+        if (origin_vehicle is not self):
+            origin_dict = origin_vehicle.to_dict(origin_vehicle)
             for key in ['x']:
                 d[key] -= origin_dict[key]
         return d

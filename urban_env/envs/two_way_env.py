@@ -66,7 +66,7 @@ class TwoWayEnv(AbstractEnv):
         self.previous_action = action
         obs, rew, done, info = super(TwoWayEnv, self).step(action)
         self.episode_travel = self.vehicle.position[0] - self.ego_x0 
-        self.print_obs_space(ref_vehicle=self.idmdp_opp_vehicle)
+        self.print_obs_space(ref_vehicle=self.idmdp_vehicle)
         #self._set_curriculam(curriculam_reward_threshold=0.6*self.GOAL_REWARD)
         return (obs, rew, done, info)
 
@@ -210,7 +210,7 @@ class TwoWayEnv(AbstractEnv):
                                          lane_index=("b", "a", 0),
                                         )
 
-        self.road.vehicles.append(idmdp_opp_vehicle)
+        #self.road.vehicles.append(idmdp_opp_vehicle)
         self.idmdp_opp_vehicle = idmdp_opp_vehicle
 
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
