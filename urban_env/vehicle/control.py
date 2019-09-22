@@ -52,6 +52,7 @@ class ControlledVehicle(Vehicle):
                                                 heading=heading,
                                                 velocity=velocity)
         self.target_lane_index = target_lane_index or self.lane_index
+        self.route_lane_index = self.target_lane_index # assume this is not changing unless route is changing
         self.target_velocity = self.velocity if target_velocity is None else target_velocity
         self.lane_target_velocity = self.target_velocity
         self.route = route
@@ -337,7 +338,7 @@ class MDPVehicle(ControlledVehicle):
         else:
             alpha = 0.9
             if self.target_velocity < self.velocity:
-                alpha = 1.0
+                alpha = 0.9
             self.target_velocity = self.lane_target_velocity + alpha * \
                 (self.target_velocity - self.lane_target_velocity)
             super(MDPVehicle, self).act(action)
