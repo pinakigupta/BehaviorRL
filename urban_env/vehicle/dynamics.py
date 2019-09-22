@@ -217,21 +217,24 @@ class Vehicle(Loggable):
         return np.array([np.cos(self.heading), np.sin(self.heading)])
 
     def to_dict(self, origin_vehicle):
-        lane = origin_vehicle.road.network.get_lane(origin_vehicle.route_lane_index)
+        origin_lane = origin_vehicle.road.network.get_lane(origin_vehicle.route_lane_index)
         velocity = self.velocity * self.direction
-        vx = np.dot(velocity, lane.direction)
-        vy = np.dot(velocity, lane.direction_lateral)
+        x = origin_lane.local_coordinates(self.position)[0]
+        y = origin_lane.local_coordinates(self.position)[1]+origin_lane.DEFAULT_WIDTH
+        vx = np.dot(velocity, origin_lane.direction)
+        vy = np.dot(velocity, origin_lane.direction_lateral)
+        psi = self.heading
         d = {
             'presence': 1,
-            'x': lane.local_coordinates(self.position)[0],
-            'y': lane.local_coordinates(self.position)[1]+lane.DEFAULT_WIDTH,
+            'x': x,
+            'y': y,
             'vx': vx,
             'vy': vy,
             'cos_h': self.direction[0],
             'sin_h': self.direction[1],
             'length': self.LENGTH,
             'width_': self.WIDTH,
-            'psi': self.heading,
+            'psi': psi,
             'lane_psi': self.lane.heading_at(self.position[0]),
         }
         if (origin_vehicle is not self):
