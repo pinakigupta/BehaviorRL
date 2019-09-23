@@ -67,30 +67,13 @@ class EnvViewer(object):
             actions = [self.env.ACTIONS[a] for a in actions]
         self.vehicle_trajectories.clear()
         out_q =  Manager().list()
-        '''self.vehicle_trajectories = \
-                [self.env.vehicle.predict_trajectory(actions=actions,
-                                                     action_duration=1/self.env.POLICY_FREQUENCY,
-                                                     trajectory_timestep=1/3/self.env.POLICY_FREQUENCY,
-                                                     dt=1/self.env.SIMULATION_FREQUENCY)]
 
-        for v in self.env.road.closest_vehicles_to(self.env.vehicle, 4):
-            if v not in self.env.road.virtual_vehicles:
-                self.vehicle_trajectories.append\
-                    (Process(target=v.predict_trajectory,
-                             args=(actions,
-                                   1/self.env.POLICY_FREQUENCY,
-                                   1/1/self.env.POLICY_FREQUENCY,
-                                   1/self.env.SIMULATION_FREQUENCY,
-                                   2)
-                            )
-                    )'''
-        
         
         p = [Process(target=v.predict_trajectory,
                       args=(actions,
                             1/self.env.POLICY_FREQUENCY,
                             1/1/self.env.POLICY_FREQUENCY,
-                            1/self.env.SIMULATION_FREQUENCY,
+                            1/self.env.config["SIMULATION_FREQUENCY"],
                             out_q,
                             2)
                             ) for v in self.env.road.closest_vehicles_to(self.env.vehicle, 4) \
@@ -100,7 +83,7 @@ class EnvViewer(object):
                          args=(actions,
                                1/self.env.POLICY_FREQUENCY,
                                1/3/self.env.POLICY_FREQUENCY,
-                               1/self.env.SIMULATION_FREQUENCY,
+                               1/self.env.cofig["SIMULATION_FREQUENCY"],
                                out_q
                             )
                         )
@@ -160,7 +143,7 @@ class EnvViewer(object):
                 self.screen.blit(self.agent_surface, (self.SCREEN_WIDTH, 0))
 
         self.screen.blit(self.sim_surface, (0, 0))
-        self.clock.tick(self.env.SIMULATION_FREQUENCY)
+        self.clock.tick(self.env.config["SIMULATION_FREQUENCY"])
         pygame.display.flip()
 
         if self.SAVE_IMAGES:

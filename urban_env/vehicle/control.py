@@ -447,6 +447,8 @@ class IDMDPVehicle(MDPVehicle):
 
         self.retrieved_agent_policy = None
         self.observation = None
+        self.sim_steps = 0
+
 
     def act(self, observations=None, **kwargs):
         if self.observation is None:
@@ -461,10 +463,11 @@ class IDMDPVehicle(MDPVehicle):
         action = retrieved_agent_policy.compute_single_action(obs, [])[0]
         
         #action = 3
-        #print("ID", self.Id(), "action ", ACTIONS_DICT[action])
+        print("ID", self.Id(), "action ", ACTIONS_DICT[action])
         
         from urban_env import envdict
         super(IDMDPVehicle, self).act(envdict.ACTIONS_DICT[action])
+        self.sim_steps += 1
 
     def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q, pred_horizon=-1):
         return 

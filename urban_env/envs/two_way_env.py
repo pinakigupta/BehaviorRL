@@ -41,22 +41,24 @@ class TwoWayEnv(AbstractEnv):
     OBS_STACK_SIZE = 1
     
     
-    DEFAULT_CONFIG = {
-        "observation": {
-            "type": "Kinematics",
-            "features": ['x', 'y', 'vx', 'vy', 'psi'],
-            "vehicles_count": 6
-        },
-        "other_vehicles_type": "urban_env.vehicle.control.IDMDPVehicle",
-        "duration": 250,
-        "_predict_only": is_predict_only(),
-        "screen_width": 2600,
-        "screen_height": 400,
-        "DIFFICULTY_LEVELS": 2,
+    DEFAULT_CONFIG = {**AbstractEnv.DEFAULT_CONFIG, 
+        **{
+            "observation": {
+                "type": "Kinematics",
+                "features": ['x', 'y', 'vx', 'vy', 'psi'],
+                "vehicles_count": 6
+            },
+            "other_vehicles_type": "urban_env.vehicle.control.IDMDPVehicle",
+            "duration": 250,
+            "_predict_only": is_predict_only(),
+            "screen_width": 2600,
+            "screen_height": 400,
+            "DIFFICULTY_LEVELS": 2,
+            }
     }
 
     def __init__(self, config=DEFAULT_CONFIG):
-        super(TwoWayEnv, self).__init__()
+        super(TwoWayEnv, self).__init__(config)
         #self.goal_achieved = False
         EnvViewer.SCREEN_HEIGHT = self.config['screen_height']
         EnvViewer.SCREEN_WIDTH = self.config['screen_width']         
@@ -246,7 +248,7 @@ class TwoWayEnv(AbstractEnv):
         rand_veh_count = np.random.randint(low=0, high=2*scene_complexity)
         for i in range(rand_veh_count):
             x0 = self.ego_x0+90+40*i + 10*self.np_random.randn()
-            v =     IDMDPVehicle(road,
+            v =     IDMVehicle(road,
                               position=road.network.get_lane(("a", "b", 1))
                               .position(x0, 0),
                               heading=road.network.get_lane(("a", "b", 1)).heading_at(x0),

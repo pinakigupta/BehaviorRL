@@ -269,7 +269,7 @@ class Road(Loggable):
         """
 
         for vehicle in self.vehicles:
-            if vehicle is not self.ego_vehicle:
+            if not vehicle.is_ego():
                         lane_index = self.network.get_closest_lane_index(position=vehicle.position,
                                                                          heading=vehicle.heading,
                                                                         )
@@ -291,7 +291,7 @@ class Road(Loggable):
 
         for vehicle in self.vehicles:
             for other in self.vehicles:
-                if (self.ego_vehicle is not None) and (self.ego_vehicle is vehicle):
+                if (vehicle.is_ego()) or (other.is_ego()):
                     vehicle.check_collision(other, SCALE)
                 else:
                     vehicle.check_collision(other)

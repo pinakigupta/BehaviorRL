@@ -47,15 +47,6 @@ class AbstractEnv(gym.Env):
     """
         A mapping of action labels to action indexes
     """
-
-    SIMULATION_FREQUENCY = 15
-    """
-        The frequency at which the system dynamics are simulated [Hz]
-    """
-    POLICY_FREQUENCY = 1
-    """
-        The frequency at which the agent can take actions [Hz]
-    """
     PERCEPTION_DISTANCE = 5.0 * MDPVehicle.SPEED_MAX
     """
         The maximum distance of any vehicle present in the observation [m]
@@ -65,7 +56,9 @@ class AbstractEnv(gym.Env):
         "observation": {
             "type": "TimeToCollision"
         },
-        "DIFFICULTY_LEVELS": 2
+        "DIFFICULTY_LEVELS": 2,
+        "SIMULATION_FREQUENCY": 15, # The frequency at which the system dynamics are simulated [Hz]
+        "POLICY_FREQUENCY": 1 , #The frequency at which the agent can take actions [Hz]
     }
 
     BUFFER_LENGTH = 50
@@ -75,9 +68,7 @@ class AbstractEnv(gym.Env):
 
     def __init__(self, config=None):
         # Configuration
-        self.config = config
-        if not self.config:
-            self.config = self.DEFAULT_CONFIG.copy()
+        self.config = {**self.DEFAULT_CONFIG, **config}
 
         # Seeding
         self.np_random = None
@@ -219,13 +210,13 @@ class AbstractEnv(gym.Env):
             if not self.config['_predict_only']:
                 SCALE = 1.4
 
-        for k in range(int(self.SIMULATION_FREQUENCY // self.POLICY_FREQUENCY)):
+        for k in range(int(self.config["SIMULATION_FREQUENCY"] // self.config["POLICY_FREQUENCY"])):
             if action is not None : # and self.time % int(self.SIMULATION_FREQUENCY // self.POLICY_FREQUENCY) == 0:
                 # Forward action to the vehicle
                 self.vehicle.act(self.ACTIONS[action])
 
             self.road.act(self.observations)
-            self.road.step(1 / self.SIMULATION_FREQUENCY, SCALE)
+            self.road.step(1 / self.config["SIMULATION_FREQUENCY"], SCALE)
             self.time += 1
 
             # Automatically render intermediate simulation steps if a viewer has been launched
