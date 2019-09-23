@@ -84,9 +84,9 @@ class KinematicObservation(ObservationType):
 
     def space(self):
         one_obs_space = spaces.Box(shape=(len(self.features) * (self.vehicles_count + self.virtual_vehicles_count),), low=-1, high=1, dtype=np.float32)
-        if(self.env.OBS_STACK_SIZE == 1):
+        if(self.env.config["OBS_STACK_SIZE"] == 1):
             return one_obs_space
-        return spaces.Tuple(tuple([one_obs_space]*self.env.OBS_STACK_SIZE))
+        return spaces.Tuple(tuple([one_obs_space]*self.env.config["OBS_STACK_SIZE"]))
 
     def normalize(self, df):
         """
@@ -154,7 +154,7 @@ class KinematicObservation(ObservationType):
         obs = np.clip(df.values, -1, 1)
         # Flatten
         obs = np.ravel(obs)
-        goal = (self.env.GOAL_LENGTH - self.vehicle.position[0]) / self.env.config["PERCEPTION_DISTANCE"] # Normalize
+        goal = (self.env.config["GOAL_LENGTH"] - self.vehicle.position[0]) / self.env.config["PERCEPTION_DISTANCE"] # Normalize
         goal = min(1.0, max(-1.0, goal)) # Clip
         obs[0] = goal # Just a temporary implementation wo explicitly mentioning the goal
         '''obs_idx = 1
@@ -162,10 +162,10 @@ class KinematicObservation(ObservationType):
             obs[obs_idx] = virtual_v.position[1]/self.y_position_range
             obs_idx += 1'''
         
-        if(self.env.OBS_STACK_SIZE == 1):
+        if(self.env.config["OBS_STACK_SIZE"] == 1):
             return obs
         if self.observations is None:
-            self.observations = deque([obs]*self.env.OBS_STACK_SIZE, maxlen=self.env.OBS_STACK_SIZE)
+            self.observations = deque([obs]*self.env.config["OBS_STACK_SIZE"], maxlen=self.env.config["OBS_STACK_SIZE"])
             return tuple(self.observations)
         else:
             self.observations.append(obs)

@@ -30,15 +30,8 @@ class TwoWayEnv(AbstractEnv):
         These conflicting objectives are implemented by a reward signal and a constraint signal,
         in the CMDP/BMDP framework.
     """
-
-    COLLISION_REWARD = -200
-    INVALID_ACTION_REWARD = 0
-    VELOCITY_REWARD = 5
-    GOAL_REWARD = 2000
     ROAD_LENGTH = 2000
-    GOAL_LENGTH = 1000
     ROAD_SPEED = 25
-    OBS_STACK_SIZE = 1
     
     
     DEFAULT_CONFIG = {**AbstractEnv.DEFAULT_CONFIG, 
@@ -54,6 +47,12 @@ class TwoWayEnv(AbstractEnv):
             "screen_width": 2600,
             "screen_height": 400,
             "DIFFICULTY_LEVELS": 2,
+            "COLLISION_REWARD": -200,
+            "INVALID_ACTION_REWARD": 0,
+            "VELOCITY_REWARD": 5,
+            "GOAL_REWARD": 2000,
+            "OBS_STACK_SIZE": 1,
+            "GOAL_LENGTH": 1000
             }
     }
 
@@ -90,7 +89,7 @@ class TwoWayEnv(AbstractEnv):
     def _goal_achieved(self, veh=None):
         if veh is None:
             veh = self.vehicle
-        return (veh.position[0] > self.GOAL_LENGTH and \
+        return (veh.position[0] > self.config["GOAL_LENGTH"] and \
                 self._on_route(veh))
 
     def _reward(self, action):
@@ -101,11 +100,11 @@ class TwoWayEnv(AbstractEnv):
         """
 
         #neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
-        collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
-        velocity_reward = self.VELOCITY_REWARD * (self.vehicle.velocity_index -1) / (self.vehicle.SPEED_COUNT - 1)
+        collision_reward = self.config["COLLISION_REWARD"] * self.vehicle.crashed
+        velocity_reward = self.config["VELOCITY_REWARD"] * (self.vehicle.velocity_index -1) / (self.vehicle.SPEED_COUNT - 1)
         if (velocity_reward > 0):
             velocity_reward *= self._on_route()
-        goal_reward = self.GOAL_REWARD
+        goal_reward = self.config["GOAL_REWARD"]
         if self.vehicle.crashed:
             reward = collision_reward + min(0.0, velocity_reward)
         elif self._goal_achieved():
@@ -113,7 +112,7 @@ class TwoWayEnv(AbstractEnv):
         else:
             reward = velocity_reward
         if not self.vehicle.action_validity:
-            reward = reward + self.INVALID_ACTION_REWARD
+            reward = reward + self.config["INVALID_ACTION_REWARD"]
         return reward
 
     def _is_terminal(self):
