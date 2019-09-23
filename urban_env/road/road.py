@@ -235,7 +235,7 @@ class Road(Loggable):
         A road is a set of lanes, and a set of vehicles driving on these lanes
     """
 
-    def __init__(self, network=None, vehicles=None, np_random=None):
+    def __init__(self, network=None, vehicles=None, np_random=None, config=None):
         """
             New road.
 
@@ -248,6 +248,7 @@ class Road(Loggable):
         self.virtual_vehicles = []
         self.np_random = np_random if np_random else np.random.RandomState()
         self.ego_vehicle = None
+        self.config = config
 
     def close_vehicles_to(self, vehicle, distances):
         return [v for v in self.vehicles if (distances[0] < vehicle.lane_distance_to(v) < distances[1]
@@ -262,6 +263,15 @@ class Road(Loggable):
                            and abs(vehicle.lane_distance_to(v)) < perception_distance],
                           key=lambda v: abs(vehicle.lane_distance_to(v)))
         return sorted_v[:count]
+
+
+    def add_vehicle(self, vehicle):
+        vehicle.config = {**self.config, **vehicle.config}
+        self.vehicles.append(vehicle)
+
+    def add_virtual_vehicle(self, vehicle):
+        vehicle.config = {**self.config, **vehicle.config}
+        self.virtual_vehicles.append(vehicle)
 
     def act(self, observations=None, **kwargs):
         """
