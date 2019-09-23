@@ -354,11 +354,11 @@ class IntervalVehicle(LinearVehicle):
             which corresponds to worst-case outcome.
 
         :param other: the other vehicle
-        """
+        """[]
         if not isinstance(other, MDPVehicle):
             return super(IntervalVehicle, self).check_collision(other)
 
-        if not self.COLLISIONS_ENABLED or self.crashed or other is self:
+        if not self.config["COLLISIONS_ENABLED"] or self.crashed or other is self:
             return
 
         # Fast rectangular pre-check

@@ -82,7 +82,7 @@ class VehicleGraphics(object):
             text = ""
             text = font.render(v.Id(), False, color) 
             textRect = text.get_rect()
-            textRect.center = (surface.pos2pix(v.position[0]+Vehicle.DEFAULT_LENGTH/4, v.position[1]))
+            textRect.center = (surface.pos2pix(v.position[0]+v.LENGTH/4, v.position[1]))
             surface.blit(text, textRect)
         #print("Unable to render text", text)
                 

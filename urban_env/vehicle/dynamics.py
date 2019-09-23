@@ -21,19 +21,18 @@ class Vehicle(Loggable):
         The vehicle is represented by a dynamical system: a modified bicycle model.
         It's state is propagated depending on its steering and acceleration actions.
     """
-    COLLISIONS_ENABLED = True
-    """ Enable collision detection between vehicles """
-    DEFAULT_LENGTH = 5.0
-    """ Vehicle length [m] """
-    DEFAULT_WIDTH = 2.0
-    """ Vehicle width [m] """
 
-    DEFAULT_VELOCITIES = [23, 25]
-    """ Range for random initial velocities [m/s] """
-    MAX_VELOCITY = 40
-    """ Maximum reachable velocity [m/s] """
 
-    def __init__(self, road, position, lane_index = None , heading=0, velocity=0, length=5.0, width=2.0, virtual=False, **kwargs):
+    DEFAULT_CONFIG = {
+                      "DEFAULT_LENGTH": 5.0 , # Vehicle length [m]
+                      "DEFAULT_WIDTH": 2.0 , #  Vehicle width [m] 
+                      "COLLISIONS_ENABLED": True, # Enable collision detection between vehicles
+                      "DEFAULT_VELOCITIES": [23, 25], #Range for random initial velocities [m/s]
+                      "MAX_VELOCITY": 40, #Maximum reachable velocity [m/s]
+    }
+
+    def __init__(self, road, position, lane_index = None , heading=0, velocity=0, length=5.0,
+                 width=2.0, virtual=False, config = DEFAULT_CONFIG,**kwargs):
         self.LENGTH = length
         self.WIDTH = width
         self.road = road
@@ -52,6 +51,7 @@ class Vehicle(Loggable):
         self.log = []
         self.virtual = virtual
         self.is_ego_vehicle = False
+        self.config = {**self.DEFAULT_CONFIG, **config}
     
     def is_ego(self):
         return self.is_ego_vehicle
@@ -90,7 +90,7 @@ class Vehicle(Loggable):
         """
         if velocity is None:
             velocity = road.np_random.uniform(
-                Vehicle.DEFAULT_VELOCITIES[0], Vehicle.DEFAULT_VELOCITIES[1])
+                Vehicle.DEFAULT_CONFIG["DEFAULT_VELOCITIES"[0]], Vehicle.DEFAULT_CONFIG["DEFAULT_VELOCITIES"[1]])
         default_spacing = 1.5*velocity
         _from = road.np_random.choice(list(road.network.graph.keys()))
         _to = road.np_random.choice(list(road.network.graph[_from].keys()))
@@ -147,12 +147,12 @@ class Vehicle(Loggable):
         if self.crashed:
             self.action['steering'] = 0
             self.action['acceleration'] = -1.0*self.velocity
-        if self.velocity > self.MAX_VELOCITY:
+        if self.velocity > self.config["MAX_VELOCITY"]:
             self.action['acceleration'] = min(
-                self.action['acceleration'], 1.0*(self.MAX_VELOCITY - self.velocity))
-        elif self.velocity < -self.MAX_VELOCITY:
+                self.action['acceleration'], 1.0*(self.config["MAX_VELOCITY"] - self.velocity))
+        elif self.velocity < -self.config["MAX_VELOCITY"]:
             self.action['acceleration'] = max(
-                self.action['acceleration'], 1.0*(self.MAX_VELOCITY - self.velocity))
+                self.action['acceleration'], 1.0*(self.config["MAX_VELOCITY"] - self.velocity))
         
         v = self.velocity * np.array([np.cos(self.heading), np.sin(self.heading)])
         self.position += v * dt
@@ -198,7 +198,7 @@ class Vehicle(Loggable):
                 SCALE= 0.9'''
             
 
-        if not self.COLLISIONS_ENABLED or not other.COLLISIONS_ENABLED or self.crashed or other is self:
+        if not self.config["COLLISIONS_ENABLED"] or not other.config["COLLISIONS_ENABLED"] or self.crashed or other is self:
             return
 
 
