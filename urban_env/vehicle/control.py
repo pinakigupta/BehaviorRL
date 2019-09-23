@@ -343,8 +343,6 @@ class MDPVehicle(ControlledVehicle):
             super(MDPVehicle, self).act(action)
         else:
             alpha = 0.8
-            if self.target_velocity < self.velocity:
-                alpha = 1.0
             self.target_velocity = self.lane_target_velocity + alpha * \
                 (self.target_velocity - self.lane_target_velocity)
             super(MDPVehicle, self).act(action)
@@ -437,7 +435,6 @@ class IDMDPVehicle(MDPVehicle):
                  target_lane_index=None,
                  target_velocity=None,
                  route=None,
-                 enable_lane_change=None,
                  **kwargs):
         super(IDMDPVehicle, self).__init__(road=road,
                                            position=position,

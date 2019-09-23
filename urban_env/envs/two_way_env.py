@@ -14,6 +14,7 @@ from urban_env.road.lane import LineType, StraightLane, SineLane
 from urban_env.road.road import Road, RoadNetwork
 from urban_env.envs.graphics import EnvViewer
 from urban_env.vehicle.control import ControlledVehicle, MDPVehicle, IDMDPVehicle
+from urban_env.vehicle.behavior import IDMVehicle
 from urban_env.vehicle.dynamics import Obstacle
 from handle_model_files import is_predict_only
 from urban_env.envs.graphics import EnvViewer
@@ -34,7 +35,8 @@ class TwoWayEnv(AbstractEnv):
     INVALID_ACTION_REWARD = 0
     VELOCITY_REWARD = 5
     GOAL_REWARD = 2000
-    ROAD_LENGTH = 1000
+    ROAD_LENGTH = 2000
+    GOAL_LENGTH = 1000
     ROAD_SPEED = 25
     OBS_STACK_SIZE = 1
     
@@ -86,8 +88,8 @@ class TwoWayEnv(AbstractEnv):
     def _goal_achieved(self, veh=None):
         if veh is None:
             veh = self.vehicle
-        return (veh.position[0] > 0.99 * self.ROAD_LENGTH) and \
-                self._on_route(veh)
+        return (veh.position[0] > self.GOAL_LENGTH and \
+                self._on_route(veh))
 
     def _reward(self, action):
         """
@@ -167,7 +169,7 @@ class TwoWayEnv(AbstractEnv):
 
         if '_predict_only' in self.config:
             if self.config['_predict_only']:
-                scene_complexity = 4
+                scene_complexity = 3
         
         road = self.road
         ego_lane = road.network.get_lane(("a", "b", 1))
@@ -188,7 +190,7 @@ class TwoWayEnv(AbstractEnv):
         self.vehicle = ego_vehicle
         self.ego_x0 = ego_vehicle.position[0]
 
-        ''' idmdp_init_position = ego_init_position
+        idmdp_init_position = ego_init_position
         idmdp_init_position[0] += 40
         idmdp_vehicle = IDMDPVehicle(self.road,
                                      position=idmdp_init_position,
@@ -202,7 +204,7 @@ class TwoWayEnv(AbstractEnv):
         self.road.vehicles.append(idmdp_vehicle)
         self.idmdp_vehicle = idmdp_vehicle
 
-        x0 = self.ROAD_LENGTH-self.ego_x0 - 150
+        '''x0 = self.ROAD_LENGTH-self.ego_x0 - 150
         idmdp_opp_init_position = road.network.get_lane(("b", "a", 0)).position(x0, 0)
         idmdp_opp_vehicle = IDMDPVehicle(self.road,
                                          position=idmdp_opp_init_position,
@@ -244,7 +246,7 @@ class TwoWayEnv(AbstractEnv):
         rand_veh_count = np.random.randint(low=0, high=2*scene_complexity)
         for i in range(rand_veh_count):
             x0 = self.ego_x0+90+40*i + 10*self.np_random.randn()
-            v = vehicles_type(road,
+            v =     IDMDPVehicle(road,
                               position=road.network.get_lane(("a", "b", 1))
                               .position(x0, 0),
                               heading=road.network.get_lane(("a", "b", 1)).heading_at(x0),
@@ -295,7 +297,7 @@ class TwoWayEnv(AbstractEnv):
         lane_change = (scene_complexity)
         for i in range(np.random.randint(low=0,high=2*scene_complexity)):
             x0 = self.ROAD_LENGTH-self.ego_x0-20-120*i + 10*self.np_random.randn()
-            v = vehicles_type(road,
+            v =    IDMVehicle(road,
                               position=road.network.get_lane(("b", "a", 0))
                               .position(x0, 0.1),
                               heading=road.network.get_lane(("b", "a", 0)).heading_at(x0),

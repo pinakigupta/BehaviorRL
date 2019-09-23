@@ -266,9 +266,16 @@ class Road(Loggable):
         """
             Decide the actions of each entity on the road.
         """
+
         for vehicle in self.vehicles:
             if vehicle is not self.ego_vehicle:
-                vehicle.act(observations=observations)
+                        lane_index = self.network.get_closest_lane_index(position=vehicle.position,
+                                                                         heading=vehicle.heading,
+                                                                        )
+                        lane_distance = self.network.get_lane(lane_index).distance(vehicle.position)
+                        if lane_distance>8:
+                            print(vehicle.Id(), " lane_distance ", lane_distance)
+                        vehicle.act(observations=observations)
 
     def step(self, dt, SCALE=1):
         """
