@@ -47,11 +47,7 @@ class AbstractEnv(gym.Env):
     """
         A mapping of action labels to action indexes
     """
-    PERCEPTION_DISTANCE = 5.0 * MDPVehicle.SPEED_MAX
-    """
-        The maximum distance of any vehicle present in the observation [m]
-    """
-    
+
     DEFAULT_CONFIG = {
         "observation": {
             "type": "TimeToCollision"
@@ -59,6 +55,7 @@ class AbstractEnv(gym.Env):
         "DIFFICULTY_LEVELS": 2,
         "SIMULATION_FREQUENCY": 15, # The frequency at which the system dynamics are simulated [Hz]
         "POLICY_FREQUENCY": 1 , #The frequency at which the agent can take actions [Hz]
+        "PERCEPTION_DISTANCE": 7.0 * MDPVehicle.SPEED_MAX, # The maximum distance of any vehicle present in the observation [m]
     }
 
     BUFFER_LENGTH = 50
@@ -319,7 +316,7 @@ class AbstractEnv(gym.Env):
         """
         state_copy = copy.deepcopy(self)
         state_copy.road.vehicles = [state_copy.vehicle] + state_copy.road.close_vehicles_to(
-            state_copy.vehicle, [-self.PERCEPTION_DISTANCE / 2, self.PERCEPTION_DISTANCE])
+            state_copy.vehicle, [-self.config["PERCEPTION_DISTANCE"] / 2, self.config["PERCEPTION_DISTANCE"]])
 
         return state_copy
 

@@ -96,7 +96,7 @@ class KinematicObservation(ObservationType):
         :param Dataframe df: observation data
         """
         side_lanes = self.env.road.network.all_side_lanes(self.vehicle.lane_index)
-        self.x_position_range = 7.0 * MDPVehicle.SPEED_MAX
+        self.x_position_range = self.env.config["PERCEPTION_DISTANCE"]
         self.y_position_range = AbstractLane.DEFAULT_WIDTH * len(side_lanes)
         self.velocity_range = 1.5*MDPVehicle.SPEED_MAX
         df['x'] = utils.remap(df['x']  , [- self.x_position_range,  self.x_position_range], [-1, 1])
@@ -125,7 +125,7 @@ class KinematicObservation(ObservationType):
         # Add nearby traffic
         self.close_vehicles = self.env.road.closest_vehicles_to(self.vehicle,
                                                                 self.vehicles_count - 1,
-                                                                7.0 * MDPVehicle.SPEED_MAX)
+                                                                self.env.config["PERCEPTION_DISTANCE"])
 
         
         if self.close_vehicles:
@@ -154,7 +154,7 @@ class KinematicObservation(ObservationType):
         obs = np.clip(df.values, -1, 1)
         # Flatten
         obs = np.ravel(obs)
-        goal = (self.env.GOAL_LENGTH - self.vehicle.position[0]) / (7.0 * MDPVehicle.SPEED_MAX) # Normalize
+        goal = (self.env.GOAL_LENGTH - self.vehicle.position[0]) / self.env.config["PERCEPTION_DISTANCE"] # Normalize
         goal = min(1.0, max(-1.0, goal)) # Clip
         obs[0] = goal # Just a temporary implementation wo explicitly mentioning the goal
         '''obs_idx = 1
