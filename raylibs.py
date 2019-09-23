@@ -256,7 +256,10 @@ def ray_train(save_in_sub_folder=None):
         local_dir=local_dir_path
         resume=False
 
-    checkpoint_freq=int(num_timesteps)//min(int(num_timesteps),20)
+    checkpoint_freq=int(num_timesteps)//min(int(num_timesteps), 20)
+
+    import settings
+    retrieved_agent_policy = settings.retrieved_agent_policy
 
     ray_trials = ray.tune.run(
             algo,
@@ -287,7 +290,10 @@ def ray_train(save_in_sub_folder=None):
                     "model": {
                                 #    "use_lstm": True,
                                     "fcnet_hiddens": [256, 256, 256],
-                            },                
+                            }, 
+                    "env_config": {
+                                    "retrieved_agent_policy": 1,
+                                  },               
                     #"callbacks": {
                                 #  "on_episode_start": ray.tune.function(on_episode_start),
                     #             },
@@ -309,6 +315,7 @@ def ray_train(save_in_sub_folder=None):
 def ray_play():
     #subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
     agent=ray_retrieve_agent()
+
     rollout(agent=agent,
             env_name=None,
             num_steps=10000,

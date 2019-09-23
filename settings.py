@@ -3,7 +3,8 @@
 #                  Created/Modified on: January 10, 2019
 #                      Author: Munir Jojo-Verge
 #######################################################################
-import dill
+from ray.cloudpickle import cloudpickle
+import pickle
 ray_folder = 'ray_results'
 run_folder = 'run/'
 logs_folder = run_folder + 'logs'
@@ -18,4 +19,6 @@ def update_policy(new_policy):
 
     global retrieved_agent_policy 
     retrieved_agent_policy = new_policy
+
+
 

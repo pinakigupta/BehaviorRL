@@ -388,7 +388,7 @@ class TwoWayEnv(AbstractEnv):
         close_vehicles = self.road.closest_vehicles_to(ref_vehicle,
                                                            numofvehicles - 1,
                                                            7.0 * MDPVehicle.SPEED_MAX
-                                                          )
+                                                      )
         for v in close_vehicles:
             close_vehicle_ids.append(int(v.Id()))
         close_vehicle_ids.extend([-1]*(numofvehicles-len(close_vehicle_ids)))

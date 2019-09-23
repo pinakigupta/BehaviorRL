@@ -449,6 +449,7 @@ class IDMDPVehicle(MDPVehicle):
         self.observation = None
         self.sim_steps = 0
         self.discrete_action = None
+        self.sim_steps_per_policy_step = None
         
 
 
@@ -457,20 +458,27 @@ class IDMDPVehicle(MDPVehicle):
             self.observation = observations[self]
         obs = self.observation.observe()
 
-        self.sim_steps_per_policy_step = self.config["SIMULATION_FREQUENCY"]//self.config["POLICY_FREQUENCY"]
-        if self.sim_steps>= self.sim_steps_per_policy_step:
+        if self.sim_steps_per_policy_step is None:
+            self.sim_steps_per_policy_step = self.config["SIMULATION_FREQUENCY"]//self.config["POLICY_FREQUENCY"]
+
+            
+        if self.retrieved_agent_policy is None:
             import settings
             retrieved_agent_policy = settings.retrieved_agent_policy
-            if retrieved_agent_policy is None:
-                print("still none")
-                return
-            self.discrete_action = retrieved_agent_policy.compute_single_action(obs, [])[0]
-            self.sim_steps = 0
+            self.retrieved_agent_policy = retrieved_agent_policy
+
+        if self.sim_steps >= self.sim_steps_per_policy_step:
+            if self.retrieved_agent_policy is not None:
+                self.discrete_action = self.retrieved_agent_policy.compute_single_action(obs, [])[0]
+                self.sim_steps = 0
+
         
         if self.discrete_action is not None:
-            #print("ID", self.Id(), "action ", ACTIONS_DICT[self.discrete_action]," steps ", self.sim_steps)
+            print("ID", self.Id(), "action ", ACTIONS_DICT[self.discrete_action]," steps ", self.sim_steps)
             super(IDMDPVehicle, self).act(ACTIONS_DICT[self.discrete_action])
         self.sim_steps += 1
 
     def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q, pred_horizon=-1):
         return None
+
+
