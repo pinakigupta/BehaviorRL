@@ -40,7 +40,8 @@ class IDMVehicle(ControlledVehicle):
                  target_velocity=None,
                  route=None,
                  enable_lane_change=True,
-                 timer=None):
+                 timer=None,
+                 **kwargs):
         super(IDMVehicle, self).__init__(road = road, 
                                          position = position, 
                                          heading = heading, 

@@ -33,7 +33,7 @@ class Vehicle(Loggable):
     MAX_VELOCITY = 40
     """ Maximum reachable velocity [m/s] """
 
-    def __init__(self, road, position, lane_index = None , heading=0, velocity=0, length=5.0, width=2.0, virtual=False):
+    def __init__(self, road, position, lane_index = None , heading=0, velocity=0, length=5.0, width=2.0, virtual=False, **kwargs):
         self.LENGTH = length
         self.WIDTH = width
         self.road = road
@@ -154,7 +154,6 @@ class Vehicle(Loggable):
             self.action['acceleration'] = max(
                 self.action['acceleration'], 1.0*(self.MAX_VELOCITY - self.velocity))
         
-        lane_heading = self.road.network.get_lane(self.route_lane_index).heading_at(self.position)
         v = self.velocity * np.array([np.cos(self.heading), np.sin(self.heading)])
         self.position += v * dt
         self.heading += self.velocity * np.tan(self.action['steering']) / self.LENGTH * dt
@@ -306,11 +305,11 @@ class Obstacle(Vehicle):
         A motionless obstacle at a given position.
     """
 
-    def __init__(self, road, position, heading=0):
+    def __init__(self, road, position, heading=0, **kwargs):
         super(Obstacle, self).__init__(
             road, position, velocity=0, heading=heading)
         self.target_velocity = 0
-        self.LENGTH = self.WIDTH
+        #self.LENGTH = self.WIDTH
 
     def Id(self):
         return str(id(self))[-3:]

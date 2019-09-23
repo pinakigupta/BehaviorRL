@@ -47,7 +47,8 @@ class ControlledVehicle(Vehicle):
                  lane_index=None,
                  target_lane_index=None,
                  target_velocity=None,
-                 route=None):
+                 route=None,
+                 **kwargs):
         super(ControlledVehicle, self).__init__(road=road,
                                                 position=position,
                                                 lane_index=lane_index,
@@ -306,7 +307,8 @@ class MDPVehicle(ControlledVehicle):
                  lane_index=None,
                  target_lane_index=None,
                  target_velocity=None,
-                 route=None):
+                 route=None,
+                 **kwargs):
         super(MDPVehicle, self).__init__(road=road,
                                          position=position,
                                          heading=heading,
@@ -434,7 +436,9 @@ class IDMDPVehicle(MDPVehicle):
                  lane_index=None,
                  target_lane_index=None,
                  target_velocity=None,
-                 route=None):
+                 route=None,
+                 enable_lane_change=None,
+                 **kwargs):
         super(IDMDPVehicle, self).__init__(road=road,
                                            position=position,
                                            heading=heading,
