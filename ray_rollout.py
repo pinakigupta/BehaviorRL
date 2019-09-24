@@ -25,9 +25,17 @@ def filetonum(filename):
     except:
         return -1
 
+def dirsearch(resultstr):
+   for dirname, dirnames, filenames in os.walk(os.getcwd()):
+      if '.git' in dirnames:
+        # don't go into any .git directories.
+         dirnames.remove('.git')
+      for subdirname in dirnames:
+         if resultstr in subdirname:
+            return(os.path.join(dirname, subdirname))
 
 def retrieve_ray_folder_info(target_folder):
-    local_restore_path = pathname + "/" + ray_folder + "/" + target_folder #"20190805-132549"
+    local_restore_path = dirsearch(target_folder)#pathname + "/" + ray_folder + "/" + target_folder #"20190805-132549"
     restore_folder = local_restore_path + "/pygame-ray/"
     #checkpt = 2800
     subdir = next(os.walk(restore_folder))[1][0]
