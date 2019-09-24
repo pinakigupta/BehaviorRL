@@ -90,7 +90,7 @@ def main(**kwargs):
                 print("(rank , size) = ", mpi_util.get_local_rank_size(MPI.COMM_WORLD))
 
                 # import baselines.run as run
-                print("(rank , size) = ",mpi_util.get_local_rank_size(MPI.COMM_WORLD))
+                print("(rank , size) = ", mpi_util.get_local_rank_size(MPI.COMM_WORLD))
                 if len(sys_args) <= 1:
                     save_in_sub_folder = None
                     if max_iteration > 1:

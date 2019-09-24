@@ -52,7 +52,8 @@ class TwoWayEnv(AbstractEnv):
             "VELOCITY_REWARD": 5,
             "GOAL_REWARD": 2000,
             "OBS_STACK_SIZE": 1,
-            "GOAL_LENGTH": 1000
+            "GOAL_LENGTH": 1000,
+            
             }
     }
 
@@ -69,8 +70,9 @@ class TwoWayEnv(AbstractEnv):
         self.previous_action = action
         obs, rew, done, info = super(TwoWayEnv, self).step(action)
         self.episode_travel = self.vehicle.position[0] - self.ego_x0 
-        #self.print_obs_space(ref_vehicle=self.idmdp_opp_vehicle)
-        #self.print_obs_space(ref_vehicle=self.vehicle)
+        self.print_obs_space(ref_vehicle=self.idmdp_opp_vehicle)
+        self.print_obs_space(ref_vehicle=self.vehicle)
+        self.print_obs_space(ref_vehicle=self.idmdp_vehicle)
         #self._set_curriculam(curriculam_reward_threshold=0.6*self.GOAL_REWARD)
         return (obs, rew, done, info)
 
@@ -180,7 +182,8 @@ class TwoWayEnv(AbstractEnv):
                                                                 ),
                                                0
                                              )
-        ego_vehicle = MDPVehicle(self.road,
+        ego_vehicle = MDPVehicle(
+                                 self.road,
                                  position=ego_init_position,
                                  velocity=np.random.randint(low=15, high=35),
                                  target_velocity=self.ROAD_SPEED,
@@ -205,9 +208,10 @@ class TwoWayEnv(AbstractEnv):
         self.road.add_vehicle(idmdp_vehicle)
         self.idmdp_vehicle = idmdp_vehicle
 
-        '''x0 = self.ROAD_LENGTH-self.ego_x0 - 150
+        x0 = self.ROAD_LENGTH-self.ego_x0 - 150
         idmdp_opp_init_position = road.network.get_lane(("b", "a", 0)).position(x0, 0)
-        idmdp_opp_vehicle = IDMDPVehicle(self.road,
+        idmdp_opp_vehicle = IDMDPVehicle(
+                                         self.road,
                                          position=idmdp_opp_init_position,
                                          velocity=0*np.random.randint(low=15, high=25),
                                          heading=road.network.get_lane(("b", "a", 0)).heading_at(x0),
@@ -217,7 +221,7 @@ class TwoWayEnv(AbstractEnv):
                                         )
 
         self.road.add_vehicle(idmdp_opp_vehicle)
-        self.idmdp_opp_vehicle = idmdp_opp_vehicle'''
+        self.idmdp_opp_vehicle = idmdp_opp_vehicle
 
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
 
@@ -232,17 +236,17 @@ class TwoWayEnv(AbstractEnv):
             x0 = self.ego_x0 + 90 + 90*i + 10*self.np_random.randn()
             stat_veh_x0.append(x0)
             self.road.add_vehicle(
-                    Obstacle(self.road,
-                             position=road.network.get_lane(("a", "b", 1))
-                              .position(x0, 1),
-                             heading=road.network.get_lane(("a", "b", 1)).heading_at(x0),
-                             velocity=0,
-                             target_velocity=0,
-                             target_lane_index=("a", "b", 1),
-                             lane_index=("a", "b", 1),                             
-                             enable_lane_change=False
-                             )
-            )
+                                    Obstacle(self.road,
+                                             position=road.network.get_lane(("a", "b", 1))
+                                             .position(x0, 1),
+                                             heading=road.network.get_lane(("a", "b", 1)).heading_at(x0),
+                                             velocity=0,
+                                             target_velocity=0,
+                                             target_lane_index=("a", "b", 1),
+                                             lane_index=("a", "b", 1),                             
+                                             enable_lane_change=False
+                                            )
+                                 )
             
         rand_veh_count = np.random.randint(low=0, high=2*scene_complexity)
         for i in range(rand_veh_count):

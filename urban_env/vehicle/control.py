@@ -99,8 +99,7 @@ class ControlledVehicle(Vehicle):
 
         :param action: a high-level action
         """
-        self.front_vehicle, self.rear_vehicle = self.road.neighbour_vehicles(
-            self)
+        self.front_vehicle, self.rear_vehicle = self.road.neighbour_vehicles(self)
         is_aggressive_lcx = False
         self.follow_road()
 
@@ -471,10 +470,10 @@ class IDMDPVehicle(MDPVehicle):
             if self.retrieved_agent_policy is not None:
                 self.discrete_action = self.retrieved_agent_policy.compute_single_action(obs, [])[0]
                 self.sim_steps = 0
+                print("ID", self.Id(), "action ", ACTIONS_DICT[self.discrete_action]," steps ", self.sim_steps)
 
         
         if self.discrete_action is not None:
-            print("ID", self.Id(), "action ", ACTIONS_DICT[self.discrete_action]," steps ", self.sim_steps)
             super(IDMDPVehicle, self).act(ACTIONS_DICT[self.discrete_action])
         self.sim_steps += 1
 

@@ -3,8 +3,8 @@
 #                  Created/Modified on: January 10, 2019
 #                      Author: Munir Jojo-Verge
 #######################################################################
-from ray.cloudpickle import cloudpickle
-import pickle
+#from ray.cloudpickle import cloudpickle
+#import pickle
 ray_folder = 'ray_results'
 run_folder = 'run/'
 logs_folder = run_folder + 'logs'

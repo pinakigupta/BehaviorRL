@@ -315,7 +315,7 @@ class Road(Loggable):
                      vehicle is projected on it considering its local coordinates in the lane.
         :return: its preceding vehicle, its following vehicle
         """
-        lane_index = lane_index or vehicle.lane_index
+        lane_index = lane_index or vehicle.route_lane_index
         if not lane_index:
             return None, None
         lane = self.network.get_lane(lane_index)
