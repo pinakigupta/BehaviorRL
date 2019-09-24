@@ -389,7 +389,7 @@ class MDPVehicle(ControlledVehicle):
         :return: the sequence of future states
         """
         states = []
-        v = copy.copy(self)
+        v = copy.deepcopy(self)
         #v.virtual = True
         t = 0
         action = actions[0]
@@ -400,7 +400,7 @@ class MDPVehicle(ControlledVehicle):
                 v.act(action)  # High and Low-level control action
                 v.step(dt)
                 if (t % int(trajectory_timestep / dt)) == 0:
-                    states.append(copy.copy(v))
+                    states.append(copy.deepcopy(v))
 
                 if pred_horizon > 0 and t > pred_horizon//dt:
                     break
@@ -467,15 +467,15 @@ class IDMDPVehicle(MDPVehicle):
             self.sim_steps_per_policy_step = self.config["SIMULATION_FREQUENCY"]//self.config["POLICY_FREQUENCY"]
 
             
-        if self.retrieved_agent_policy is None:
-            import settings
-            retrieved_agent_policy = settings.retrieved_agent_policy
-            self.retrieved_agent_policy = retrieved_agent_policy
+        #if self.retrieved_agent_policy is None:
+        import settings
+        retrieved_agent_policy = settings.retrieved_agent_policy
+            #self.retrieved_agent_policy = copy.copy(retrieved_agent_policy)
 
         if self.sim_steps >= self.sim_steps_per_policy_step:
-            if self.retrieved_agent_policy is not None:
-                self.discrete_action = self.retrieved_agent_policy.compute_single_action(obs, [])[0]
-                self.sim_steps = 0
+            #if self.retrieved_agent_policy is not None:
+            self.discrete_action = retrieved_agent_policy.compute_single_action(obs, [])[0]
+            self.sim_steps = 0
                 #print("ID", self.Id(), "action ", ACTIONS_DICT[self.discrete_action]," steps ", self.sim_steps)
 
         
@@ -483,7 +483,7 @@ class IDMDPVehicle(MDPVehicle):
             super(IDMDPVehicle, self).act(ACTIONS_DICT[self.discrete_action])
         self.sim_steps += 1
 
-    def predict_trajectory(self, **kwargs):
-        return None
+    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q, pred_horizon=-1, **kwargs):
+        return 
 
 

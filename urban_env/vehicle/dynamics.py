@@ -314,5 +314,5 @@ class Obstacle(Vehicle):
     def Id(self):
         return str(id(self))[-3:]
 
-    def predict_trajectory(self, **kwargs):
+    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q, pred_horizon=-1, **kwargs):
         return None
