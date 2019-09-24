@@ -41,15 +41,17 @@ class IDMVehicle(ControlledVehicle):
                  route=None,
                  enable_lane_change=True,
                  timer=None,
+                 config=None,
                  **kwargs):
-        super(IDMVehicle, self).__init__(road = road, 
-                                         position = position, 
-                                         heading = heading, 
-                                         velocity = velocity, 
-                                         lane_index = lane_index,
-                                         target_lane_index = target_lane_index, 
-                                         target_velocity = target_velocity, 
-                                         route = route)
+        super(IDMVehicle, self).__init__(road=road, 
+                                         position=position, 
+                                         heading=heading, 
+                                         velocity=velocity, 
+                                         lane_index=lane_index,
+                                         target_lane_index=target_lane_index, 
+                                         target_velocity=target_velocity,
+                                         route=route,
+                                         config=config)
         self.enable_lane_change = enable_lane_change
         self.timer = timer or (np.sum(self.position)*np.pi) % self.LANE_CHANGE_DELAY
 

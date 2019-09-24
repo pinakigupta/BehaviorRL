@@ -71,9 +71,9 @@ class EnvViewer(object):
         
         p = [Process(target=v.predict_trajectory,
                       args=(actions,
-                            1/self.env.POLICY_FREQUENCY,
-                            1/1/self.env.POLICY_FREQUENCY,
-                            1/self.env.config["SIMULATION_FREQUENCY"],
+                            1/v.config["POLICY_FREQUENCY"],
+                            1/1/v.config["POLICY_FREQUENCY"],
+                            1/v.config["SIMULATION_FREQUENCY"],
                             out_q,
                             2)
                             ) for v in self.env.road.closest_vehicles_to(self.env.vehicle, 4) \
@@ -81,9 +81,9 @@ class EnvViewer(object):
 
         p.append(Process(target=self.env.vehicle.predict_trajectory,
                          args=(actions,
-                               1/self.env.POLICY_FREQUENCY,
-                               1/3/self.env.POLICY_FREQUENCY,
-                               1/self.env.cofig["SIMULATION_FREQUENCY"],
+                               1/self.env.vehicle.config["POLICY_FREQUENCY"],
+                               1/3/self.env.vehicle.config["POLICY_FREQUENCY"],
+                               1/self.env.vehicle.config["SIMULATION_FREQUENCY"],
                                out_q
                             )
                         )

@@ -48,12 +48,14 @@ class ControlledVehicle(Vehicle):
                  target_lane_index=None,
                  target_velocity=None,
                  route=None,
+                 config=None,
                  **kwargs):
         super(ControlledVehicle, self).__init__(road=road,
                                                 position=position,
                                                 lane_index=lane_index,
                                                 heading=heading,
-                                                velocity=velocity)
+                                                velocity=velocity,
+                                                config=config)
         self.target_lane_index = target_lane_index or self.lane_index
         self.route_lane_index = self.target_lane_index # assume this is not changing unless route is changing
         self.target_velocity = self.velocity if target_velocity is None else target_velocity
@@ -248,7 +250,7 @@ class ControlledVehicle(Vehicle):
         #    return
         return super(ControlledVehicle, self).check_collision(other, SCALE)
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q, pred_horizon=-1):
+    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q, pred_horizon=-1, **kwargs):
         """
             Predict the future trajectory of the vehicle given a sequence of actions.
 
@@ -307,6 +309,7 @@ class MDPVehicle(ControlledVehicle):
                  target_lane_index=None,
                  target_velocity=None,
                  route=None,
+                 config=None,
                  **kwargs):
         super(MDPVehicle, self).__init__(road=road,
                                          position=position,
@@ -315,7 +318,8 @@ class MDPVehicle(ControlledVehicle):
                                          lane_index=lane_index,
                                          target_lane_index=target_lane_index,
                                          target_velocity=target_velocity,
-                                         route=route)
+                                         route=route,
+                                         config=config)
         self.velocity_index = self.speed_to_index(self.target_velocity)
         self.target_velocity = self.index_to_speed(self.velocity_index)
 
@@ -374,7 +378,7 @@ class MDPVehicle(ControlledVehicle):
         """
         return self.speed_to_index(self.velocity)
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q, pred_horizon=-1):
+    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q, pred_horizon=-1, **kwargs):
         """
             Predict the future trajectory of the vehicle given a sequence of actions.
 
@@ -385,7 +389,7 @@ class MDPVehicle(ControlledVehicle):
         :return: the sequence of future states
         """
         states = []
-        v = copy.deepcopy(self)
+        v = copy.copy(self)
         #v.virtual = True
         t = 0
         action = actions[0]
@@ -396,7 +400,7 @@ class MDPVehicle(ControlledVehicle):
                 v.act(action)  # High and Low-level control action
                 v.step(dt)
                 if (t % int(trajectory_timestep / dt)) == 0:
-                    states.append(copy.deepcopy(v))
+                    states.append(copy.copy(v))
 
                 if pred_horizon > 0 and t > pred_horizon//dt:
                     break
@@ -434,6 +438,7 @@ class IDMDPVehicle(MDPVehicle):
                  target_lane_index=None,
                  target_velocity=None,
                  route=None,
+                 config=None,
                  **kwargs):
         super(IDMDPVehicle, self).__init__(road=road,
                                            position=position,
@@ -442,7 +447,8 @@ class IDMDPVehicle(MDPVehicle):
                                            lane_index=lane_index,
                                            target_lane_index=target_lane_index,
                                            target_velocity=target_velocity,
-                                           route=route)
+                                           route=route,
+                                           config=config)
 
         self.retrieved_agent_policy = None
         self.observation = None
@@ -470,14 +476,14 @@ class IDMDPVehicle(MDPVehicle):
             if self.retrieved_agent_policy is not None:
                 self.discrete_action = self.retrieved_agent_policy.compute_single_action(obs, [])[0]
                 self.sim_steps = 0
-                print("ID", self.Id(), "action ", ACTIONS_DICT[self.discrete_action]," steps ", self.sim_steps)
+                #print("ID", self.Id(), "action ", ACTIONS_DICT[self.discrete_action]," steps ", self.sim_steps)
 
         
         if self.discrete_action is not None:
             super(IDMDPVehicle, self).act(ACTIONS_DICT[self.discrete_action])
         self.sim_steps += 1
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q, pred_horizon=-1):
+    def predict_trajectory(self, **kwargs):
         return None
 
 

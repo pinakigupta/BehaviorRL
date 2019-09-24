@@ -70,9 +70,9 @@ class TwoWayEnv(AbstractEnv):
         self.previous_action = action
         obs, rew, done, info = super(TwoWayEnv, self).step(action)
         self.episode_travel = self.vehicle.position[0] - self.ego_x0 
-        self.print_obs_space(ref_vehicle=self.idmdp_opp_vehicle)
-        self.print_obs_space(ref_vehicle=self.vehicle)
-        self.print_obs_space(ref_vehicle=self.idmdp_vehicle)
+        #self.print_obs_space(ref_vehicle=self.idmdp_opp_vehicle)
+        #self.print_obs_space(ref_vehicle=self.vehicle)
+        #self.print_obs_space(ref_vehicle=self.idmdp_vehicle)
         #self._set_curriculam(curriculam_reward_threshold=0.6*self.GOAL_REWARD)
         return (obs, rew, done, info)
 
@@ -172,7 +172,7 @@ class TwoWayEnv(AbstractEnv):
 
         if '_predict_only' in self.config:
             if self.config['_predict_only']:
-                scene_complexity = 3
+                scene_complexity = 2
         
         road = self.road
         ego_lane = road.network.get_lane(("a", "b", 1))
@@ -187,6 +187,7 @@ class TwoWayEnv(AbstractEnv):
                                  position=ego_init_position,
                                  velocity=np.random.randint(low=15, high=35),
                                  target_velocity=self.ROAD_SPEED,
+                                 config=self.config
                                  )
         ego_vehicle.is_ego_vehicle = True
         self.road.vehicles.append(ego_vehicle)
@@ -196,13 +197,14 @@ class TwoWayEnv(AbstractEnv):
 
         idmdp_init_position = ego_init_position
         idmdp_init_position[0] += 40
-        idmdp_vehicle = IDMDPVehicle(self.road,
+        idmdp_vehicle = IDMDPVehicle(road=self.road,
                                      position=idmdp_init_position,
                                      velocity=np.random.randint(low=15, high=25),
                                      heading=road.network.get_lane(("a", "b", 1)).heading_at(0),
                                      target_velocity=self.ROAD_SPEED,
                                      target_lane_index=("a", "b", 1),
                                      lane_index=("a", "b", 1),
+                                     config=self.config
                                     )
 
         self.road.add_vehicle(idmdp_vehicle)
@@ -211,13 +213,14 @@ class TwoWayEnv(AbstractEnv):
         x0 = self.ROAD_LENGTH-self.ego_x0 - 150
         idmdp_opp_init_position = road.network.get_lane(("b", "a", 0)).position(x0, 0)
         idmdp_opp_vehicle = IDMDPVehicle(
-                                         self.road,
+                                         road=self.road,
                                          position=idmdp_opp_init_position,
                                          velocity=0*np.random.randint(low=15, high=25),
                                          heading=road.network.get_lane(("b", "a", 0)).heading_at(x0),
                                          target_velocity=0*self.ROAD_SPEED,
                                          target_lane_index=("b", "a", 0),
                                          lane_index=("b", "a", 0),
+                                         config=self.config
                                         )
 
         self.road.add_vehicle(idmdp_opp_vehicle)
@@ -244,7 +247,8 @@ class TwoWayEnv(AbstractEnv):
                                              target_velocity=0,
                                              target_lane_index=("a", "b", 1),
                                              lane_index=("a", "b", 1),                             
-                                             enable_lane_change=False
+                                             enable_lane_change=False,
+                                             config=self.config
                                             )
                                  )
             
@@ -259,7 +263,9 @@ class TwoWayEnv(AbstractEnv):
                                target_velocity=self.ROAD_SPEED,
                                target_lane_index=("a", "b", 1), 
                                lane_index=("a", "b", 1),                             
-                               enable_lane_change=False)
+                               enable_lane_change=False,
+                               config=self.config
+                               )
             front_vehicle, _ = self.road.neighbour_vehicles(v)
             d = v.lane_distance_to(front_vehicle) 
             if (d<5):
@@ -286,14 +292,15 @@ class TwoWayEnv(AbstractEnv):
             if (min_offset < 10):
                 break
             else:
-                v = Obstacle(road,
+                v = Obstacle(road=road,
                              position=road.network.get_lane(("b", "a", 0)).position(x0, 1),
                              heading=road.network.get_lane(("b", "a", 0)).heading_at(x0),
                              velocity=0,
                              target_velocity=0,
                              target_lane_index=("b", "a", 0),
                              lane_index=("b", "a", 0),
-                             enable_lane_change=False
+                             enable_lane_change=False,
+                             config=self.config
                              )
                 v.target_lane_index = ("b", "a", 0)
                 v.lane_index = ("b", "a", 0)
@@ -302,7 +309,7 @@ class TwoWayEnv(AbstractEnv):
         lane_change = (scene_complexity)
         for i in range(np.random.randint(low=0,high=2*scene_complexity)):
             x0 = self.ROAD_LENGTH-self.ego_x0-20-120*i + 10*self.np_random.randn()
-            v =    IDMVehicle(road,
+            v =  IDMDPVehicle(road,
                               position=road.network.get_lane(("b", "a", 0))
                               .position(x0, 0.1),
                               heading=road.network.get_lane(("b", "a", 0)).heading_at(x0),
@@ -310,7 +317,8 @@ class TwoWayEnv(AbstractEnv):
                               target_velocity=self.ROAD_SPEED,
                               target_lane_index=("b", "a", 0),
                               lane_index=("b", "a", 0),
-                              enable_lane_change=False
+                              enable_lane_change=False,
+                              config=self.config
                               )
             v.target_lane_index = ("b", "a", 0)
             v.lane_index = ("b", "a", 0)
@@ -333,14 +341,15 @@ class TwoWayEnv(AbstractEnv):
                                                             position=position,
                                                             heading=0  
                                                              )  
-        virtual_obstacle_left = Obstacle(self.road,
+        virtual_obstacle_left = Obstacle(road=self.road,
                                          position=position,
                                          heading=lane.heading_at(x0),
                                          velocity=0,
                                          target_velocity=0,
                                          lane_index=lane_index,
                                          target_lane_index=lane_index,                     
-                                         enable_lane_change=False
+                                         enable_lane_change=False,
+                                         config=self.config
                                          )
         virtual_obstacle_left.virtual = True
         virtual_obstacle_left.LENGTH = lane.length
@@ -351,14 +360,15 @@ class TwoWayEnv(AbstractEnv):
         lane = self.road.network.get_lane(lane_index)
         x0 = lane.length/2
         position = lane.position(x0, StraightLane.DEFAULT_WIDTH)
-        virtual_obstacle_right = Obstacle(self.road,
+        virtual_obstacle_right = Obstacle(road=self.road,
                                           position=position,
                                           heading=lane.heading_at(x0),
                                           velocity=0,
                                           target_velocity=0,
                                           lane_index=lane_index,
                                           target_lane_index=lane_index,                
-                                          enable_lane_change=False
+                                          enable_lane_change=False,
+                                          config=self.config
                                           )
         virtual_obstacle_right.virtual = True                                       
         virtual_obstacle_right.LENGTH = lane.length

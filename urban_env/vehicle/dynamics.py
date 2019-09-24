@@ -305,11 +305,14 @@ class Obstacle(Vehicle):
         A motionless obstacle at a given position.
     """
 
-    def __init__(self, road, position, heading=0, **kwargs):
+    def __init__(self, road, position, heading=0, config=None, **kwargs):
         super(Obstacle, self).__init__(
-            road, position, velocity=0, heading=heading)
+            road, position, velocity=0, heading=heading, config=config)
         self.target_velocity = 0
         #self.LENGTH = self.WIDTH
 
     def Id(self):
         return str(id(self))[-3:]
+
+    def predict_trajectory(self, **kwargs):
+        return None

@@ -117,7 +117,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
                 prev_rewards[_DUMMY_AGENT_ID] = reward
 
             if predict:
-                predict_env = copy.deepcopy(env)
+                predict_env = copy.copy(env)
                 predict_env.DEFAULT_CONFIG["_predict_only"] = True
                 pred_actions = []
                 pred_steps = 0

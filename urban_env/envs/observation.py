@@ -95,17 +95,21 @@ class KinematicObservation(ObservationType):
             For now, assume that the road is straight along the x axis.
         :param Dataframe df: observation data
         """
-        side_lanes = self.env.road.network.all_side_lanes(self.env.vehicle.lane_index)
+        road = self.env.road
+        side_lanes = road.network.all_side_lanes(self.env.vehicle.lane_index)
         self.x_position_range = self.env.config["PERCEPTION_DISTANCE"]
         self.y_position_range = AbstractLane.DEFAULT_WIDTH * len(side_lanes)
         self.velocity_range = 1.5*MDPVehicle.SPEED_MAX
-        df['x'] = utils.remap(df['x']  , [- self.x_position_range,  self.x_position_range], [-1, 1])
+        df['x'] = utils.remap(df['x'], [- self.x_position_range, self.x_position_range], [-1, 1])
         df['y'] = utils.remap(df['y'], [-self.y_position_range, self.y_position_range], [-1, 1])
-        df['vx'] = utils.remap(df['vx'] , [-self.velocity_range, self.velocity_range], [-1, 1])
+        df['vx'] = utils.remap(df['vx'], [-self.velocity_range, self.velocity_range], [-1, 1])
         df['vy'] = utils.remap(df['vy'], [-self.velocity_range, self.velocity_range], [-1, 1])
 
         if 'psi' in df:
-            df['psi'] = df['psi']/(2*np.pi)
+            df['psi'] = (df['psi'] - road.network.get_lane(self.vehicle.route_lane_index).heading_at(self.vehicle.position[0]))/(2*np.pi)
+            for i in  range(len(df['psi'])):
+                if df['psi'][i] == -0.5:
+                    df['psi'][i] = 0.5 # since the agent mostly got trained within 0 - 0.5 
         if 'lane_psi' in df:
             df['lane_psi'] = df['lane_psi']/(2*np.pi)
         if 'length' in df:
