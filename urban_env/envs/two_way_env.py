@@ -172,7 +172,7 @@ class TwoWayEnv(AbstractEnv):
 
         if '_predict_only' in self.config:
             if self.config['_predict_only']:
-                scene_complexity = 2
+                scene_complexity = 4
         
         road = self.road
         ego_lane = road.network.get_lane(("a", "b", 1))
@@ -195,7 +195,7 @@ class TwoWayEnv(AbstractEnv):
         self.vehicle = ego_vehicle
         self.ego_x0 = ego_vehicle.position[0]
 
-        idmdp_init_position = ego_init_position
+        '''idmdp_init_position = ego_init_position
         idmdp_init_position[0] += 40
         idmdp_vehicle = IDMDPVehicle(road=self.road,
                                      position=idmdp_init_position,
@@ -224,7 +224,7 @@ class TwoWayEnv(AbstractEnv):
                                         )
 
         self.road.add_vehicle(idmdp_opp_vehicle)
-        self.idmdp_opp_vehicle = idmdp_opp_vehicle
+        self.idmdp_opp_vehicle = idmdp_opp_vehicle'''
 
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
 
@@ -309,7 +309,7 @@ class TwoWayEnv(AbstractEnv):
         lane_change = (scene_complexity)
         for i in range(np.random.randint(low=0,high=2*scene_complexity)):
             x0 = self.ROAD_LENGTH-self.ego_x0-20-120*i + 10*self.np_random.randn()
-            v =  IDMDPVehicle(road,
+            v =    IDMVehicle(road,
                               position=road.network.get_lane(("b", "a", 0))
                               .position(x0, 0.1),
                               heading=road.network.get_lane(("b", "a", 0)).heading_at(x0),

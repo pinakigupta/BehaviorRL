@@ -467,14 +467,14 @@ class IDMDPVehicle(MDPVehicle):
             self.sim_steps_per_policy_step = self.config["SIMULATION_FREQUENCY"]//self.config["POLICY_FREQUENCY"]
 
             
-        #if self.retrieved_agent_policy is None:
-        import settings
-        retrieved_agent_policy = settings.retrieved_agent_policy
-            #self.retrieved_agent_policy = copy.copy(retrieved_agent_policy)
+        if self.retrieved_agent_policy is None:
+            import settings
+            retrieved_agent_policy = settings.retrieved_agent_policy
+            self.retrieved_agent_policy = copy.copy(retrieved_agent_policy)
 
         if self.sim_steps >= self.sim_steps_per_policy_step:
-            if retrieved_agent_policy is not None:
-                self.discrete_action = retrieved_agent_policy.compute_single_action(obs, [])[0]
+            if self.retrieved_agent_policy is not None:
+                self.discrete_action = self.retrieved_agent_policy.compute_single_action(obs, [])[0]
                 self.sim_steps = 0
                 #print("ID", self.Id(), "action ", ACTIONS_DICT[self.discrete_action]," steps ", self.sim_steps)
 
