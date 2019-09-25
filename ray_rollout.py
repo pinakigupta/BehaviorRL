@@ -26,7 +26,7 @@ def filetonum(filename):
         return -1
 
 def dirsearch(resultstr):
-   for dirname, dirnames, filenames in os.walk(os.getcwd()):
+    for dirname, dirnames, filenames in os.walk("/"):
       if '.git' in dirnames:
         # don't go into any .git directories.
          dirnames.remove('.git')
