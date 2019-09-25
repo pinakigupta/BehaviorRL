@@ -473,9 +473,9 @@ class IDMDPVehicle(MDPVehicle):
             #self.retrieved_agent_policy = copy.copy(retrieved_agent_policy)
 
         if self.sim_steps >= self.sim_steps_per_policy_step:
-            #if self.retrieved_agent_policy is not None:
-            self.discrete_action = retrieved_agent_policy.compute_single_action(obs, [])[0]
-            self.sim_steps = 0
+            if retrieved_agent_policy is not None:
+                self.discrete_action = retrieved_agent_policy.compute_single_action(obs, [])[0]
+                self.sim_steps = 0
                 #print("ID", self.Id(), "action ", ACTIONS_DICT[self.discrete_action]," steps ", self.sim_steps)
 
         
