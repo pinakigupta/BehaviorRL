@@ -188,39 +188,14 @@ def ray_train(save_in_sub_folder=None):
     if save_in_sub_folder is not None:
         local_dir_path = save_in_sub_folder
         # makedirpath(upload_dir_path)
-    '''ray_experiment = Experiment(name=None,
-                                run="PPO",
-                                stop={"training_iteration": int(num_timesteps)},
-                                checkpoint_at_end=True,
-                                checkpoint_freq=5,
-                                local_dir=local_dir_path,
-                                #upload_dir=upload_dir_path,
-                                config={
-                                            "num_gpus_per_worker": 0,
-                                            "num_cpus_per_worker": 2,
-                                            "gamma": 0.85,
-                                            "num_workers": 1,
-                                            "env": train_env_id,
-                                            # These params are tuned from a fixed starting value.
-                                            #"lambda": 0.95,
-                                            #"clip_param": 0.2,
-                                            #"lr": 1e-4,
-                                            # These params start off randomly drawn from a set.
-                                            #"num_sgd_iter": sample_from(lambda spec: random.choice([10, 20, 30])),
-                                            #"sgd_minibatch_size": sample_from(lambda spec: random.choice([128, 512, 2048])),
-                                            #"train_batch_size": sample_from(lambda spec: random.choice([10000, 20000, 40000])),
-                                       },
-                                )
 
-
-    run_experiments(ray_experiment,
-                    resume=False,
-                    reuse_actors=False,
-                    scheduler=pbt,
-                    verbose=False,
-                    ) '''
 
     from ray.rllib.agents.impala.vtrace_policy import VTraceTFPolicy
+
+    if is_predict_only() or LOCAL_MODE:
+        delegated_cpus = 1
+    else:
+        delegated_cpus = available_cluster_cpus-2
 
     impala_config = impala.DEFAULT_CONFIG.copy()
     impala_config["num_gpus"] = 0
@@ -231,12 +206,18 @@ def ray_train(save_in_sub_folder=None):
                                   get_policy_class=impala.impala.choose_policy,
                                   make_workers=impala.impala.defer_make_workers,
                                   make_policy_optimizer=impala.impala.make_aggregators_and_optimizer,
-                                  mixins=[impala.impala.OverrideDefaultResourceRequest])
+                                  mixins=[impala.impala.OverrideDefaultResourceRequest]
+                                 )
     
-    if is_predict_only() or LOCAL_MODE:
-        delegated_cpus = 1
-    else:
-        delegated_cpus = available_cluster_cpus-2
+    from ray.rllib.agents.ppo import PPOTrainer
+    from ray.rllib.optimizers import AsyncGradientsOptimizer
+
+    def make_async_optimizer(workers, config):
+        return AsyncGradientsOptimizer(workers, grads_per_step=100)
+
+    CustomTrainer = PPOTrainer.with_updates(
+        make_policy_optimizer=make_async_optimizer)
+                                
 
     restore_folder=None
     algo = "PPO" # RL Algorithm of choice
@@ -262,7 +243,7 @@ def ray_train(save_in_sub_folder=None):
     retrieved_agent_policy = settings.retrieved_agent_policy
 
     ray_trials = ray.tune.run(
-            algo,
+            CustomTrainer,
             name="pygame-ray",
             stop={"training_iteration": int(num_timesteps)},
             checkpoint_freq=checkpoint_freq,
@@ -283,8 +264,8 @@ def ray_train(save_in_sub_folder=None):
                     #"num_cpus_per_worker": 1,
                     # "gpus": 0,
                     "gamma": 0.85,
-                    "num_workers": 1, #delegated_cpus,
-                    "num_envs_per_worker": 1,
+                    "num_workers": delegated_cpus,
+                    "num_envs_per_worker": 2,
                     "env": train_env_id,
                     "remote_worker_envs": False,
                     "model": {
