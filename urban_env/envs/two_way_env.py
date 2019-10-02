@@ -155,10 +155,11 @@ class TwoWayEnv(AbstractEnv):
                                             line_types=[LineType.CONTINUOUS_LINE, LineType.STRIPED]))
         net.add_lane("a", "b", StraightLane([0, StraightLane.DEFAULT_WIDTH], [length, StraightLane.DEFAULT_WIDTH],
                                             line_types=[LineType.NONE, LineType.CONTINUOUS_LINE]))
+        net.add_lane("b", "a", StraightLane([length, StraightLane.DEFAULT_WIDTH], [0, StraightLane.DEFAULT_WIDTH],
+                                            line_types=[LineType.NONE, LineType.NONE]))                                             
         net.add_lane("b", "a", StraightLane([length, 0], [0, 0],
                                             line_types=[LineType.NONE, LineType.NONE]))
-        net.add_lane("b", "a", StraightLane([length, StraightLane.DEFAULT_WIDTH], [0, StraightLane.DEFAULT_WIDTH],
-                                            line_types=[LineType.NONE, LineType.NONE]))                                            
+                                           
 
         road = Road(network=net, np_random=self.np_random, config=self.config)
         self.road = road
@@ -178,7 +179,7 @@ class TwoWayEnv(AbstractEnv):
                 scene_complexity = 3
         
         road = self.road
-        lane_idx = ("b", "a", 0) #("a", "b", 1)
+        lane_idx = ("b", "a", 1) #("a", "b", 1)
         ego_lane = road.network.get_lane(lane_idx)
         low = 400 if self.config["_predict_only"] else max(0, (700 - 30*scene_complexity))
         ego_init_position = ego_lane.position(np.random.randint(low=low, 
@@ -205,29 +206,31 @@ class TwoWayEnv(AbstractEnv):
 
         '''idmdp_init_position = ego_init_position
         idmdp_init_position[0] += 40
+        lane_index = ("a", "b", 1)
         idmdp_vehicle = IDMDPVehicle(road=self.road,
                                      position=idmdp_init_position,
                                      velocity=np.random.randint(low=15, high=25),
-                                     heading=road.network.get_lane(("a", "b", 1)).heading_at(0),
+                                     heading=road.network.get_lane(lane_index).heading_at(0),
                                      target_velocity=self.ROAD_SPEED,
-                                     target_lane_index=("a", "b", 1),
-                                     lane_index=("a", "b", 1),
+                                     #target_lane_index=lane_index,
+                                     #lane_index=lane_index,
                                      config=self.config
                                     )
 
         self.road.add_vehicle(idmdp_vehicle)
         self.idmdp_vehicle = idmdp_vehicle
 
+        lane_index = ("b", "a", 1)
         x0 = self.ROAD_LENGTH-self.ego_x0 - 150
-        idmdp_opp_init_position = road.network.get_lane(("b", "a", 0)).position(x0, 0)
+        idmdp_opp_init_position = road.network.get_lane(lane_index).position(x0, 0)
         idmdp_opp_vehicle = IDMDPVehicle(
                                          road=self.road,
                                          position=idmdp_opp_init_position,
                                          velocity=np.random.randint(low=15, high=25),
-                                         heading=road.network.get_lane(("b", "a", 0)).heading_at(x0),
+                                         heading=road.network.get_lane(lane_index).heading_at(x0),
                                          target_velocity=self.ROAD_SPEED,
-                                         #target_lane_index=("b", "a", 0),
-                                         #lane_index=("b", "a", 0),
+                                         #target_lane_index=lane_index,
+                                         #lane_index=lane_index,
                                          config=self.config
                                         )
 
@@ -240,6 +243,7 @@ class TwoWayEnv(AbstractEnv):
             percent = scene_complexity*10-20
             return random.randrange(100) < percent
 
+        lane_index=("a", "b", 1)
         # stationary vehicles
         stat_veh_x0 = []
         rand_stat_veh_count = np.random.randint(low=0, high=2*scene_complexity)
@@ -248,13 +252,13 @@ class TwoWayEnv(AbstractEnv):
             stat_veh_x0.append(x0)
             self.road.add_vehicle(
                                     Obstacle(self.road,
-                                             position=road.network.get_lane(("a", "b", 1))
+                                             position=road.network.get_lane(lane_index)
                                              .position(x0, 1),
-                                             heading=road.network.get_lane(("a", "b", 1)).heading_at(x0),
+                                             heading=road.network.get_lane(lane_index).heading_at(x0),
                                              velocity=0,
                                              target_velocity=0,
-                                             target_lane_index=("a", "b", 1),
-                                             lane_index=("a", "b", 1),                             
+                                             target_lane_index=lane_index,
+                                             lane_index=lane_index,                             
                                              enable_lane_change=False,
                                              config=self.config
                                              )
@@ -264,13 +268,13 @@ class TwoWayEnv(AbstractEnv):
         for i in range(rand_veh_count):
             x0 = self.ego_x0+90+40*i + 10*self.np_random.randn()
             v =     IDMVehicle(road,
-                               position=road.network.get_lane(("a", "b", 1))
+                               position=road.network.get_lane(lane_index)
                                .position(x0, 0),
-                               heading=road.network.get_lane(("a", "b", 1)).heading_at(x0),
+                               heading=road.network.get_lane(lane_index).heading_at(x0),
                                velocity=max(0,10 + 2*self.np_random.randn()),
                                target_velocity=self.ROAD_SPEED,
-                               #target_lane_index=("a", "b", 1), 
-                               #lane_index=("a", "b", 1),                             
+                               #target_lane_index=lane_index, 
+                               #lane_index=lane_index,                             
                                enable_lane_change=False,
                                config=self.config
                                )
@@ -283,7 +287,7 @@ class TwoWayEnv(AbstractEnv):
             self.road.add_vehicle(v)
         
         
-        
+        lane_index=("b", "a", 1)
         # stationary vehicles Left Lane
         #if (rand_stat_veh_count == 0):
         rand_oncoming_stat_veh_count = np.random.randint(low=0, high=2*scene_complexity)
@@ -301,35 +305,35 @@ class TwoWayEnv(AbstractEnv):
                 break
             else:
                 v = Obstacle(road=road,
-                             position=road.network.get_lane(("b", "a", 0)).position(x0, 1),
-                             heading=road.network.get_lane(("b", "a", 0)).heading_at(x0),
+                             position=road.network.get_lane(lane_index).position(x0, 1),
+                             heading=road.network.get_lane(lane_index).heading_at(x0),
                              velocity=0,
                              target_velocity=0,
-                             target_lane_index=("b", "a", 0),
-                             lane_index=("b", "a", 0),
+                             target_lane_index=lane_index,
+                             lane_index=lane_index,
                              enable_lane_change=False,
                              config=self.config
                              )
-                v.target_lane_index = ("b", "a", 0)
-                v.lane_index = ("b", "a", 0)
+                v.target_lane_index = lane_index
+                v.lane_index = lane_index
                 self.road.add_vehicle(v)
        
         lane_change = (scene_complexity)
         for i in range(np.random.randint(low=0,high=2*scene_complexity)):
             x0 = self.ROAD_LENGTH-self.ego_x0-20-120*i + 10*self.np_random.randn()
             v =    IDMVehicle(road,
-                              position=road.network.get_lane(("b", "a", 0))
+                              position=road.network.get_lane(lane_index)
                               .position(x0, 0.1),
-                              heading=road.network.get_lane(("b", "a", 0)).heading_at(x0),
+                              heading=road.network.get_lane(lane_index).heading_at(x0),
                               velocity=0.5*max(0, 20 + 5*self.np_random.randn()),
                               target_velocity=self.ROAD_SPEED,
-                              #target_lane_index=("b", "a", 0),
-                              #lane_index=("b", "a", 0),
+                              #target_lane_index=lane_index,
+                              #lane_index=lane_index,
                               #enable_lane_change=False,
                               config=self.config
                               )
-            v.target_lane_index = ("b", "a", 0)
-            v.lane_index = ("b", "a", 0)
+            v.target_lane_index = lane_index
+            v.lane_index = lane_index
             front_vehicle, _ = self.road.neighbour_vehicles(v)
             d = v.lane_distance_to(front_vehicle)
             if(d < 5):
@@ -341,7 +345,7 @@ class TwoWayEnv(AbstractEnv):
             # ------------------------------------------------------------------------------------------------------------------------------
 
             # Add the virtual obstacles/constraints
-        lane_index = ("b", "a", 0)
+        lane_index = ("b", "a", 1)
         lane = self.road.network.get_lane(lane_index)
         x0 = lane.length/2
         position = lane.position(x0, StraightLane.DEFAULT_WIDTH)
