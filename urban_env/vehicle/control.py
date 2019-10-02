@@ -57,12 +57,13 @@ class ControlledVehicle(Vehicle):
                                                 velocity=velocity,
                                                 config=config)
         self.target_lane_index = target_lane_index or self.lane_index
-        self.route_lane_index = self.target_lane_index # assume this is not changing unless route is changing
+        self.route_lane_index = self.target_lane_index  or self.lane_index# assume this is not changing unless route is changing
         self.target_velocity = self.velocity if target_velocity is None else target_velocity
         self.lane_target_velocity = self.target_velocity
         self.route = route
         self.front_vehicle = None
         self.rear_vehicle = None
+        self.control_action = None
 
     @classmethod
     def create_from(cls, vehicle):
@@ -322,6 +323,7 @@ class MDPVehicle(ControlledVehicle):
                                          config=config)
         self.velocity_index = self.speed_to_index(self.target_velocity)
         self.target_velocity = self.index_to_speed(self.velocity_index)
+        self.discrete_action = None
 
     def act(self, action=None, **kwargs):
         """
@@ -332,6 +334,7 @@ class MDPVehicle(ControlledVehicle):
 
         :param action: a high-level action
         """
+        self.discrete_action = action
         if action == "FASTER":
             self.velocity_index = self.speed_to_index(self.velocity) + 1
             self.velocity_index = np.clip(
@@ -453,7 +456,6 @@ class IDMDPVehicle(MDPVehicle):
         self.retrieved_agent_policy = None
         self.observation = None
         self.sim_steps = 0
-        self.discrete_action = None
         self.sim_steps_per_policy_step = None
         
 
@@ -474,13 +476,14 @@ class IDMDPVehicle(MDPVehicle):
 
         if self.sim_steps >= self.sim_steps_per_policy_step:
             if self.retrieved_agent_policy is not None:
-                self.discrete_action = self.retrieved_agent_policy.compute_single_action(obs, [])[0]
+                self.discrete_action = ACTIONS_DICT[self.retrieved_agent_policy.compute_single_action(obs, [])[0]]
+                #self.discrete_action = ACTIONS_DICT[0]
                 self.sim_steps = 0
-                #print("ID", self.Id(), "action ", ACTIONS_DICT[self.discrete_action]," steps ", self.sim_steps)
+                #print("ID", self.Id(), "action ", self.discrete_action," steps ", self.sim_steps)
 
         
         if self.discrete_action is not None:
-            super(IDMDPVehicle, self).act(ACTIONS_DICT[self.discrete_action])
+            super(IDMDPVehicle, self).act(self.discrete_action)
         self.sim_steps += 1
 
     def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q, pred_horizon=-1, **kwargs):

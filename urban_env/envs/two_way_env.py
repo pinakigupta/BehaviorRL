@@ -70,8 +70,9 @@ class TwoWayEnv(AbstractEnv):
         self.previous_action = action
         obs, rew, done, info = super(TwoWayEnv, self).step(action)
         self.episode_travel = self.vehicle.position[0] - self.ego_x0 
-        #self.print_obs_space(ref_vehicle=self.idmdp_opp_vehicle)
-        #self.print_obs_space(ref_vehicle=self.vehicle)
+
+        self.print_obs_space(ref_vehicle=self.idmdp_opp_vehicle)
+        self.print_obs_space(ref_vehicle=self.vehicle)
         #self.print_obs_space(ref_vehicle=self.idmdp_vehicle)
         #self._set_curriculam(curriculam_reward_threshold=0.6*self.GOAL_REWARD)
         return (obs, rew, done, info)
@@ -156,6 +157,8 @@ class TwoWayEnv(AbstractEnv):
                                             line_types=[LineType.NONE, LineType.CONTINUOUS_LINE]))
         net.add_lane("b", "a", StraightLane([length, 0], [0, 0],
                                             line_types=[LineType.NONE, LineType.NONE]))
+        net.add_lane("b", "a", StraightLane([length, StraightLane.DEFAULT_WIDTH], [0, StraightLane.DEFAULT_WIDTH],
+                                            line_types=[LineType.NONE, LineType.NONE]))                                            
 
         road = Road(network=net, np_random=self.np_random, config=self.config)
         self.road = road
@@ -208,7 +211,7 @@ class TwoWayEnv(AbstractEnv):
                                     )
 
         self.road.add_vehicle(idmdp_vehicle)
-        self.idmdp_vehicle = idmdp_vehicle
+        self.idmdp_vehicle = idmdp_vehicle'''
 
         x0 = self.ROAD_LENGTH-self.ego_x0 - 150
         idmdp_opp_init_position = road.network.get_lane(("b", "a", 0)).position(x0, 0)
@@ -218,13 +221,13 @@ class TwoWayEnv(AbstractEnv):
                                          velocity=0*np.random.randint(low=15, high=25),
                                          heading=road.network.get_lane(("b", "a", 0)).heading_at(x0),
                                          target_velocity=0*self.ROAD_SPEED,
-                                         target_lane_index=("b", "a", 0),
-                                         lane_index=("b", "a", 0),
+                                         #target_lane_index=("b", "a", 0),
+                                         #lane_index=("b", "a", 0),
                                          config=self.config
                                         )
 
         self.road.add_vehicle(idmdp_opp_vehicle)
-        self.idmdp_opp_vehicle = idmdp_opp_vehicle'''
+        self.idmdp_opp_vehicle = idmdp_opp_vehicle
 
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
 
@@ -249,7 +252,7 @@ class TwoWayEnv(AbstractEnv):
                                              lane_index=("a", "b", 1),                             
                                              enable_lane_change=False,
                                              config=self.config
-                                            )
+                                             )
                                  )
             
         rand_veh_count = np.random.randint(low=0, high=2*scene_complexity)
@@ -391,7 +394,15 @@ class TwoWayEnv(AbstractEnv):
         self.road.add_vehicle(end_obstacle_right)'''                                    
 
     def print_obs_space(self, ref_vehicle):
+        print("-------------- start obs ", ref_vehicle.Id(), "  ----------------------")
         print("obs space, step ", self.steps)
+        if ref_vehicle.discrete_action is not None:
+            print("reference discrete action ", ref_vehicle.discrete_action)
+        if ref_vehicle.control_action is not None:
+            print("reference accel = ", 
+                    ref_vehicle.control_action['acceleration'],
+                    " steering = ", ref_vehicle.control_action['steering'])
+        
         #sys.stdout.flush()
         pp = pprint.PrettyPrinter(indent=4)
         numoffeatures = len(self.config["observation"]["features"])
@@ -422,6 +433,7 @@ class TwoWayEnv(AbstractEnv):
         obs_format = pp.pformat(np.round(np.reshape(modified_obs, (numofvehicles, numoffeatures+1 )), 3))
         obs_format = obs_format.rstrip("\n")
         print(obs_format)
+        print("\n\n\n")
 
 
 
