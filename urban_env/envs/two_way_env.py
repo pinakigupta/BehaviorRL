@@ -71,7 +71,7 @@ class TwoWayEnv(AbstractEnv):
         obs, rew, done, info = super(TwoWayEnv, self).step(action)
         self.episode_travel = self.vehicle.position[0] - self.ego_x0 
 
-        self.print_obs_space(ref_vehicle=self.idmdp_opp_vehicle)
+        #self.print_obs_space(ref_vehicle=self.idmdp_opp_vehicle)
         self.print_obs_space(ref_vehicle=self.vehicle)
         #self.print_obs_space(ref_vehicle=self.idmdp_vehicle)
         #self._set_curriculam(curriculam_reward_threshold=0.6*self.GOAL_REWARD)
@@ -175,28 +175,33 @@ class TwoWayEnv(AbstractEnv):
 
         if '_predict_only' in self.config:
             if self.config['_predict_only']:
-                scene_complexity = 4
+                scene_complexity = 3
         
         road = self.road
-        ego_lane = road.network.get_lane(("a", "b", 1))
+        lane_idx = ("b", "a", 0) #("a", "b", 1)
+        ego_lane = road.network.get_lane(lane_idx)
         low = 400 if self.config["_predict_only"] else max(0, (700 - 30*scene_complexity))
         ego_init_position = ego_lane.position(np.random.randint(low=low, 
                                                                 high=low+60
                                                                 ),
                                                0
                                              )
+        x0 = ego_init_position[0]
+        self.ego_x0 = x0
+        self.ego_x0 -= self.ROAD_LENGTH - 150
+        ego_init_position = ego_lane.position(x0, 0)
         ego_vehicle = MDPVehicle(
                                  self.road,
                                  position=ego_init_position,
                                  velocity=np.random.randint(low=15, high=35),
                                  target_velocity=self.ROAD_SPEED,
+                                 heading=ego_lane.heading_at(x0),
                                  config=self.config
                                  )
         ego_vehicle.is_ego_vehicle = True
         self.road.vehicles.append(ego_vehicle)
         self.road.ego_vehicle = ego_vehicle
         self.vehicle = ego_vehicle
-        self.ego_x0 = ego_vehicle.position[0]
 
         '''idmdp_init_position = ego_init_position
         idmdp_init_position[0] += 40
@@ -211,23 +216,23 @@ class TwoWayEnv(AbstractEnv):
                                     )
 
         self.road.add_vehicle(idmdp_vehicle)
-        self.idmdp_vehicle = idmdp_vehicle'''
+        self.idmdp_vehicle = idmdp_vehicle
 
         x0 = self.ROAD_LENGTH-self.ego_x0 - 150
         idmdp_opp_init_position = road.network.get_lane(("b", "a", 0)).position(x0, 0)
         idmdp_opp_vehicle = IDMDPVehicle(
                                          road=self.road,
                                          position=idmdp_opp_init_position,
-                                         velocity=0*np.random.randint(low=15, high=25),
+                                         velocity=np.random.randint(low=15, high=25),
                                          heading=road.network.get_lane(("b", "a", 0)).heading_at(x0),
-                                         target_velocity=0*self.ROAD_SPEED,
+                                         target_velocity=self.ROAD_SPEED,
                                          #target_lane_index=("b", "a", 0),
                                          #lane_index=("b", "a", 0),
                                          config=self.config
                                         )
 
         self.road.add_vehicle(idmdp_opp_vehicle)
-        self.idmdp_opp_vehicle = idmdp_opp_vehicle
+        self.idmdp_opp_vehicle = idmdp_opp_vehicle'''
 
         vehicles_type = utils.class_from_path(self.config["other_vehicles_type"])
 
@@ -264,8 +269,8 @@ class TwoWayEnv(AbstractEnv):
                                heading=road.network.get_lane(("a", "b", 1)).heading_at(x0),
                                velocity=max(0,10 + 2*self.np_random.randn()),
                                target_velocity=self.ROAD_SPEED,
-                               target_lane_index=("a", "b", 1), 
-                               lane_index=("a", "b", 1),                             
+                               #target_lane_index=("a", "b", 1), 
+                               #lane_index=("a", "b", 1),                             
                                enable_lane_change=False,
                                config=self.config
                                )
@@ -316,11 +321,11 @@ class TwoWayEnv(AbstractEnv):
                               position=road.network.get_lane(("b", "a", 0))
                               .position(x0, 0.1),
                               heading=road.network.get_lane(("b", "a", 0)).heading_at(x0),
-                              velocity=max(0, 20 + 5*self.np_random.randn()),
+                              velocity=0.5*max(0, 20 + 5*self.np_random.randn()),
                               target_velocity=self.ROAD_SPEED,
-                              target_lane_index=("b", "a", 0),
-                              lane_index=("b", "a", 0),
-                              enable_lane_change=False,
+                              #target_lane_index=("b", "a", 0),
+                              #lane_index=("b", "a", 0),
+                              #enable_lane_change=False,
                               config=self.config
                               )
             v.target_lane_index = ("b", "a", 0)
@@ -394,6 +399,8 @@ class TwoWayEnv(AbstractEnv):
         self.road.add_vehicle(end_obstacle_right)'''                                    
 
     def print_obs_space(self, ref_vehicle):
+        if not ref_vehicle:
+            return
         print("-------------- start obs ", ref_vehicle.Id(), "  ----------------------")
         print("obs space, step ", self.steps)
         if ref_vehicle.discrete_action is not None:

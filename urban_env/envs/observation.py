@@ -22,6 +22,8 @@ from urban_env.vehicle.control import MDPVehicle
 from urban_env.vehicle.dynamics import Obstacle
 from urban_env.envdict import RED, GREEN, BLUE, YELLOW, BLACK, PURPLE, DEFAULT_COLOR, EGO_COLOR, WHITE
 
+from handle_model_files import is_predict_only
+
 class ObservationType(object):
     def space(self):
         raise NotImplementedError()
@@ -80,6 +82,7 @@ class KinematicObservation(ObservationType):
         self.close_vehicles = None
         self.observations = None
         self.vehicle = ref_vehicle
+        self.route_lane = None 
 
 
     def space(self):
@@ -117,6 +120,8 @@ class KinematicObservation(ObservationType):
         return df
 
     def observe(self):
+
+        
         # Add ego-vehicle
         df = pandas.DataFrame.from_records([self.vehicle.to_dict(self.vehicle)])[self.features]
         '''for col in df.columns:
@@ -158,7 +163,13 @@ class KinematicObservation(ObservationType):
         obs = np.clip(df.values, -1, 1)
         # Flatten
         obs = np.ravel(obs)
-        goal = (self.env.config["GOAL_LENGTH"] - self.vehicle.position[0]) / self.env.config["PERCEPTION_DISTANCE"] # Normalize
+
+        if self.route_lane is None:
+            self.route_lane = self.env.road.network.get_lane(self.vehicle.route_lane_index)
+        lane_coords = self.route_lane.local_coordinates(self.vehicle.position)
+        
+        target_position = self.route_lane.length if is_predict_only() else self.env.config["GOAL_LENGTH"]
+        goal = (target_position - lane_coords[0]) / self.env.config["PERCEPTION_DISTANCE"] # Normalize
         goal = min(1.0, max(-1.0, goal)) # Clip
         obs[0] = goal # Just a temporary implementation wo explicitly mentioning the goal
         '''obs_idx = 1
