@@ -72,7 +72,7 @@ class TwoWayEnv(AbstractEnv):
         self.episode_travel = self.vehicle.position[0] - self.ego_x0 
 
         #self.print_obs_space(ref_vehicle=self.idmdp_opp_vehicle)
-        self.print_obs_space(ref_vehicle=self.vehicle)
+        #self.print_obs_space(ref_vehicle=self.vehicle)
         #self.print_obs_space(ref_vehicle=self.idmdp_vehicle)
         #self._set_curriculam(curriculam_reward_threshold=0.6*self.GOAL_REWARD)
         return (obs, rew, done, info)
@@ -179,7 +179,7 @@ class TwoWayEnv(AbstractEnv):
                 scene_complexity = 3
         
         road = self.road
-        lane_idx = ("b", "a", 1) #("a", "b", 1)
+        lane_idx = ("a", "b", 1)
         ego_lane = road.network.get_lane(lane_idx)
         low = 400 if self.config["_predict_only"] else max(0, (700 - 30*scene_complexity))
         ego_init_position = ego_lane.position(np.random.randint(low=low, 
@@ -189,7 +189,7 @@ class TwoWayEnv(AbstractEnv):
                                              )
         x0 = ego_init_position[0]
         self.ego_x0 = x0
-        self.ego_x0 -= self.ROAD_LENGTH - 150
+        #self.ego_x0 -= self.ROAD_LENGTH - 150
         ego_init_position = ego_lane.position(x0, 0)
         ego_vehicle = MDPVehicle(
                                  self.road,
@@ -267,7 +267,7 @@ class TwoWayEnv(AbstractEnv):
         rand_veh_count = np.random.randint(low=0, high=2*scene_complexity)
         for i in range(rand_veh_count):
             x0 = self.ego_x0+90+40*i + 10*self.np_random.randn()
-            v =     IDMVehicle(road,
+            v =   IDMDPVehicle(road,
                                position=road.network.get_lane(lane_index)
                                .position(x0, 0),
                                heading=road.network.get_lane(lane_index).heading_at(x0),
@@ -321,14 +321,14 @@ class TwoWayEnv(AbstractEnv):
         lane_change = (scene_complexity)
         for i in range(np.random.randint(low=0,high=2*scene_complexity)):
             x0 = self.ROAD_LENGTH-self.ego_x0-20-120*i + 10*self.np_random.randn()
-            v =    IDMVehicle(road,
+            v =  IDMDPVehicle(road,
                               position=road.network.get_lane(lane_index)
                               .position(x0, 0.1),
                               heading=road.network.get_lane(lane_index).heading_at(x0),
                               velocity=0.5*max(0, 20 + 5*self.np_random.randn()),
                               target_velocity=self.ROAD_SPEED,
-                              #target_lane_index=lane_index,
-                              #lane_index=lane_index,
+                              target_lane_index=lane_index,
+                              lane_index=lane_index,
                               #enable_lane_change=False,
                               config=self.config
                               )
