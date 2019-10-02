@@ -44,7 +44,7 @@ class TwoWayEnv(AbstractEnv):
             "other_vehicles_type": "urban_env.vehicle.control.IDMDPVehicle",
             "duration": 250,
             "_predict_only": is_predict_only(),
-            "screen_width": 2600,
+            "screen_width": 1600,
             "screen_height": 400,
             "DIFFICULTY_LEVELS": 2,
             "COLLISION_REWARD": -200,
@@ -176,7 +176,7 @@ class TwoWayEnv(AbstractEnv):
 
         if '_predict_only' in self.config:
             if self.config['_predict_only']:
-                scene_complexity = 3
+                scene_complexity = 4
         
         road = self.road
         lane_idx = ("a", "b", 1)

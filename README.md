@@ -18,6 +18,13 @@ to the moving traffic there are parked cars in both lanes.
 
 ![](img/PPO2.gif)
 
+Latest update is I am trying to use previously trained agents to simulate the dynamic traffic. The host and ther other agents are not trained in this sort of multiagent environment yet, This 
+is just pure single agent prediction in multi-agent environment. Hence the performance may not seem great, but will still go on to show how well it generalizes. The next few obvious steps are
+A) Training HV agent in multi agent framework (with other agents being static policies)
+B) Self play
+
+![](img/MultiAgentPPO2.gif)
+
 ## Getting Started (Docker)
 0) This code requires (Don't install anything yet):
 
