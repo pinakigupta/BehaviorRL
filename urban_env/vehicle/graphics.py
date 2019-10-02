@@ -79,10 +79,10 @@ class VehicleGraphics(object):
         font = pygame.font.Font(font_type, size) 
 
         if not(v.virtual or virtual):
-            text = ""
-            text = font.render(v.Id(), False, color) 
+            text = ' '*10+v.Id()
+            text = font.render(text, False, color) 
             textRect = text.get_rect()
-            textRect.center = (surface.pos2pix(v.position[0]+v.LENGTH/4, v.position[1]))
+            textRect.center = (surface.pos2pix(v.position[0], v.position[1]))
             text = pygame.transform.rotate(text, -h * 180 / np.pi)
             surface.blit(text, textRect)
         #print("Unable to render text", text)
