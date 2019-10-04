@@ -76,7 +76,7 @@ class Vehicle(Loggable):
                    )
 
     @classmethod
-    def create_random(cls, road, velocity=None, spacing=1, ahead=True):
+    def create_random(cls, road, velocity=None, spacing=1, ahead=True, config=None, **kwargs):
         """
             Create a random vehicle on the road.
 
@@ -90,7 +90,7 @@ class Vehicle(Loggable):
         """
         if velocity is None:
             velocity = road.np_random.uniform(
-                Vehicle.DEFAULT_CONFIG["DEFAULT_VELOCITIES"[0]], Vehicle.DEFAULT_CONFIG["DEFAULT_VELOCITIES"[1]])
+                Vehicle.DEFAULT_CONFIG["DEFAULT_VELOCITIES"][0], Vehicle.DEFAULT_CONFIG["DEFAULT_VELOCITIES"][1])
         default_spacing = 1.5*velocity
         _from = road.np_random.choice(list(road.network.graph.keys()))
         _to = road.np_random.choice(list(road.network.graph[_from].keys()))
@@ -109,7 +109,8 @@ class Vehicle(Loggable):
         v = cls(road=road,
                 position=road.network.get_lane((_from, _to, _id)).position(x0, 0),
                 heading=0,
-                velocity=velocity)
+                velocity=velocity,
+                config=config)
         return v
 
     @classmethod

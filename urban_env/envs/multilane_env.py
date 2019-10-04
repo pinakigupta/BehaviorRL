@@ -25,34 +25,37 @@ class MultilaneEnv(AbstractEnv):
         staying on the rightmost lanes and avoiding collisions.
     """
 
-    COLLISION_REWARD = -200
-    """ The reward received when colliding with a vehicle."""
     RIGHT_LANE_REWARD = 0.1
     """ The reward received when driving on the right-most lanes, linearly mapped to zero for other lanes."""
-    VELOCITY_REWARD = 5
-    """ The reward received when driving at full speed, linearly mapped to zero for lower speeds."""
     LANE_CHANGE_REWARD = -1
     AGGRESSIVE_LANE_CHANGE_REWARD = -3
-    """ The reward received at each lane change action."""
-    GOAL_REWARD = 2000
 
     ROAD_LENGTH = 500
     ROAD_SPEED = 35
-    OBS_STACK_SIZE = 1
 
-    DEFAULT_CONFIG = {
-        "observation": {
-            "type": "Kinematics",
-            "features": ['x', 'y', 'vx', 'vy', 'psi'],
-            "vehicles_count": 6
-        },
-        "initial_spacing": 2,
-        "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
-        "centering_position": [0.3, 0.5],
-        "collision_reward": COLLISION_REWARD,
-        "screen_width": 1800,
-        "screen_height": 400,
-        "_predict_only": is_predict_only(),
+
+    DEFAULT_CONFIG = {**AbstractEnv.DEFAULT_CONFIG, 
+        **{
+            "observation": {
+                "type": "Kinematics",
+                "features": ['x', 'y', 'vx', 'vy', 'psi'],
+                "vehicles_count": 6
+            },
+            "other_vehicles_type": "urban_env.vehicle.control.IDMDPVehicle",
+            "duration": 250,
+            "_predict_only": is_predict_only(),
+            "screen_width": 1600,
+            "screen_height": 400,
+            "DIFFICULTY_LEVELS": 2,
+            "COLLISION_REWARD": -200,
+            "INVALID_ACTION_REWARD": 0,
+            "VELOCITY_REWARD": 5,
+            "GOAL_REWARD": 2000,
+            "OBS_STACK_SIZE": 1,
+            "GOAL_LENGTH": 1000,
+            "initial_spacing": 2,
+            "centering_position": [0.3, 0.5],
+            }
     }
 
     DIFFICULTY_LEVELS = {
@@ -128,10 +131,11 @@ class MultilaneEnv(AbstractEnv):
 
         self.vehicle = MDPVehicle.create_random(road=self.road,
                                                 velocity=np.random.randint(low=15,high=35),
-                                                spacing=self.config["initial_spacing"])
+                                                spacing=self.config["initial_spacing"],
+                                                config=self.config)
 
 
-
+        self.vehicle.is_ego_vehicle = True
         self.road.vehicles.append(self.vehicle)
         self.ego_x0 = self.vehicle.position[0]
 
@@ -140,13 +144,15 @@ class MultilaneEnv(AbstractEnv):
         behind_vehicles = self.config["vehicles_count"] - ahead_vehicles
         for _ in range(ahead_vehicles):
             self.road.vehicles.append(vehicles_type.create_random(road=self.road,
-                                                                  ahead=True)
+                                                                  ahead=True,
+                                                                  config=self.config)
 
                                      )
 
         for _ in range(behind_vehicles):
             self.road.vehicles.append(vehicles_type.create_random(road=self.road,
-                                                                  ahead=False)
+                                                                  ahead=False,
+                                                                  config=self.config)
                                      )
 
         # Add the virtual obstacles
@@ -157,14 +163,15 @@ class MultilaneEnv(AbstractEnv):
                                                             position=position,
                                                             heading=0  
                                                              )  
-        virtual_obstacle_left = vehicles_type(self.road,
+        virtual_obstacle_left =  vehicles_type(self.road,
                                                position=position,
                                                heading=lane.heading_at(x0),
                                                velocity=0,
                                                target_velocity=0,
                                                lane_index=lane_index,
                                                target_lane_index=lane_index,                     
-                                               enable_lane_change=False)
+                                               enable_lane_change=False,
+                                               config=self.config)
         virtual_obstacle_left.LENGTH = lane.length
         virtual_obstacle_left.virtual = True
         self.road.vehicles.append(virtual_obstacle_left)
@@ -181,7 +188,8 @@ class MultilaneEnv(AbstractEnv):
                                                target_velocity=0,
                                                lane_index=lane_index,
                                                target_lane_index=lane_index,                     
-                                               enable_lane_change=False)
+                                               enable_lane_change=False,
+                                               config=self.config)
         virtual_obstacle_right.LENGTH = lane.length
         virtual_obstacle_right.virtual = True
         self.road.vehicles.append(virtual_obstacle_right)
@@ -205,11 +213,11 @@ class MultilaneEnv(AbstractEnv):
                          }
         neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
 
-        collision_reward = self.COLLISION_REWARD * self.vehicle.crashed
-        velocity_reward = self.VELOCITY_REWARD * (self.vehicle.velocity_index -1) / (self.vehicle.SPEED_COUNT - 1)
+        collision_reward = self.config["COLLISION_REWARD"] * self.vehicle.crashed
+        velocity_reward = self.config["VELOCITY_REWARD"] * (self.vehicle.velocity_index -1) / (self.vehicle.SPEED_COUNT - 1)
         if (velocity_reward > 0):
             velocity_reward *= self._on_route()
-        goal_reward = self.GOAL_REWARD
+        goal_reward = self.config["GOAL_REWARD"]
 
         if self.vehicle.crashed:
             reward = collision_reward + min(0.0, velocity_reward + action_reward[action])
