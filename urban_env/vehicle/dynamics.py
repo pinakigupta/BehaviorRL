@@ -31,8 +31,8 @@ class Vehicle(Loggable):
                       "MAX_VELOCITY": 40, #Maximum reachable velocity [m/s]
     }
 
-    def __init__(self, road, position, lane_index = None , heading=0, velocity=0, length=5.0,
-                 width=2.0, virtual=False, config = DEFAULT_CONFIG,**kwargs):
+    def __init__(self, road, position, lane_index=None, heading=0, velocity=0, length=5.0,
+                 width=2.0, virtual=False, config=DEFAULT_CONFIG, **kwargs):
         self.LENGTH = length
         self.WIDTH = width
         self.road = road
@@ -110,7 +110,8 @@ class Vehicle(Loggable):
                 position=road.network.get_lane((_from, _to, _id)).position(x0, 0),
                 heading=0,
                 velocity=velocity,
-                config=config)
+                config=config
+                )
         return v
 
     @classmethod
@@ -217,13 +218,26 @@ class Vehicle(Loggable):
     def direction(self):
         return np.array([np.cos(self.heading), np.sin(self.heading)])
 
-    def to_dict(self, origin_vehicle):
-        origin_lane = origin_vehicle.road.network.get_lane(origin_vehicle.route_lane_index)
+    def to_dict(self, origin_vehicle=None):
+        if origin_vehicle is None:
+            origin_vehicle = self
+        origin_lane = None
+        if hasattr(origin_vehicle, 'route_lane_index'):
+            origin_lane = origin_vehicle.road.network.get_lane(origin_vehicle.route_lane_index)
         velocity = self.velocity * self.direction
-        x = origin_lane.local_coordinates(self.position)[0]
-        y = origin_lane.local_coordinates(self.position)[1]+origin_lane.DEFAULT_WIDTH
-        vx = np.dot(velocity, origin_lane.direction)
-        vy = np.dot(velocity, origin_lane.direction_lateral)
+        if origin_lane is not None:
+            x = origin_lane.local_coordinates(self.position)[0]
+            y = origin_lane.local_coordinates(self.position)[1]+origin_lane.DEFAULT_WIDTH
+            vx = np.dot(velocity, origin_lane.direction)
+            vy = np.dot(velocity, origin_lane.direction_lateral)
+        else:
+            x = self.position[0]
+            y = self.position[1]
+            vx = velocity[0]
+            vy = velocity[1]
+
+        cos_h = self.direction[0]
+        sin_h = self.direction[1]
         psi = self.heading
         d = {
             'presence': 1,
@@ -231,8 +245,8 @@ class Vehicle(Loggable):
             'y': y,
             'vx': vx,
             'vy': vy,
-            'cos_h': self.direction[0],
-            'sin_h': self.direction[1],
+            'cos_h': cos_h,
+            'sin_h': sin_h,
             'length': self.LENGTH,
             'width_': self.WIDTH,
             'psi': psi,

@@ -155,6 +155,13 @@ class MultilaneEnv(AbstractEnv):
                                                                   config=self.config)
                                      )
 
+        for _ in range(10):
+            self.road.vehicles.append(Obstacle.create_random(road=self.road,
+                                                             ahead=False,
+                                                             config=self.config
+                                                             )
+                                     )
+
         # Add the virtual obstacles
         lane = self.road.network.lanes_list()[0]
         x0 = lane.length/2
@@ -163,7 +170,7 @@ class MultilaneEnv(AbstractEnv):
                                                             position=position,
                                                             heading=0  
                                                              )  
-        virtual_obstacle_left =  vehicles_type(self.road,
+        virtual_obstacle_left =       Obstacle(self.road,
                                                position=position,
                                                heading=lane.heading_at(x0),
                                                velocity=0,
@@ -181,7 +188,7 @@ class MultilaneEnv(AbstractEnv):
         lane = self.road.network.lanes_list()[-1]
         x0 = lane.length/2
         position = lane.position(x0, 3.5)
-        virtual_obstacle_right = vehicles_type(self.road,
+        virtual_obstacle_right =      Obstacle(self.road,
                                                position=position,
                                                heading=lane.heading_at(x0),
                                                velocity=0,
