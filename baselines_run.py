@@ -72,9 +72,9 @@ def main(**kwargs):
             from ray_rollout import ray_retrieve_agent
             from settings import update_policy
             play_env = gym.make(play_env_id)
-            retrieved_agent = ray_retrieve_agent(play_env_id)
+            '''retrieved_agent = ray_retrieve_agent(play_env_id)
             retrieved_agent_policy = retrieved_agent.get_policy()
-            update_policy(retrieved_agent_policy)
+            update_policy(retrieved_agent_policy)'''
             save_in_sub_folder = pathname + "/" + ray_folder + "/" + InceptcurrentDT
             print("save_in_sub_folder is ", save_in_sub_folder)
             ray_train(save_in_sub_folder=save_in_sub_folder)

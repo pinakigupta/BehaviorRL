@@ -71,12 +71,12 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
     DEFAULT_CONFIG = {**AbstractEnv.DEFAULT_CONFIG,
         **{
             "observation": {
-                "type": "Kinematics",
+                "type": "KinematicsGoal",
                 "features": ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h'],
                 "scale": 100,
                 "observation_near_ego": 0,
                 "normalize": False,
-                "vehicles_count": 'random',
+                "vehicles_count": 6,
             },
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
             "centering_position": [0.5, 0.5],
@@ -99,14 +99,14 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         super(ParkingEnv_2outs, self).__init__(config)
         self.observation_config = self.config['observation'].copy()
         obs = self.reset()
-        self.observation_space = Dict(dict(
+        '''self.observation_space = Dict(dict(
             desired_goal=Box(-np.inf, np.inf,
                              shape=obs["desired_goal"].shape, dtype=np.float32),
             achieved_goal=Box(-np.inf, np.inf,
                               shape=obs["achieved_goal"].shape, dtype=np.float32),
             observation=Box(-np.inf, np.inf,
                             shape=obs["observation"].shape, dtype=np.float32),
-        ))
+        ))'''
         self.DEFAULT_CONFIG["vehicles_count"] = np.random.randint(
             low=0, high=10)
         self._max_episode_steps = 50
@@ -225,12 +225,13 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         return obs, reward, terminal, info
 
     def reset(self):
+        self.steps = 0
         self._build_parking()
         self._populate_parking()
         self.is_success = False
         self.vehicle.crashed = False
-        # return super(ParkingEnv_2outs, self).reset()
-        return self._observation()
+        return super(ParkingEnv_2outs, self).reset()
+        #return self._observation()
 
     def is_over_others_parking_spot(self, position):
         over_others_parking_spots = False

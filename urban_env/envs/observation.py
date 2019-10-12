@@ -164,14 +164,15 @@ class KinematicObservation(ObservationType):
         # Flatten
         obs = np.ravel(obs)
 
-        if self.route_lane is None:
-            self.route_lane = self.env.road.network.get_lane(self.vehicle.route_lane_index)
-        lane_coords = self.route_lane.local_coordinates(self.vehicle.position)
-        
-        target_position = self.route_lane.length if is_predict_only() else self.env.config["GOAL_LENGTH"]
-        goal = (target_position - lane_coords[0]) / self.env.config["PERCEPTION_DISTANCE"] # Normalize
-        goal = min(1.0, max(-1.0, goal)) # Clip
-        obs[0] = goal # Just a temporary implementation wo explicitly mentioning the goal
+        if hasattr(self.vehicle, 'route_lane_index'):
+            if self.route_lane is None:
+                self.route_lane = self.env.road.network.get_lane(self.vehicle.route_lane_index)
+            lane_coords = self.route_lane.local_coordinates(self.vehicle.position)
+            
+            target_position = self.route_lane.length if is_predict_only() else self.env.config["GOAL_LENGTH"]
+            goal = (target_position - lane_coords[0]) / self.env.config["PERCEPTION_DISTANCE"] # Normalize
+            goal = min(1.0, max(-1.0, goal)) # Clip
+            obs[0] = goal # Just a temporary implementation wo explicitly mentioning the goal
         '''obs_idx = 1
         for virtual_v in self.env.road.virtual_vehicles:
             obs[obs_idx] = virtual_v.position[1]/self.y_position_range
