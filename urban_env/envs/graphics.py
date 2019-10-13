@@ -151,11 +151,11 @@ class EnvViewer(object):
             self.frame += 1
 
         caption = "Urban-AD ( "
-        caption += "action = " + str(ACTIONS_DICT[self.env.previous_action])
+        #caption += "action = " + str(ACTIONS_DICT[self.env.previous_action])
         caption += " accel = " + str(round(self.env.vehicle.control_action['acceleration']))
         caption += " steering = " + str(round(self.env.vehicle.control_action['steering']))
         caption += " steps = " + str(self.env.steps)
-        if self.env.episode_travel:
+        if hasattr( self.env, 'episode_travel'): 
             caption += ', ep travel  = {:.2f}'.format(self.env.episode_travel)
         caption += ', reward  = {:.2f}'.format(self.env.reward)  
         caption += ', ep reward  = {:.2f}'.format(self.env.episode_reward)

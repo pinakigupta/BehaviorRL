@@ -52,6 +52,7 @@ class Vehicle(Loggable):
         self.virtual = virtual
         self.is_ego_vehicle = False
         self.config = {**self.DEFAULT_CONFIG, **config}
+        self.control_action = None
     
     def is_ego(self):
         return self.is_ego_vehicle

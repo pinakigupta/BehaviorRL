@@ -63,7 +63,7 @@ class ControlledVehicle(Vehicle):
         self.route = route
         self.front_vehicle = None
         self.rear_vehicle = None
-        self.control_action = None
+        
 
     @classmethod
     def create_from(cls, vehicle):

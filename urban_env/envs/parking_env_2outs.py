@@ -80,7 +80,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             },
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
             "centering_position": [0.5, 0.5],
-            "parking_spots": 15,  # 'random', # Parking Spots Per side            "duration": 250,
+            "parking_spots": 15,  # 'random', # Parking Spots Per side            
+            "duration": 50,
             "_predict_only": is_predict_only(),
             "screen_width": 1600,
             "screen_height": 400,
@@ -200,16 +201,16 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         ###############################################
 
         # Forward action to the vehicle
-        control_action =({
-            "acceleration": acceleration,
-            "steering": steering
-                        })
+        self.vehicle.control_action =({
+                                        "acceleration": acceleration,
+                                        "steering": steering
+                                                    })
 
         # print("prev_act, curr_act, accel, steer, speed:", self.previous_action, action, acceleration, steering, self.vehicle.velocity)
         #self._simulate()
 
         #obs = self._observation()
-        obs, reward, done, info = super(ParkingEnv_2outs, self).step(control_action)
+        obs, reward, done, info = super(ParkingEnv_2outs, self).step(self.vehicle.control_action)
 
         #terminal = self._is_terminal()
         return obs, reward, done, info
@@ -429,8 +430,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             supposed to have FIXED length. For this reason, we will just RESET and
             keep going.
         """
-        if self.vehicle.crashed or self.is_success:
-            self.reset()
+        terminal = self.vehicle.crashed or \
+                   self.is_success or \
+                  (self.steps >= self.config["duration"]) or\
+                   (self.vehicle.action_validity == False)
         # or self._is_success(obs['achieved_goal'], obs['desired_goal'])
-        return False
+        return terminal
 
