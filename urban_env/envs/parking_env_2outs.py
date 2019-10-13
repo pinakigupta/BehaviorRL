@@ -193,36 +193,26 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         return obs
 
     def step(self, action):
-
+        self.steps += 1
         ##############################################
         acceleration = action[0].item() * vehicle_params['max_acceleration']
         steering = action[1].item() * vehicle_params['max_steer_angle']
         ###############################################
 
         # Forward action to the vehicle
-        self.vehicle.act({
+        control_action =({
             "acceleration": acceleration,
             "steering": steering
-        })
+                        })
 
         # print("prev_act, curr_act, accel, steer, speed:", self.previous_action, action, acceleration, steering, self.vehicle.velocity)
-        self._simulate()
+        #self._simulate()
 
-        obs = self._observation()
-        info = {
-            "is_success": int(self._is_success(obs['achieved_goal'], obs['desired_goal'])),
-            "is_collision": int(self.vehicle.crashed),
-            "is_over_others_parking_spot": int(self.is_over_others_parking_spot(self.vehicle.position)),
-            "is_reverse": int(self.vehicle.velocity < 0)
-        }
+        #obs = self._observation()
+        obs, reward, done, info = super(ParkingEnv_2outs, self).step(control_action)
 
-        self.previous_action = action
-        self.previous_obs = obs
-
-        reward = self.compute_reward(
-            obs['achieved_goal'], obs['desired_goal'], info)
-        terminal = self._is_terminal()
-        return obs, reward, terminal, info
+        #terminal = self._is_terminal()
+        return obs, reward, done, info
 
     def reset(self):
         self.steps = 0
@@ -407,11 +397,22 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         # collision_reward)
 
         reward /= self.REWARD_SCALE
-        # print(reward)
+        #print("info", info)
         return reward
 
     def _reward(self, action):
-        raise NotImplementedError
+        reward = self.compute_reward(self.obs['achieved_goal'], self.obs['desired_goal'], self._info())
+        return reward
+
+
+    def _info(self):
+        info = {
+            "is_success": int(self._is_success(self.obs['achieved_goal'], self.obs['desired_goal'])),
+            "is_collision": int(self.vehicle.crashed),
+            "is_over_others_parking_spot": int(self.is_over_others_parking_spot(self.vehicle.position)),
+            "is_reverse": int(self.vehicle.velocity < 0)
+        }
+        return info
 
     def _is_success(self, achieved_goal, desired_goal):
         # DISTANCE TO GOAL
@@ -433,15 +434,3 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         # or self._is_success(obs['achieved_goal'], obs['desired_goal'])
         return False
 
-    def print_obs_space(self):
-        print("obs space ")
-        '''obs_format = pp.pformat(np.round(np.reshape(self.previous_obs,(6, 5)),3))
-        obs_format = obs_format.rstrip("\n")
-        print(obs_format)'''
-        print(self.previous_obs["observation"])
-        print("achieved_goal")
-        print(self.previous_obs["achieved_goal"])
-        print("desired_goal")
-        print(self.previous_obs["desired_goal"])
-        print("actions")
-        print("Optimal action ", self.previous_action, "\n")
