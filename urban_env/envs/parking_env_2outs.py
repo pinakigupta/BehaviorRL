@@ -54,21 +54,18 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         Credits to Munir Jojo-Verge for the idea and initial implementation.
     """
-
-    COLLISION_REWARD = -1.0
-    OVER_OTHER_PARKING_SPOT_REWARD = -0.9
-    REVERSE_REWARD = -0.2
-
     PARKING_MAX_VELOCITY = 7.0  # m/s
-
     OBS_SCALE = 100
-    REWARD_SCALE = np.absolute(COLLISION_REWARD)
-
     REWARD_WEIGHTS = [7/100, 7/100, 1/100, 1/100, 9/10, 9/10]
     SUCCESS_THRESHOLD = 0.34
 
-
     DEFAULT_CONFIG = {**AbstractEnv.DEFAULT_CONFIG,
+        **{
+            "OVER_OTHER_PARKING_SPOT_REWARD": -0.9,
+            "VELOCITY_REWARD": 5,
+            "COLLISION_REWARD": -1,
+            "REVERSE_REWARD": -0.2,
+        },
         **{
             "observation": {
                 "type": "KinematicsGoal",
@@ -86,10 +83,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "screen_width": 1600,
             "screen_height": 400,
             "DIFFICULTY_LEVELS": 2,
-            "COLLISION_REWARD": -200,
             "INVALID_ACTION_REWARD": 0,
-            "VELOCITY_REWARD": 5,
-            "GOAL_REWARD": 2000,
+            "GOAL_REWARD": 20,
             "OBS_STACK_SIZE": 1,
             "GOAL_LENGTH": 1000,
             "vehicles_count": 'random',
@@ -98,19 +93,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
     def __init__(self, config=DEFAULT_CONFIG):
         super(ParkingEnv_2outs, self).__init__(config)
-        self.observation_config = self.config['observation'].copy()
         obs = self.reset()
-        '''self.observation_space = Dict(dict(
-            desired_goal=Box(-np.inf, np.inf,
-                             shape=obs["desired_goal"].shape, dtype=np.float32),
-            achieved_goal=Box(-np.inf, np.inf,
-                              shape=obs["achieved_goal"].shape, dtype=np.float32),
-            observation=Box(-np.inf, np.inf,
-                            shape=obs["observation"].shape, dtype=np.float32),
-        ))'''
-        self.DEFAULT_CONFIG["vehicles_count"] = np.random.randint(
-            low=0, high=10)
-        self._max_episode_steps = 50
+        self.config["REWARD_SCALE"] = np.absolute(self.config["COLLISION_REWARD"])
 
         # ACTION SPACE:
         # Throttle: [0 to 1],
@@ -125,73 +109,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         EnvViewer.SCREEN_HEIGHT = self.config['screen_height']
         EnvViewer.SCREEN_WIDTH = self.config['screen_width']
 
-    def normalize(self, obs):
-        """
-            Normalize the observation values.
-            For now, assume that the road is straight along the x axis.
-        :param Dataframe obs: observation data
-        """
-        side_lanes = self.road.network.all_side_lanes(self.vehicle.lane_index)
-        x_position_range = 5.0 * MDPVehicle.SPEED_MAX
-        y_position_range = AbstractLane.DEFAULT_WIDTH * len(side_lanes)
-        velocity_range = 2*MDPVehicle.SPEED_MAX
-        obs['x'] = remap(obs['x'], [-x_position_range,
-                                    x_position_range], [-1, 1])
-        obs['y'] = remap(obs['y'], [-y_position_range,
-                                    y_position_range], [-1, 1])
-        obs['vx'] = remap(
-            obs['vx'], [-velocity_range, velocity_range], [-1, 1])
-        obs['vy'] = remap(
-            obs['vy'], [-velocity_range, velocity_range], [-1, 1])
-        return obs
-
-    def _observation(self):
-        ##### ADDING EGO #####
-        obs = pandas.DataFrame.from_records([self.vehicle.to_dict()])[
-            self.observation_config['features']]
-        ego_obs = np.ravel(obs.copy())
-
-        #### ADD THE GOAL ###
-        # obs = obs.append(pandas.DataFrame.from_records([self.goal.to_dict()])[self.observation_config['features']])
-
-        ##### ADDING NEARBY (TO EGO) TRAFFIC #####
-        close_vehicles = self.road.closest_vehicles_to(
-            self.vehicle, self.observation_config['observation_near_ego'])
-        if close_vehicles:
-            obs = obs.append(pandas.DataFrame.from_records(
-                [v.to_dict(self.vehicle)
-                 for v in close_vehicles])[self.observation_config['features']],
-                ignore_index=True)
-
-        # Fill missing rows
-        needed = self.observation_config['observation_near_ego'] + 1
-        missing = needed - obs.shape[0]
-        if obs.shape[0] < (needed):
-            rows = - \
-                np.ones((missing, len(self.observation_config['features'])))
-            obs = obs.append(pandas.DataFrame(
-                data=rows, columns=self.observation_config['features']), ignore_index=True)
-
-        # Normalize
-        obs = self.normalize(obs)
-
-        # Reorder
-        obs = obs[self.observation_config['features']]
-
-        # Flatten
-        obs = np.ravel(obs)
-
-        # Goal
-        goal = np.ravel(pandas.DataFrame.from_records([self.goal.to_dict()])[
-                        self.observation_config['features']])
-
-        # Arrange it as required by Openai GoalEnv
-        obs = {
-            "observation": obs / self.OBS_SCALE,
-            "achieved_goal": ego_obs / self.OBS_SCALE,
-            "desired_goal": goal / self.OBS_SCALE
-        }
-        return obs
 
     def step(self, action):
         self.steps += 1
@@ -379,15 +296,15 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             achieved_goal, desired_goal, p)
 
         # OVER OTHER PARKING SPOTS REWARD
-        over_other_parking_spots_reward = self.OVER_OTHER_PARKING_SPOT_REWARD * \
+        over_other_parking_spots_reward = self.config["OVER_OTHER_PARKING_SPOT_REWARD"] * \
             np.squeeze(info["is_over_others_parking_spot"])
 
         # COLLISION REWARD
-        collision_reward = self.COLLISION_REWARD * \
+        collision_reward = self.config["COLLISION_REWARD"] * \
             np.squeeze(info["is_collision"])
 
         # REVERESE DRIVING REWARD
-        reverse_reward = self.REVERSE_REWARD * np.squeeze(info["is_reverse"])
+        reverse_reward = self.config["REVERSE_REWARD"] * np.squeeze(info["is_reverse"])
 
         reward = (distance_to_goal_reward +
                   collision_reward +
@@ -397,7 +314,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         # against_traffic_reward + \
         # collision_reward)
 
-        reward /= self.REWARD_SCALE
+        reward /= self.config["REWARD_SCALE"]
         #print("info", info)
         return reward
 
