@@ -39,6 +39,7 @@ class TwoWayEnv(AbstractEnv):
             "observation": {
                 "type": "Kinematics",
                 "features": ['x', 'y', 'vx', 'vy', 'psi'],
+                "relative_features": ['x'],
                 "vehicles_count": 6
             },
             "other_vehicles_type": "urban_env.vehicle.control.IDMDPVehicle",

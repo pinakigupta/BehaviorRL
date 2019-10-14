@@ -57,7 +57,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
     """
     PARKING_MAX_VELOCITY = 7.0  # m/s
     OBS_SCALE = 100
-    REWARD_WEIGHTS = [7/100, 7/100, 1/100, 1/100, 9/10, 9/10]
+    REWARD_WEIGHTS = [7/100, 7/100, 1/100, 1/100, 9/10]
     SUCCESS_THRESHOLD = 0.34
 
     DEFAULT_CONFIG = {**AbstractEnv.DEFAULT_CONFIG,
@@ -71,10 +71,9 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         **{
             "observation": {
                 "type": "KinematicsGoal",
-                "features": ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h'],
+                "features": ['x', 'y', 'vx', 'vy', 'psi'],
+                "relative_features": [],
                 "scale": 100,
-                "observation_near_ego": 0,
-                "normalize": False,
                 "vehicles_count": 6,
             },
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
@@ -83,7 +82,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "duration": 50,
             "_predict_only": is_predict_only(),
             "screen_width": 1600,
-            "screen_height": 400,
+            "screen_height": 700,
             "DIFFICULTY_LEVELS": 2,
             "GOAL_REWARD": 20,
             "OBS_STACK_SIZE": 1,
@@ -279,7 +278,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                      )
 
     def distance_2_goal_reward(self, achieved_goal, desired_goal, p=0.5):
-        return - np.power(np.dot(self.OBS_SCALE * np.abs(achieved_goal - desired_goal), self.REWARD_WEIGHTS), p)
+        return - np.power(np.dot( np.abs(achieved_goal - desired_goal), self.REWARD_WEIGHTS), p)
 
     def compute_reward(self, achieved_goal, desired_goal, info, p=0.5):
         """

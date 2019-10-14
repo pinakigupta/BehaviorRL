@@ -219,7 +219,7 @@ class Vehicle(Loggable):
     def direction(self):
         return np.array([np.cos(self.heading), np.sin(self.heading)])
 
-    def to_dict(self, origin_vehicle=None):
+    def to_dict(self, relative_features=[], origin_vehicle=None):
         if origin_vehicle is None:
             origin_vehicle = self
         origin_lane = None
@@ -255,7 +255,7 @@ class Vehicle(Loggable):
         }
         if (origin_vehicle is not self):
             origin_dict = origin_vehicle.to_dict(origin_vehicle)
-            for key in ['x']:
+            for key in relative_features:
                 d[key] -= origin_dict[key]
         return d
 

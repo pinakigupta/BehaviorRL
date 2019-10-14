@@ -69,7 +69,7 @@ class KinematicObservation(ObservationType):
     FEATURES = ['presence', 'x', 'y', 'vx', 'vy', 'psi', 'lane_psi', 'length']
     #STACK_SIZE = 2
 
-    def __init__(self, env, ref_vehicle, features=FEATURES, vehicles_count=9, **kwargs):
+    def __init__(self, env, ref_vehicle, features=FEATURES, relative_features=FEATURES, vehicles_count=9, **kwargs):
         """
         :param env: The environment to observe
         :param features: Names of features used in the observation
@@ -77,6 +77,7 @@ class KinematicObservation(ObservationType):
         """
         self.env = env
         self.features = features
+        self.relative_features = relative_features
         self.vehicles_count = vehicles_count
         self.virtual_vehicles_count = 1
         self.close_vehicles = None
@@ -109,7 +110,8 @@ class KinematicObservation(ObservationType):
         df['vy'] = utils.remap(df['vy'], [-self.velocity_range, self.velocity_range], [-1, 1])
 
         if 'psi' in df:
-            df['psi'] = (df['psi'] - road.network.get_lane(self.vehicle.route_lane_index).heading_at(self.vehicle.position[0]))/(2*np.pi)
+            if hasattr(self.vehicle, 'route_lane_index'):
+                df['psi'] = (df['psi'] - road.network.get_lane(self.vehicle.route_lane_index).heading_at(self.vehicle.position[0]))/(2*np.pi)
             for i in  range(len(df['psi'])):
                 if df['psi'][i] == -0.5:
                     df['psi'][i] = 0.5 # since the agent mostly got trained within 0 - 0.5 
@@ -123,11 +125,11 @@ class KinematicObservation(ObservationType):
 
         
         # Add ego-vehicle
-        df = pandas.DataFrame.from_records([self.vehicle.to_dict(self.vehicle)])[self.features]
+        df = pandas.DataFrame.from_records([self.vehicle.to_dict(self.relative_features, self.vehicle)])[self.features]
         '''for col in df.columns:
             df[col].values[:] = 0
 
-        df = df.append(pandas.DataFrame.from_records([self.vehicle.to_dict(self.vehicle)])[self.features])'''
+        df = df.append(pandas.DataFrame.from_records([self.vehicle.to_dict(self.relative_features, self.vehicle)])[self.features])'''
 
 
                 
@@ -139,7 +141,7 @@ class KinematicObservation(ObservationType):
         
         if self.close_vehicles:
             df = df.append(pandas.DataFrame.from_records(
-                [v.to_dict(self.vehicle)
+                [v.to_dict(self.relative_features, self.vehicle)
                  for v in self.close_vehicles[-self.vehicles_count + 1:]])[self.features],
                            ignore_index=True)
 
@@ -207,15 +209,15 @@ class KinematicsGoalObservation(KinematicObservation):
             return None
 
     def observe(self):
-        obs = np.ravel(pandas.DataFrame.from_records([self.vehicle.to_dict(self.vehicle)])[self.features])
-        goal = np.ravel(pandas.DataFrame.from_records([self.env.goal.to_dict(self.vehicle)])[self.features])
-        obs = {
-            #"observation": obs / self.scale,
-            "observation": super(KinematicsGoalObservation, self).observe(),
-            "achieved_goal": obs / self.scale,
-            "desired_goal": goal / self.scale
-        }
-        return obs
+        obs = np.ravel(self.normalize(pandas.DataFrame.from_records([self.vehicle.to_dict(self.relative_features, self.vehicle)])[self.features]))
+        goal = np.ravel(self.normalize(pandas.DataFrame.from_records([self.env.goal.to_dict(self.relative_features, self.vehicle)])[self.features]))
+        obs_tuple = {
+                        #"observation": obs / self.scale,
+                        "observation": super(KinematicsGoalObservation, self).observe(),
+                        "achieved_goal": obs ,
+                        "desired_goal": goal 
+                    }
+        return obs_tuple
 
 
 def observation_factory(env, ref_vehicle, config):
