@@ -32,14 +32,14 @@ class Vehicle(Loggable):
     }
 
     def __init__(self, road, position, lane_index=None, heading=0, velocity=0, length=5.0,
-                 width=2.0, virtual=False, config=DEFAULT_CONFIG, **kwargs):
+                 width=2.0, virtual=False, color=None, config=DEFAULT_CONFIG, **kwargs):
         self.LENGTH = length
         self.WIDTH = width
         self.road = road
         self.position = np.array(position).astype('float')
         self.heading = heading
         self.velocity = velocity
-        self.color = None
+        self.color = color
         if lane_index is None:
             self.lane_index = self.road.network.get_closest_lane_index(self.position, self.heading) if self.road else np.nan
         else:
@@ -321,9 +321,9 @@ class Obstacle(Vehicle):
         A motionless obstacle at a given position.
     """
 
-    def __init__(self, road, position, heading=0, config=None, **kwargs):
+    def __init__(self, road, position, heading=0, config=None, color=None, **kwargs):
         super(Obstacle, self).__init__(
-            road, position, velocity=0, heading=heading, config=config)
+            road, position, velocity=0, heading=heading, color=color, config=config)
         self.target_velocity = 0
         #self.LENGTH = self.WIDTH
 

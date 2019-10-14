@@ -20,6 +20,7 @@ from urban_env.vehicle.dynamics import Vehicle, Obstacle
 from urban_env.vehicle.control import MDPVehicle
 from urban_env.utils import *
 from handle_model_files import is_predict_only
+from urban_env.envdict import WHITE, RED
 
 VELOCITY_EPSILON = 1.0
 
@@ -65,6 +66,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "VELOCITY_REWARD": 5,
             "COLLISION_REWARD": -1,
             "REVERSE_REWARD": -0.2,
+            "INVALID_ACTION_REWARD": 0,
         },
         **{
             "observation": {
@@ -83,7 +85,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "screen_width": 1600,
             "screen_height": 400,
             "DIFFICULTY_LEVELS": 2,
-            "INVALID_ACTION_REWARD": 0,
             "GOAL_REWARD": 20,
             "OBS_STACK_SIZE": 1,
             "GOAL_LENGTH": 1000,
@@ -253,7 +254,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self.goal = Obstacle(road=self.road,
                              position=lane.position(lane.length/2, 0), 
                              heading=goal_heading,
-                             config=self.config
+                             config=self.config,
+                             color=WHITE
                              )
         self.goal.COLLISIONS_ENABLED = False
         self.road.vehicles.insert(0, self.goal)

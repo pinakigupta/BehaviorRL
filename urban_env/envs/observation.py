@@ -210,7 +210,8 @@ class KinematicsGoalObservation(KinematicObservation):
         obs = np.ravel(pandas.DataFrame.from_records([self.vehicle.to_dict(self.vehicle)])[self.features])
         goal = np.ravel(pandas.DataFrame.from_records([self.env.goal.to_dict(self.vehicle)])[self.features])
         obs = {
-            "observation": obs / self.scale,
+            #"observation": obs / self.scale,
+            "observation": super(KinematicsGoalObservation, self).observe(),
             "achieved_goal": obs / self.scale,
             "desired_goal": goal / self.scale
         }
