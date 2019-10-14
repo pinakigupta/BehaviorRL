@@ -74,7 +74,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 "features": ['x', 'y', 'vx', 'vy', 'psi'],
                 "relative_features": [],
                 "scale": 100,
-                "vehicles_count": 6,
+                "vehicles_count": 10,
             },
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
             "centering_position": [0.5, 0.5],
