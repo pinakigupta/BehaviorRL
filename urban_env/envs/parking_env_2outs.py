@@ -10,6 +10,7 @@ import numpy as np
 import pandas
 from gym import GoalEnv
 from gym.spaces import Dict, Discrete, Box, Tuple
+import copy
 
 from urban_env.envs.abstract import AbstractEnv
 from urban_env.road.lane import StraightLane, LineType, AbstractLane
@@ -21,6 +22,8 @@ from urban_env.vehicle.control import MDPVehicle
 from urban_env.utils import *
 from handle_model_files import is_predict_only
 from urban_env.envdict import WHITE, RED
+
+import pprint
 
 VELOCITY_EPSILON = 1.0
 
@@ -130,6 +133,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         obs, reward, done, info = super(ParkingEnv_2outs, self).step(self.vehicle.control_action)
 
         #terminal = self._is_terminal()
+        self.print_obs_space(ref_vehicle=self.vehicle)
         return obs, reward, done, info
 
     def reset(self):
@@ -355,3 +359,45 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         # or self._is_success(obs['achieved_goal'], obs['desired_goal'])
         return terminal
 
+
+    def print_obs_space(self, ref_vehicle):
+        if not ref_vehicle:
+            return
+        print("-------------- start obs ", ref_vehicle.Id(), "  ----------------------")
+        print("obs space, step ", self.steps)
+        if ref_vehicle.control_action is not None:
+            print("reference accel = ", 
+                    ref_vehicle.control_action['acceleration'],
+                    " steering = ", ref_vehicle.control_action['steering'])
+        
+        #sys.stdout.flush()
+        pp = pprint.PrettyPrinter(indent=4)
+        numoffeatures = len(self.config["observation"]["features"])
+        numfofobs = len(self.obs["observation"])
+        numofvehicles = numfofobs//numoffeatures
+        close_vehicle_ids = [int(ref_vehicle.Id()[1:])]
+        modified_obs = self.observations[ref_vehicle].observe()
+        close_vehicles = self.road.closest_vehicles_to(ref_vehicle,
+                                                           numofvehicles - 1,
+                                                           7.0 * MDPVehicle.SPEED_MAX
+                                                      )
+        for v in close_vehicles:
+            close_vehicle_ids.append(int(v.Id()[1:]))
+        close_vehicle_ids.extend([-1]*(numofvehicles-len(close_vehicle_ids)))
+        Idx = 0
+        obs_Idx = 0
+        while True:
+            temp = copy.deepcopy(modified_obs["observation"])
+            del(modified_obs["observation"])
+            modified_obs["observation"] = np.insert(temp, obs_Idx, close_vehicle_ids[Idx])
+            del(temp)
+            Idx += 1
+            obs_Idx += numoffeatures+1
+            if Idx >= len(close_vehicle_ids):
+                break
+
+        np.set_printoptions(precision=3, suppress=True)
+        obs_format = pp.pformat(np.round(np.reshape(modified_obs["observation"], (numofvehicles, numoffeatures+1 )), 3))
+        obs_format = obs_format.rstrip("\n")
+        print(obs_format)
+        print("\n\n\n")
