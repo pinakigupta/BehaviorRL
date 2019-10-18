@@ -133,7 +133,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         obs, reward, done, info = super(ParkingEnv_2outs, self).step(self.vehicle.control_action)
 
         #terminal = self._is_terminal()
-        self.print_obs_space(ref_vehicle=self.vehicle)
+        #self.print_obs_space(ref_vehicle=self.vehicle)
         return obs, reward, done, info
 
     def reset(self):
@@ -254,7 +254,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         lane = self.road.network.lanes_list()[13]
         parking_spots_used.append(lane)
         goal_heading = lane.heading  # + self.np_random.randint(2) * np.pi
-        self.goal = Obstacle(road=self.road,
+        self.goal = Obstacle(
+                             road=self.road,
                              position=lane.position(lane.length/2, 0), 
                              heading=goal_heading,
                              config=self.config,
