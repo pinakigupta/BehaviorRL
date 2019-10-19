@@ -18,7 +18,7 @@ from urban_env.vehicle.dynamics import Obstacle
 
 
 class RoadNetwork(object):
-    
+
     def __init__(self):
         self.graph = {}
 
@@ -59,7 +59,7 @@ class RoadNetwork(object):
         :param position: a world position [m].
         :return: the index of the closest lane.
         """
-        indexes, distances, headings = [], [] , []
+        indexes, distances, headings = [], [], []
         for _from, to_dict in self.graph.items():
             for _to, lanes in to_dict.items():
                 for _id, l in enumerate(lanes):
@@ -69,10 +69,10 @@ class RoadNetwork(object):
         arg_mins = np.argwhere(distances == np.amin(distances))
         arg_mins = arg_mins.flatten().tolist()
         if len(arg_mins) == 1:
-             return indexes[arg_mins[0]]
+            return indexes[arg_mins[0]]
         min_heading_diff = 1e6
         for idx in arg_mins:
-            if abs(heading-headings[idx])<min_heading_diff:
+            if abs(heading-headings[idx]) < min_heading_diff:
                 min_heading_diff = abs(heading-headings[idx])
                 min_idx = idx
         return indexes[min_idx]
@@ -95,16 +95,20 @@ class RoadNetwork(object):
         next_to = None
         # Pick next road according to planned route
         if route:
-            if route[0][:2] == current_index[:2]:  # We just finished the first step of the route, drop it.
+            # We just finished the first step of the route, drop it.
+            if route[0][:2] == current_index[:2]:
                 route.pop(0)
-            if route and route[0][0] == _to:  # Next road in route is starting at the end of current road.
+            # Next road in route is starting at the end of current road.
+            if route and route[0][0] == _to:
                 _, next_to, route_id = route[0]
             elif route:
-                logger.warn("Route {} does not start after current road {}.".format(route[0], current_index))
+                logger.warn("Route {} does not start after current road {}.".format(
+                    route[0], current_index))
         # Randomly pick next road
         if not next_to:
             try:
-                next_to = list(self.graph[_to].keys())[np_random.randint(len(self.graph[_to]))]
+                next_to = list(self.graph[_to].keys())[
+                    np_random.randint(len(self.graph[_to]))]
             except KeyError:
                 # logger.warn("End of lane reached.")
                 return current_index
@@ -226,7 +230,8 @@ class RoadNetwork(object):
             end = [length, lane * StraightLane.DEFAULT_WIDTH]
             line_types = [LineType.CONTINUOUS_LINE if lane == 0 else LineType.STRIPED,
                           LineType.CONTINUOUS_LINE if lane == lanes - 1 else LineType.NONE]
-            net.add_lane(0, 1, StraightLane(origin, end, line_types=line_types))
+            net.add_lane(0, 1, StraightLane(
+                origin, end, line_types=line_types))
         return net
 
 
@@ -254,29 +259,27 @@ class Road(Loggable):
         return [v for v in self.vehicles if (distances[0] < vehicle.lane_distance_to(v) < distances[1]
                                              and v is not vehicle)]
 
-    def closest_vehicles_to(self, vehicle, count, perception_distance = math.inf):
-        if hasattr(vehicle, 'route_lane_index'):
-            if vehicle.route_lane_index is None:
-                sorted_v =  sorted([v for v in self.vehicles
-                                    if v is not vehicle 
-                                    and not v.virtual
-                                    and v not in self.virtual_vehicles
-                                    # and -2*vehicle.LENGTH < vehicle.lane_distance_to(v) 
-                                    and abs(vehicle.distance_to(v)) < perception_distance],
-                                    key=lambda v: abs(vehicle.distance_to(v))
-                                    ) 
-            return sorted_v
+    def closest_vehicles_to(self, vehicle, count, perception_distance=math.inf):
+        if not hasattr(vehicle, 'route_lane_index') or vehicle.route_lane_index is None:
+            sorted_v = sorted([v for v in self.vehicles
+                               if v is not vehicle
+                               and not v.virtual
+                               and v not in self.virtual_vehicles
+                               # and -2*vehicle.LENGTH < vehicle.lane_distance_to(v)
+                               and abs(vehicle.distance_to(v)) < perception_distance],
+                              key=lambda v: abs(vehicle.distance_to(v))
+                              )
+            return sorted_v[:count]
 
         sorted_v = sorted([v for v in self.vehicles
-                           if v is not vehicle 
+                           if v is not vehicle
                            and not v.virtual
                            and v not in self.virtual_vehicles
-                           # and -2*vehicle.LENGTH < vehicle.lane_distance_to(v) 
+                           # and -2*vehicle.LENGTH < vehicle.lane_distance_to(v)
                            and abs(vehicle.lane_distance_to(v)) < perception_distance],
                           key=lambda v: abs(vehicle.lane_distance_to(v))
                           )
         return sorted_v[:count]
-
 
     def add_vehicle(self, vehicle):
         vehicle.config = {**self.config, **vehicle.config}
@@ -293,15 +296,17 @@ class Road(Loggable):
 
         for vehicle in self.vehicles:
             if not vehicle.is_ego():
-                        lane_index = self.network.get_closest_lane_index(position=vehicle.position,
-                                                                         heading=vehicle.heading,
-                                                                        )
-                        lane_distance = self.network.get_lane(lane_index).distance(vehicle.position)
-                        if lane_distance > 5:
-                            print(vehicle.Id(), " lane_distance ", lane_distance ,"from closest lane", lane_index, ".Removing vehicle")
-                            self.vehicles.remove(vehicle)
-                        else:
-                            vehicle.act(observations=observations)
+                lane_index = self.network.get_closest_lane_index(position=vehicle.position,
+                                                                 heading=vehicle.heading,
+                                                                 )
+                lane_distance = self.network.get_lane(
+                    lane_index).distance(vehicle.position)
+                if lane_distance > 5:
+                    print(vehicle.Id(), " lane_distance ", lane_distance,
+                          "from closest lane", lane_index, ".Removing vehicle")
+                    self.vehicles.remove(vehicle)
+                else:
+                    vehicle.act(observations=observations)
 
     def step(self, dt, SCALE=1):
         """
@@ -332,7 +337,8 @@ class Road(Loggable):
         if not lane_index:
             return None, None
         lane = self.network.get_lane(lane_index)
-        s = self.network.get_lane(lane_index).local_coordinates(vehicle.position)[0]
+        s = self.network.get_lane(
+            lane_index).local_coordinates(vehicle.position)[0]
         s_front = s_rear = None
         v_front = v_rear = None
         for v in self.vehicles:

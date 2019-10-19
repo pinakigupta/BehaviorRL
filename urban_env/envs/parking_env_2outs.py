@@ -242,6 +242,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                position=[0, 0],
                                heading=2*np.pi*self.np_random.rand(),
                                velocity=0,
+                               route_lane_index=None,
                                config=self.config
                                )
         self.vehicle.MAX_VELOCITY = self.PARKING_MAX_VELOCITY
