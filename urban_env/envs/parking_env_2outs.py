@@ -66,10 +66,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
     DEFAULT_CONFIG = {**AbstractEnv.DEFAULT_CONFIG,
         **{
             "OVER_OTHER_PARKING_SPOT_REWARD": -0.9,
-            "VELOCITY_REWARD": 5,
-            "COLLISION_REWARD": -1,
-            "REVERSE_REWARD": -0.2,
-            "INVALID_ACTION_REWARD": 0,
+            "VELOCITY_REWARD": 2,
+            "COLLISION_REWARD": -200,
+            "REVERSE_REWARD": -1,
+            "GOAL_REWARD": 2000,
         },
         **{
             "observation": {
@@ -301,6 +301,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         # DISTANCE TO GOAL
         distance_to_goal_reward = self.distance_2_goal_reward(
             achieved_goal, desired_goal, p)
+        
+        #print("distance_to_goal_reward ", distance_to_goal_reward)
 
         # OVER OTHER PARKING SPOTS REWARD
         over_other_parking_spots_reward = self.config["OVER_OTHER_PARKING_SPOT_REWARD"] * \
@@ -312,14 +314,18 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         # REVERESE DRIVING REWARD
         reverse_reward = self.config["REVERSE_REWARD"] * np.squeeze(info["is_reverse"])
-
-        reward = (distance_to_goal_reward +
-                  collision_reward +
-                  reverse_reward)  # + \
+        continuous_reward = (distance_to_goal_reward + reverse_reward)  # + \
         # over_other_parking_spots_reward)
         # reverse_reward + \
         # against_traffic_reward + \
         # collision_reward)
+        goal_reward = self.config["GOAL_REWARD"]
+        if self.vehicle.crashed:
+            reward = collision_reward + min(0.0, continuous_reward)
+        elif self.is_success:
+            reward = goal_reward + continuous_reward
+        else:
+            reward = continuous_reward
 
         reward /= self.config["REWARD_SCALE"]
         #print("info", info)
