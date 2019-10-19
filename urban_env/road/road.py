@@ -255,13 +255,26 @@ class Road(Loggable):
                                              and v is not vehicle)]
 
     def closest_vehicles_to(self, vehicle, count, perception_distance = math.inf):
+        if hasattr(vehicle, 'route_lane_index'):
+            if vehicle.route_lane_index is None:
+                sorted_v =  sorted([v for v in self.vehicles
+                                    if v is not vehicle 
+                                    and not v.virtual
+                                    and v not in self.virtual_vehicles
+                                    # and -2*vehicle.LENGTH < vehicle.lane_distance_to(v) 
+                                    and abs(vehicle.distance_to(v)) < perception_distance],
+                                    key=lambda v: abs(vehicle.distance_to(v))
+                                    ) 
+            return sorted_v
+
         sorted_v = sorted([v for v in self.vehicles
                            if v is not vehicle 
                            and not v.virtual
                            and v not in self.virtual_vehicles
                            # and -2*vehicle.LENGTH < vehicle.lane_distance_to(v) 
                            and abs(vehicle.lane_distance_to(v)) < perception_distance],
-                          key=lambda v: abs(vehicle.lane_distance_to(v)))
+                          key=lambda v: abs(vehicle.lane_distance_to(v))
+                          )
         return sorted_v[:count]
 
 
