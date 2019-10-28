@@ -112,9 +112,12 @@ class KinematicObservation(ObservationType):
         if 'psi' in df:
             if hasattr(self.vehicle, 'route_lane_index'):
                 df['psi'] = (df['psi'] - road.network.get_lane(self.vehicle.route_lane_index).heading_at(self.vehicle.position[0]))/(2*np.pi)
-            for i in  range(len(df['psi'])):
-                if df['psi'][i] == -0.5:
-                    df['psi'][i] = 0.5 # since the agent mostly got trained within 0 - 0.5 
+                for i in  range(len(df['psi'])):
+                    if df['psi'][i] == -0.5:
+                        df['psi'][i] = 0.5 # since the agent mostly got trained within 0 - 0.5 
+            else:
+                df['psi'] /= (2*np.pi)
+
         if 'lane_psi' in df:
             df['lane_psi'] = df['lane_psi']/(2*np.pi)
         if 'length' in df:

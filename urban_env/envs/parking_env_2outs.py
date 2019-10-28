@@ -61,7 +61,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
     PARKING_MAX_VELOCITY = 7.0  # m/s
     OBS_SCALE = 100
     REWARD_WEIGHTS = [7/100, 7/100, 1/100, 1/100, 9/10]
-    SUCCESS_THRESHOLD = 0.34
+    SUCCESS_THRESHOLD = 0.05
 
     DEFAULT_CONFIG = {**AbstractEnv.DEFAULT_CONFIG,
         **{
@@ -299,8 +299,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         """
 
         # DISTANCE TO GOAL
-        distance_to_goal_reward = self.distance_2_goal_reward(
-            achieved_goal, desired_goal, p)
+        distance_to_goal_reward = self.distance_2_goal_reward(achieved_goal, desired_goal, p)
         
         #print("distance_to_goal_reward ", distance_to_goal_reward)
 
@@ -350,6 +349,9 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         distance_to_goal_reward = self.distance_2_goal_reward(
             achieved_goal, desired_goal)
 
+        #print("desired_goal ", desired_goal)
+        #print("achieved_goal ", achieved_goal)
+        #print("distance_to_goal_reward ", distance_to_goal_reward)
         self.is_success = (distance_to_goal_reward > -self.SUCCESS_THRESHOLD)
         return self.is_success
 
