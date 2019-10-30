@@ -68,10 +68,10 @@ class VehicleGraphics(object):
         s = pygame.Surface.convert_alpha(s)
         h = v.heading if abs(v.heading) > 2 * np.pi / 180 else 0
         sr = pygame.transform.rotate(s, -h * 180 / np.pi)
-        if not v.virtual:
-            surface.blit(sr, (surface.pos2pix(v.position[0] - veh_length / 2, v.position[1] - veh_length / 2)))
-        else:
-            surface.blit(sr, (surface.pos2pix(mdp_vehicle.position[0] - veh_length / 2, v.position[1] - veh_length / 2)))
+        #if not v.virtual:
+        surface.blit(sr, (surface.pos2pix(v.position[0] - veh_length / 2, v.position[1] - veh_length / 2)))
+        #else:
+        #    surface.blit(sr, (surface.pos2pix(mdp_vehicle.position[0] - veh_length / 2, v.position[1] - veh_length / 2)))
 
         font_type = 'freesansbold.ttf'
         size = 12

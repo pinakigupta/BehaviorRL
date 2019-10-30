@@ -45,6 +45,8 @@ class LaneGraphics(object):
                 cls.continuous_curve(lane, surface, stripes_count, s0, side)
             elif lane.line_types[side] == LineType.CONTINUOUS_LINE:
                 cls.continuous_line(lane, surface, stripes_count, s0, side)
+            else:
+                continue
 
     @classmethod
     def striped_line(cls, lane, surface, stripes_count, s0, side):

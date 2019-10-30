@@ -107,7 +107,8 @@ class Vehicle(Loggable):
             x0-=offset * road.np_random.uniform(0.9, 1.1)
         
         #x0=x0+delta_x0
-        v = cls(road=road,
+        v = cls(
+                road=road,
                 position=road.network.get_lane((_from, _to, _id)).position(x0, 0),
                 heading=0,
                 velocity=velocity,

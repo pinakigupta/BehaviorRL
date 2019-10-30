@@ -85,12 +85,14 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "duration": 50,
             "_predict_only": is_predict_only(),
             "screen_width": 1600,
-            "screen_height": 700,
+            "screen_height": 900,
             "DIFFICULTY_LEVELS": 2,
             "GOAL_REWARD": 20,
             "OBS_STACK_SIZE": 1,
             "GOAL_LENGTH": 1000,
-            "vehicles_count": 'random',
+            "vehicles_count": 0,
+            "PARKING_LOT_WIDTH": 90,
+            "PARKING_LOT_LENGTH": 70,
             }
     }
 
@@ -230,15 +232,25 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             net.add_lane("b", "c", StraightLane(
                 [x3, y3], [x4, y4], width=width, line_types=lt))
 
+        w = self.config["PARKING_LOT_WIDTH"]/2
+        l = self.config["PARKING_LOT_LENGTH"]/2
+        hidden = [LineType.NONE, LineType.NONE]
+        net.add_lane("e", "f", StraightLane([w, -l], [w, l], width=0, line_types=hidden))
+        net.add_lane("e", "f", StraightLane([-w, -l], [-w, l], width=0, line_types=hidden))
+        net.add_lane("e", "f", StraightLane([-w, -l], [w, -l], width=0, line_types=hidden))
+        net.add_lane("e", "f", StraightLane([-w, l], [w, l], width=0, line_types=hidden))
+
         self.road = Road(network=net,
-                         np_random=self.np_random)
+                         np_random=self.np_random,
+                         config=self.config)
 
     def _populate_parking(self):
         """
             Create some new random vehicles of a given type, and add them on the road.
         """
         ##### ADDING EGO #####
-        self.vehicle = Vehicle(road=self.road, 
+        self.vehicle = Vehicle(
+                               road=self.road, 
                                position=[0, 0],
                                heading=2*np.pi*self.np_random.rand(),
                                velocity=0,
@@ -252,7 +264,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         ##### ADDING GOAL #####
         parking_spots_used = []
         # lane = self.np_random.choice(self.road.network.lanes_list())
-        lane = self.road.network.lanes_list()[13]
+        lane = self.road.network.lanes_list()[-5]
         parking_spots_used.append(lane)
         goal_heading = lane.heading  # + self.np_random.randint(2) * np.pi
         self.goal = Obstacle(
@@ -282,6 +294,9 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                               config=self.config
                                               )
                                      )
+        
+        self._add_virtual_vehicles()
+
 
     def distance_2_goal_reward(self, achieved_goal, desired_goal, p=0.5):
         return - np.power(np.dot( np.abs(achieved_goal - desired_goal), self.REWARD_WEIGHTS), p)
@@ -411,3 +426,36 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         obs_format = obs_format.rstrip("\n")
         print(obs_format)
         print("\n\n\n")
+
+
+    def _add_virtual_vehicles(self):
+        for i in range(4):
+            lane_index = ("e", "f", i)
+            lane = self.road.network.get_lane(lane_index)
+            x0 = lane.length/2
+            position = lane.position(x0, 0)
+            virtual_obstacle_right = Obstacle(
+                                            road=self.road,
+                                            position=position,
+                                            heading=lane.heading_at(x0),
+                                            velocity=0,
+                                            lane_index=lane_index,
+                                            target_lane_index=lane_index,                                            
+                                            config=self.config
+                                            )
+            virtual_obstacle_right.virtual = True                                       
+            virtual_obstacle_right.LENGTH = lane.length
+            self.road.add_vehicle(copy.deepcopy(virtual_obstacle_right))
+            self.road.add_virtual_vehicle(copy.deepcopy(virtual_obstacle_right))
+
+        '''virtual_obstacle_left  = Obstacle(
+                                          road=self.road,
+                                          position=[-40, 0],
+                                          heading=np.pi/2,
+                                          velocity=0,
+                                          config=self.config
+                                          )
+        virtual_obstacle_left.virtual = True                                       
+        virtual_obstacle_left.LENGTH = 50
+        self.road.add_vehicle(virtual_obstacle_left)
+        self.road.add_virtual_vehicle(virtual_obstacle_left)'''        
