@@ -9,6 +9,8 @@ import time
 import glob
 import redis
 import ray
+import gym
+
 from ray.tune import Experiment, Trainable, run_experiments, register_env, sample_from
 from ray.tune.schedulers import PopulationBasedTraining, AsyncHyperBandScheduler
 from ray.tune.ray_trial_executor import RayTrialExecutor
@@ -242,6 +244,8 @@ def ray_train(save_in_sub_folder=None):
     import settings
     retrieved_agent_policy = settings.retrieved_agent_policy
 
+    model = gym.make(train_env_id).config["MODEL"] 
+
     ray_trials = ray.tune.run(
             CustomTrainer,
             name="pygame-ray",
@@ -268,10 +272,7 @@ def ray_train(save_in_sub_folder=None):
                     "num_envs_per_worker": 2,
                     "env": train_env_id,
                     "remote_worker_envs": False,
-                    "model": {
-                                #    "use_lstm": True,
-                                    "fcnet_hiddens": [256, 256, 256],
-                            }, 
+                    "model": model,
                     "env_config": {
                                     "retrieved_agent_policy": 1,
                                   },               

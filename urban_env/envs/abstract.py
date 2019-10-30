@@ -56,7 +56,10 @@ class AbstractEnv(gym.Env):
         "SIMULATION_FREQUENCY": 15, # The frequency at which the system dynamics are simulated [Hz]
         "POLICY_FREQUENCY": 1 , #The frequency at which the agent can take actions [Hz]
         "PERCEPTION_DISTANCE": 7.0 * MDPVehicle.SPEED_MAX, # The maximum distance of any vehicle present in the observation [m]
-    }
+        "MODEL":                {
+                                #    "use_lstm": True,
+                                    "fcnet_hiddens": [256],
+                                 },     }
 
     BUFFER_LENGTH = 50
 
