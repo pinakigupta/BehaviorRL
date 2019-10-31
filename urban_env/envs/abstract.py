@@ -218,11 +218,11 @@ class AbstractEnv(gym.Env):
 
         for k in range(int(self.config["SIMULATION_FREQUENCY"] // self.config["POLICY_FREQUENCY"])):
             if action is not None : # and self.time % int(self.SIMULATION_FREQUENCY // self.POLICY_FREQUENCY) == 0:
-                # Forward action to the vehicle
-                if len(action) > 1:
-                    self.vehicle.act(action)
-                else: 
+                # Forward action to the vehicle                    
+                if np.issubdtype(action, np.integer): 
                     self.vehicle.act(self.ACTIONS[action])
+                else:
+                    self.vehicle.act(action)
 
             self.road.act(self.observations)
             self.road.step(1 / self.config["SIMULATION_FREQUENCY"], SCALE)
