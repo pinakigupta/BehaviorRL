@@ -89,7 +89,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "GOAL_REWARD": 20,
             "OBS_STACK_SIZE": 1,
             "GOAL_LENGTH": 1000,
-            "vehicles_count": 0,
+            "vehicles_count": 'random',
             "PARKING_LOT_WIDTH": 90,
             "PARKING_LOT_LENGTH": 70,
             "MODEL":             {
@@ -285,7 +285,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         for _ in range(self.vehicles_count):
             while lane in parking_spots_used:  # this loop should never be infinite since we assert that there should be more parking spots/lanes than vehicles
                 # to-do: chceck for empty spots
-                lane = self.np_random.choice(self.road.network.lanes_list())
+                lane = self.np_random.choice(self.road.network.lanes_list()[:-5])
             parking_spots_used.append(lane)
 
             # + self.np_random.randint(2) * np.pi
