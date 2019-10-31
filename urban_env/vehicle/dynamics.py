@@ -204,6 +204,8 @@ class Vehicle(Loggable):
             if gym.Env.metadata['_predict_only']:
                 SCALE= 0.9'''
             
+        if self.virtual and other.virtual:
+            return 
 
         if not self.config["COLLISIONS_ENABLED"] or not other.config["COLLISIONS_ENABLED"] or self.crashed or other is self:
             return

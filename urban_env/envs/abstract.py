@@ -59,7 +59,8 @@ class AbstractEnv(gym.Env):
         "MODEL":                {
                                 #    "use_lstm": True,
                                     "fcnet_hiddens": [256],
-                                 },     }
+                                 },     
+                     }
 
     BUFFER_LENGTH = 50
 

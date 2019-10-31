@@ -56,7 +56,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         It implements a reach-type task, where the agent observes their position and velocity and must
         control their acceleration and steering so as to reach a given goal.
 
-        Credits to Munir Jojo-Verge for the idea and initial implementation.
     """
     PARKING_MAX_VELOCITY = 7.0  # m/s
     OBS_SCALE = 100
@@ -78,10 +77,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 "relative_features": [],
                 "scale": 100,
                 "vehicles_count": 10,
-            },
+                           },
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
             "centering_position": [0.5, 0.5],
-            "parking_spots": 15,  # 'random', # Parking Spots Per side            
+            "parking_spots": 15,  # 'random', # Parking Spots per side            
             "duration": 50,
             "_predict_only": is_predict_only(),
             "screen_width": 1600,
