@@ -251,7 +251,7 @@ class ControlledVehicle(Vehicle):
         #    return
         return super(ControlledVehicle, self).check_collision(other, SCALE)
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q, pred_horizon=-1, **kwargs):
+    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, pred_horizon=-1, **kwargs):
         """
             Predict the future trajectory of the vehicle given a sequence of actions.
 
@@ -263,6 +263,7 @@ class ControlledVehicle(Vehicle):
         """
         states = []
         v = copy.deepcopy(self)
+        v.is_projection = True
         #v.virtual = True
         t = 0
         for action in actions:  # only used to iterate (MDP # of actions)
@@ -280,7 +281,8 @@ class ControlledVehicle(Vehicle):
                 continue
             break
         del(v)
-        out_q.append(states)
+        #if out_q is not None:
+        #    out_q.append(copy.deepcopy(states))
         return states
 
     @abc.abstractmethod
@@ -381,7 +383,7 @@ class MDPVehicle(ControlledVehicle):
         """
         return self.speed_to_index(self.velocity)
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q, pred_horizon=-1, **kwargs):
+    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, pred_horizon=-1, **kwargs):
         """
             Predict the future trajectory of the vehicle given a sequence of actions.
 
@@ -393,6 +395,7 @@ class MDPVehicle(ControlledVehicle):
         """
         states = []
         v = copy.deepcopy(self)
+        v.is_projection = True
         #v.virtual = True
         t = 0
         action = actions[0]
@@ -411,7 +414,8 @@ class MDPVehicle(ControlledVehicle):
                 continue
             break
         del(v)
-        out_q.append(states)
+        #if out_q is not None:
+        #    out_q.append(copy.deepcopy(states))
         return states
 
     def Id(self):

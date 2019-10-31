@@ -57,7 +57,7 @@ class EnvViewer(object):
             self.agent_surface = pygame.Surface((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
         self.agent_display = agent_display
 
-    def set_agent_action_sequence(self, actions):
+    def set_agent_action_sequence_multiprocess(self, actions):
         """
             Set the sequence of actions chosen by the agent, so that it can be displayed
         :param actions: list of action, following the env's action space specification
@@ -102,6 +102,33 @@ class EnvViewer(object):
                 self.vehicle_trajectories.append(trajectory)
 
             
+    def set_agent_action_sequence(self, actions):
+        """
+            Set the sequence of actions chosen by the agent, so that it can be displayed
+        :param actions: list of action, following the env's action space specification
+        """
+        if hasattr(self.env.action_space, 'n'):
+            actions = [self.env.ACTIONS[a] for a in actions]
+        self.vehicle_trajectories.clear()
+
+        
+        self.vehicle_trajectories =[v.predict_trajectory(
+                                    actions=actions,
+                                    action_duration=1/v.config["POLICY_FREQUENCY"],
+                                    trajectory_timestep=1/1/v.config["POLICY_FREQUENCY"],
+                                    dt=1/v.config["SIMULATION_FREQUENCY"],
+                                    pred_horizon=2.0
+                                    ) for v in self.env.road.closest_vehicles_to(self.env.vehicle, 4) \
+                                        if v not in self.env.road.virtual_vehicles]
+
+        self.vehicle_trajectories.append(self.env.vehicle.predict_trajectory(
+                                                        actions=actions,
+                                                        action_duration=1/self.env.vehicle.config["POLICY_FREQUENCY"],
+                                                        trajectory_timestep=1/3/self.env.vehicle.config["POLICY_FREQUENCY"],
+                                                        dt=1/self.env.vehicle.config["SIMULATION_FREQUENCY"],
+                                                    )
+                )
+
 
 
     def handle_events(self):
@@ -130,9 +157,10 @@ class EnvViewer(object):
         RoadGraphics.display(self.env.road, self.sim_surface)
         if self.vehicle_trajectories:
             for vehicle_trajectory in self.vehicle_trajectories:
-                VehicleGraphics.display_trajectory(
-                    vehicle_trajectory,
-                    self.sim_surface)
+                if vehicle_trajectory is not None:
+                    VehicleGraphics.display_trajectory(
+                        vehicle_trajectory,
+                        self.sim_surface)
         RoadGraphics.display_traffic(self.env.road, self.sim_surface)
 
         if self.agent_display:

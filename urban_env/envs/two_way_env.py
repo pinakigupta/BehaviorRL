@@ -42,7 +42,7 @@ class TwoWayEnv(AbstractEnv):
                 "relative_features": ['x'],
                 "vehicles_count": 6
             },
-            "other_vehicles_type": "urban_env.vehicle.control.IDMDPVehicle",
+            "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle", 
             "duration": 250,
             "_predict_only": is_predict_only(),
             "screen_width": 1600,
@@ -126,9 +126,10 @@ class TwoWayEnv(AbstractEnv):
         terminal = self.vehicle.crashed or \
                    self._goal_achieved() or \
                   (not self._on_road()) or \
-                  (self.steps >= self.config["duration"]) or\
-                   (self.vehicle.action_validity == False)
-        #print("self.steps ",self.steps," terminal ", terminal)
+                  (self.steps >= self.config["duration"]) 
+                 # or  (self.vehicle.action_validity == False)
+        #if terminal:
+        #    print("self.steps ",self.steps," terminal ", terminal, " crashed ", self.vehicle.crashed , " goal_achieved ",self._goal_achieved() )
         #print("self.episode_reward ", self.episode_reward)
         return terminal
 
@@ -268,7 +269,7 @@ class TwoWayEnv(AbstractEnv):
         rand_veh_count = np.random.randint(low=0, high=2*scene_complexity)
         for i in range(rand_veh_count):
             x0 = self.ego_x0+90+40*i + 10*self.np_random.randn()
-            v =   IDMDPVehicle(road,
+            v =     IDMVehicle(road,
                                position=road.network.get_lane(lane_index)
                                .position(x0, 0),
                                heading=road.network.get_lane(lane_index).heading_at(x0),
@@ -305,7 +306,8 @@ class TwoWayEnv(AbstractEnv):
             if (min_offset < 10):
                 break
             else:
-                v = Obstacle(road=road,
+                v = Obstacle(
+                             road=road,
                              position=road.network.get_lane(lane_index).position(x0, 1),
                              heading=road.network.get_lane(lane_index).heading_at(x0),
                              velocity=0,
@@ -322,7 +324,8 @@ class TwoWayEnv(AbstractEnv):
         lane_change = (scene_complexity)
         for i in range(np.random.randint(low=0,high=2*scene_complexity)):
             x0 = self.ROAD_LENGTH-self.ego_x0-20-120*i + 10*self.np_random.randn()
-            v =  IDMDPVehicle(road,
+            v =    IDMVehicle(
+                              road,
                               position=road.network.get_lane(lane_index)
                               .position(x0, 0.1),
                               heading=road.network.get_lane(lane_index).heading_at(x0),

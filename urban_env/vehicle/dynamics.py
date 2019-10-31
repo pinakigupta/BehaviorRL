@@ -50,6 +50,7 @@ class Vehicle(Loggable):
         self.crashed = False
         self.log = []
         self.virtual = virtual
+        self.is_projection = False
         self.is_ego_vehicle = False
         self.config = {**self.DEFAULT_CONFIG, **config}
         self.control_action = None
@@ -207,6 +208,9 @@ class Vehicle(Loggable):
         if self.virtual and other.virtual:
             return 
 
+        if self.is_projection or other.is_projection:
+            return
+
         if not self.config["COLLISIONS_ENABLED"] or not other.config["COLLISIONS_ENABLED"] or self.crashed or other is self:
             return
 
@@ -220,6 +224,8 @@ class Vehicle(Loggable):
                                               (other.position, SCALE*other.LENGTH, SCALE*other.WIDTH, other.heading)):
             #self.velocity = other.velocity = min(self.velocity, other.velocity)
             self.crashed = other.crashed = True
+            if self.is_ego_vehicle:
+                print("ego crashed")
 
     @property
     def direction(self):
@@ -336,5 +342,5 @@ class Obstacle(Vehicle):
     def Id(self):
         return str(id(self))[-3:]
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q, pred_horizon=-1, **kwargs):
+    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, pred_horizon=-1, **kwargs):
         return None
