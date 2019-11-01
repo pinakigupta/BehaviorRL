@@ -251,7 +251,7 @@ class ControlledVehicle(Vehicle):
         #    return
         return super(ControlledVehicle, self).check_collision(other, SCALE)
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, pred_horizon=-1, **kwargs):
+    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q=None, pred_horizon=-1, **kwargs):
         """
             Predict the future trajectory of the vehicle given a sequence of actions.
 
@@ -267,6 +267,7 @@ class ControlledVehicle(Vehicle):
                                                 trajectory_timestep=trajectory_timestep,
                                                 dt=dt,
                                                 pred_horizon=pred_horizon,
+                                                out_q=out_q
                                                 )
 
     @abc.abstractmethod
@@ -367,7 +368,7 @@ class MDPVehicle(ControlledVehicle):
         """
         return self.speed_to_index(self.velocity)
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, pred_horizon=-1, **kwargs):
+    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q=None, pred_horizon=-1, **kwargs):
         """
             Predict the future trajectory of the vehicle given a sequence of actions.
 
@@ -398,8 +399,8 @@ class MDPVehicle(ControlledVehicle):
                 continue
             break
         del(v)
-        #if out_q is not None:
-        #    out_q.append(copy.deepcopy(states))
+        if out_q is not None:
+            out_q.append(copy.deepcopy(states))
         return states
 
     def Id(self):

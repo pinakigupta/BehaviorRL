@@ -152,7 +152,7 @@ class EnvViewer(object):
 
         if self.env.actions is not None:
             if self.env.actions:
-                self.set_agent_action_sequence(self.env.actions)
+                self.set_agent_action_sequence_multiprocess(self.env.actions)
 
         self.sim_surface.move_display_window_to(self.window_position())
         RoadGraphics.display(self.env.road, self.sim_surface)

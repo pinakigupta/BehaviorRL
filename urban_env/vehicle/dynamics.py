@@ -328,7 +328,7 @@ class Vehicle(Loggable):
     def Id(self):
         return "V"+str(id(self))[-3:]
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, pred_horizon=-1, **kwargs):
+    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q=None, pred_horizon=-1, **kwargs):
         """
             Predict the future trajectory of the vehicle given a sequence of actions.
 
@@ -358,8 +358,8 @@ class Vehicle(Loggable):
                 continue
             break
         del(v)
-        #if out_q is not None:
-        #    out_q.append(copy.deepcopy(states))
+        if out_q is not None:
+            out_q.append(copy.deepcopy(states))
         return states
 
 
@@ -377,5 +377,5 @@ class Obstacle(Vehicle):
     def Id(self):
         return str(id(self))[-3:]
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, pred_horizon=-1, **kwargs):
+    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q=None, pred_horizon=-1, **kwargs):
         return None
