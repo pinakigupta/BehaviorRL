@@ -261,29 +261,13 @@ class ControlledVehicle(Vehicle):
         :param dt: the timestep of the simulation
         :return: the sequence of future states
         """
-        states = []
-        v = copy.deepcopy(self)
-        v.is_projection = True
-        #v.virtual = True
-        t = 0
-        for action in actions:  # only used to iterate (MDP # of actions)
-            # v.act(action)  # High-level decision
-            for _ in range(int(action_duration / dt)):
-                t += 1
-                v.act()  # Low-level control action
-                v.step(dt)
-                if (t % int(trajectory_timestep / dt)) == 0:
-                    states.append(copy.deepcopy(v))
-
-                if pred_horizon > 0 and t > pred_horizon//dt:
-                    break
-            else:
-                continue
-            break
-        del(v)
-        #if out_q is not None:
-        #    out_q.append(copy.deepcopy(states))
-        return states
+        return super(ControlledVehicle, self)._(
+                                                actions=actions,
+                                                action_duration=action_duration,
+                                                trajectory_timestep=trajectory_timestep,
+                                                dt=dt,
+                                                pred_horizon=pred_horizon,
+                                                )
 
     @abc.abstractmethod
     def Id(self):
