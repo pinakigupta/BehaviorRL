@@ -303,5 +303,5 @@ def ray_play():
             num_steps=10000,
             no_render=False,
             out=None,
-            predict=True)
+            predict=False)
     #subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])

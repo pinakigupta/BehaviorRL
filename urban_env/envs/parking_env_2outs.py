@@ -296,10 +296,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             # + self.np_random.randint(2) * np.pi
             vehicle_heading = lane.heading
             self.road.vehicles.append(Obstacle(road=self.road,
-                                              position=lane.position(lane.length/2, 0),
-                                              heading=vehicle_heading,
-                                              velocity=0,
-                                              config=self.config
+                                               position=lane.position(lane.length/2, 0),
+                                               heading=vehicle_heading,
+                                               velocity=0,
+                                               config=self.config
                                               )
                                      )
         

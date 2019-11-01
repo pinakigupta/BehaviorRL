@@ -14,6 +14,7 @@ import pygame
 from urban_env.road.graphics import WorldSurface, RoadGraphics
 from urban_env.vehicle.graphics import VehicleGraphics
 from urban_env.envdict import ACTIONS_DICT
+from urban_env.vehicle.dynamics import Obstacle
 
 class EnvViewer(object):
     """
@@ -77,7 +78,8 @@ class EnvViewer(object):
                             out_q,
                             2)
                             ) for v in self.env.road.closest_vehicles_to(self.env.vehicle, 4) \
-                                if v not in self.env.road.virtual_vehicles]
+                                if v not in self.env.road.virtual_vehicles or\
+                                    type(v) is not Obstacle]
 
         p.append(Process(target=self.env.vehicle.predict_trajectory,
                          args=(actions,
@@ -116,11 +118,12 @@ class EnvViewer(object):
         self.vehicle_trajectories =[v.predict_trajectory(
                                     actions=actions,
                                     action_duration=1/v.config["POLICY_FREQUENCY"],
-                                    trajectory_timestep=1/1/v.config["POLICY_FREQUENCY"],
+                                    trajectory_timestep=1/5/v.config["POLICY_FREQUENCY"],
                                     dt=1/v.config["SIMULATION_FREQUENCY"],
                                     pred_horizon=2.0
                                     ) for v in self.env.road.closest_vehicles_to(self.env.vehicle, 4) \
-                                        if v not in self.env.road.virtual_vehicles]
+                                        if v not in self.env.road.virtual_vehicles or\
+                                            type(v) is not Obstacle]
 
         self.vehicle_trajectories.append(self.env.vehicle.predict_trajectory(
                                                         actions=actions,
@@ -152,7 +155,7 @@ class EnvViewer(object):
 
         if self.env.actions is not None:
             if self.env.actions:
-                self.set_agent_action_sequence_multiprocess(self.env.actions)
+                self.set_agent_action_sequence(self.env.actions)
 
         self.sim_surface.move_display_window_to(self.window_position())
         RoadGraphics.display(self.env.road, self.sim_surface)
