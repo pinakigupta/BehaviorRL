@@ -108,7 +108,8 @@ class EnvViewer(object):
         :param actions: list of action, following the env's action space specification
         """
         if hasattr(self.env.action_space, 'n'):
-            actions = [self.env.ACTIONS[a] for a in actions]
+            if self.env.is_discrete_action():
+                actions = [self.env.ACTIONS[a] for a in actions]
         self.vehicle_trajectories.clear()
 
         

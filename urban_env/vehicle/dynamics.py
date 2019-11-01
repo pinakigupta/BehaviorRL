@@ -136,7 +136,7 @@ class Vehicle(Loggable):
 
         :param action: the input action
         """
-        if action:
+        if action is not None:
             self.action = action
 
     def step(self, dt):
@@ -327,6 +327,8 @@ class Vehicle(Loggable):
     def Id(self):
         return "V"+str(id(self))[-3:]
 
+    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, pred_horizon=-1, **kwargs):
+        return None
 
 class Obstacle(Vehicle):
     """

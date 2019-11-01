@@ -100,23 +100,21 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
     }
 
     def __init__(self, config=DEFAULT_CONFIG):
-        super(ParkingEnv_2outs, self).__init__(config)
-        obs = self.reset()
-        self.config["REWARD_SCALE"] = np.absolute(self.config["COLLISION_REWARD"])
 
         # ACTION SPACE:
         # Throttle: [0 to 1],
         # Brake   : [0 to 1]
         # steering: [-1 to 1],
         # reverse : [-1 to 1] => from -1 to 0 Reverse and from 0 to 1 Forward.
-        self.action_space = Box(low=np.array(
-            [-1, -1]), high=np.array([1, 1]), dtype=np.float32)
+        #self.action_space = Box(low=np.array([-1, -1]), high=np.array([1, 1]), dtype=np.float32)
 
+
+        super(ParkingEnv_2outs, self).__init__(config)
+        obs = self.reset()
         self.REWARD_WEIGHTS = np.array(self.REWARD_WEIGHTS)
-
+        self.config["REWARD_SCALE"] = np.absolute(self.config["COLLISION_REWARD"])
         EnvViewer.SCREEN_HEIGHT = self.config['screen_height']
         EnvViewer.SCREEN_WIDTH = self.config['screen_width']
-
 
     def step(self, action):
         self.steps += 1
@@ -147,8 +145,15 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self._populate_parking()
         self.is_success = False
         self.vehicle.crashed = False
-        return super(ParkingEnv_2outs, self).reset()
+        self.define_spaces()
+        self.episode_reward = 0
+        obs = self.observation.observe()
+        return obs
         #return self._observation()
+
+    def define_spaces(self):
+        super(ParkingEnv_2outs, self).define_spaces()
+        self.action_space = Box(low=np.array([-1, -1]), high=np.array([1, 1]), dtype=np.float32)
 
     def is_over_others_parking_spot(self, position):
         over_others_parking_spots = False
@@ -252,7 +257,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             Create some new random vehicles of a given type, and add them on the road.
         """
         ##### ADDING EGO #####
-        self.vehicle = Vehicle(
+        self.vehicle =  Vehicle(
                                road=self.road, 
                                position=[0, 0],
                                heading=2*np.pi*self.np_random.rand(),
@@ -290,7 +295,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
             # + self.np_random.randint(2) * np.pi
             vehicle_heading = lane.heading
-            self.road.vehicles.append(Vehicle(road=self.road,
+            self.road.vehicles.append(Obstacle(road=self.road,
                                               position=lane.position(lane.length/2, 0),
                                               heading=vehicle_heading,
                                               velocity=0,
