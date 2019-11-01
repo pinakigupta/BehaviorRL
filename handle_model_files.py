@@ -45,15 +45,15 @@ def is_predict_only(**kwargs):
 ###############################################################
 '''
 train_env_id = 'parking_2outs-v0'
-play_env_id = 'parking_2outs-v
+play_env_id = 'parking_2outs-v0'
 alg = 'her'
 network = 'mlp'
 num_timesteps = '1' # Keeping steps at 1 will only sping off prediction/simulation. > 1 for training. 
 # To be compatible with Ray please keep this a normal integer representation. i.e 1000 not 1e3
 
 '''
-train_env_id = 'two-way-v0'
-play_env_id = 'two-way-v0'
+train_env_id = 'parking_2outs-v0'
+play_env_id = 'parking_2outs-v0'
 alg = 'ppo2'
 network = 'mlp'
 # Keeping steps at 1 will only sping off prediction/simulation. > 1 for training.

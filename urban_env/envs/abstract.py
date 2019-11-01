@@ -219,7 +219,7 @@ class AbstractEnv(gym.Env):
         for k in range(int(self.config["SIMULATION_FREQUENCY"] // self.config["POLICY_FREQUENCY"])):
             if action is not None : # and self.time % int(self.SIMULATION_FREQUENCY // self.POLICY_FREQUENCY) == 0:
                 # Forward action to the vehicle                    
-                if np.issubdtype(action, np.integer): 
+                if type(action) is not dict: 
                     self.vehicle.act(self.ACTIONS[action])
                 else:
                     self.vehicle.act(action)
@@ -233,7 +233,7 @@ class AbstractEnv(gym.Env):
 
             # Stop at terminal states
             if self.done or self._is_terminal():
-                #print("self.done", self.done, " _is_terminal ", self._is_terminal())
+                print("self.done", self.done, " _is_terminal ", self._is_terminal())
                 break
         self.enable_auto_render = False
 
