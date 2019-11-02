@@ -225,8 +225,8 @@ class Vehicle(Loggable):
                                               (other.position, SCALE*other.LENGTH, SCALE*other.WIDTH, other.heading)):
             #self.velocity = other.velocity = min(self.velocity, other.velocity)
             self.crashed = other.crashed = True
-            if self.is_ego_vehicle:
-                print("ego crashed")
+            #if self.is_ego_vehicle:
+            #    print("ego crashed")
 
     @property
     def direction(self):
