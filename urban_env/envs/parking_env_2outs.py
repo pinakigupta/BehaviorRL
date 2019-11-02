@@ -89,7 +89,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "GOAL_REWARD": 20,
             "OBS_STACK_SIZE": 1,
             "GOAL_LENGTH": 1000,
-            "vehicles_count": 'random',
+            "vehicles_count": 14,
             "PARKING_LOT_WIDTH": 90,
             "PARKING_LOT_LENGTH": 70,
             "SIMULATION_FREQUENCY": 5, # The frequency at which the system dynamics are simulated [Hz]

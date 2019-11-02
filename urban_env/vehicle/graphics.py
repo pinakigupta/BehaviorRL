@@ -11,7 +11,7 @@ import pygame
 from urban_env.vehicle.dynamics import Vehicle, Obstacle
 from urban_env.vehicle.control import ControlledVehicle, MDPVehicle, IDMDPVehicle
 from urban_env.vehicle.behavior import IDMVehicle, LinearVehicle
-from urban_env.envdict import RED, GREEN, BLUE, YELLOW, BLACK, PURPLE, DEFAULT_COLOR, EGO_COLOR, WHITE
+from urban_env.envdict import RED, GREEN, BLUE, YELLOW, BLACK, PURPLE, DEFAULT_COLOR, EGO_COLOR, WHITE, GREY
 
 class VehicleGraphics(object):
 
@@ -269,7 +269,7 @@ class VehicleGraphics(object):
         elif isinstance(vehicle, IDMVehicle):
             color = BLUE
         elif isinstance(vehicle, Obstacle):
-            color = GREEN
+            color = GREY
 
         if transparent:
             color = (color[0], color[1], color[2], transparent*50)
