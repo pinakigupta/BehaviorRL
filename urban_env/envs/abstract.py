@@ -235,9 +235,9 @@ class AbstractEnv(gym.Env):
             self._automatic_rendering()
 
             # Stop at terminal states
-            if self.done or self._is_terminal():
-                print("self.done", self.done, " _is_terminal ", self._is_terminal())
-                break
+            #if self.done or self._is_terminal():
+                #print("self.done", self.done, " _is_terminal ", self._is_terminal())
+                #break
         self.enable_auto_render = False
 
         
