@@ -74,7 +74,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "observation": {
                 "type": "KinematicsGoal",
                 "features": ['x', 'y', 'vx', 'vy', 'psi'],
-                "relative_features": [],
+                "relative_features": ['x', 'y', 'vx', 'vy', 'psi'],
                 "scale": 100,
                 "vehicles_count": 10,
                            },
@@ -96,7 +96,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "POLICY_FREQUENCY": 1 , #The frequency at which the agent can take actions [Hz]
             "MODEL":             {
                                 #    "use_lstm": True,
-                                    "fcnet_hiddens": [256],
+                                    "fcnet_hiddens": [256, 256],
                                  }, 
             }
     }
