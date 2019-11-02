@@ -343,7 +343,7 @@ class Vehicle(Loggable):
         v.is_projection = True
         #v.virtual = True
         t = 0
-        for action in actions:  # only used to iterate (MDP # of actions)
+        for _ in actions:  # only used to iterate (MDP # of actions)
             # v.act(action)  # High-level decision
             for _ in range(int(action_duration / dt)):
                 t += 1
@@ -359,7 +359,7 @@ class Vehicle(Loggable):
             break
         del(v)
         if out_q is not None:
-            out_q.append(copy.deepcopy(states))
+            out_q.append(states)
         return states
 
 

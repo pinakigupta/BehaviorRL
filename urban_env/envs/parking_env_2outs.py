@@ -92,6 +92,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "vehicles_count": 'random',
             "PARKING_LOT_WIDTH": 90,
             "PARKING_LOT_LENGTH": 70,
+            "SIMULATION_FREQUENCY": 5, # The frequency at which the system dynamics are simulated [Hz]
+            "POLICY_FREQUENCY": 1 , #The frequency at which the agent can take actions [Hz]
             "MODEL":             {
                                 #    "use_lstm": True,
                                     "fcnet_hiddens": [256],
