@@ -206,6 +206,7 @@ class KinematicsGoalObservation(KinematicObservation):
             return spaces.Dict(dict(
                 desired_goal=spaces.Box(-np.inf, np.inf, shape=obs["desired_goal"].shape, dtype=np.float32),
                 achieved_goal=spaces.Box(-np.inf, np.inf, shape=obs["achieved_goal"].shape, dtype=np.float32),
+                constraint=spaces.Box(-np.inf, np.inf, shape=obs["constraint"].shape, dtype=np.float32),
                 observation=spaces.Box(-np.inf, np.inf, shape=obs["observation"].shape, dtype=np.float32),
             ))
         except AttributeError:
@@ -214,10 +215,14 @@ class KinematicsGoalObservation(KinematicObservation):
     def observe(self):
         obs = np.ravel(self.normalize(pandas.DataFrame.from_records([self.vehicle.to_dict(self.relative_features, self.vehicle)])[self.features]))
         goal = np.ravel(self.normalize(pandas.DataFrame.from_records([self.env.goal.to_dict(self.relative_features, self.vehicle)])[self.features]))
+        constraint = pandas.DataFrame.from_records(
+                    [v.to_dict(self.relative_features, self.vehicle) for v in self.env.road.virtual_vehicles])[self.features]
+        constraint = np.ravel(self.normalize(constraint))
         obs_tuple = {
                         #"observation": obs / self.scale,
                         "observation": super(KinematicsGoalObservation, self).observe(),
                         "achieved_goal": obs ,
+                        "constraint": constraint,
                         "desired_goal": goal 
                     }
         return obs_tuple
