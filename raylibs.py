@@ -77,6 +77,13 @@ def ray_node_ips():
     list_of_ips = set(ray.get([f.remote() for _ in range(1000)]))
     return list_of_ips
 
+def ray_alive_nodes():
+    alive_nodes =[]
+    for node in ray.nodes():
+        if node["alive"]:
+             alive_nodes.append(node)
+    return alive_nodes
+
 
 def ray_cluster_status_check(ray_yaml_file="Ray-Cluster.yaml" , initial_workers_check=True):
     import yaml
@@ -90,7 +97,7 @@ def ray_cluster_status_check(ray_yaml_file="Ray-Cluster.yaml" , initial_workers_
     if initial_workers_check:
         min_cluster_nodes = max(min_cluster_nodes,init_cluster_nodes)
     while True: #run waiting for the entire cluster to be initialized (or something else is wrong ?)
-        available_nodes = len(ray.nodes()) # gives all available nodes "ready" for compute (ex: not initializing)
+        available_nodes = len(ray_alive_nodes()) # gives all available nodes "ready" for compute (ex: not initializing)
         if available_nodes >= min_cluster_nodes:
             print("All nodes available. min_cluster_nodes count ", min_cluster_nodes,
                   "available_nodes count ", available_nodes)
@@ -98,7 +105,7 @@ def ray_cluster_status_check(ray_yaml_file="Ray-Cluster.yaml" , initial_workers_
         else:
             print("available nodes count ", available_nodes," min cluster nodes required",
             min_cluster_nodes)
-            print("ray nodes  ", ray.nodes())
+            #print("ray nodes  ", ray_alive_nodes())
             print("cluster_resources ", ray.cluster_resources())
             print("available_resources ", ray.available_resources())
 
@@ -129,11 +136,12 @@ else:
             print("ray shutdown failed. Perhaps ray was not initialized ?")
 
         ray.init(num_gpus=0, local_mode=LOCAL_MODE)
-        if not LOCAL_MODE:
-            available_cluster_cpus = int(ray.available_resources().get("CPU"))
-            print("ray nodes  ", ray.nodes())
-            print("cluster_resources ", ray.cluster_resources())
-            print("available_resources ", ray.available_resources())
+    if not LOCAL_MODE:
+        available_cluster_cpus = int(ray.available_resources().get("CPU"))
+        #for node in ray_alive_nodes():
+        #    print("ray node:  ", node["alive"],"\n")
+        print("cluster_resources ", ray.cluster_resources(),"\n")
+        print("available_resources ", ray.available_resources())
             
 
 def explore(config):
@@ -245,6 +253,8 @@ def ray_train(save_in_sub_folder=None):
     retrieved_agent_policy = settings.retrieved_agent_policy
 
     model = gym.make(train_env_id).config["MODEL"] 
+    print("delegated_cpus ", delegated_cpus)
+    return
 
     ray_trials = ray.tune.run(
             CustomTrainer,
