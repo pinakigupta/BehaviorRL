@@ -59,7 +59,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
     """
     PARKING_MAX_VELOCITY = 7.0  # m/s
     OBS_SCALE = 100
-    REWARD_WEIGHTS = [7/100, 7/100, 1/100, 1/100, 9/10]
+    REWARD_WEIGHTS = [7/100, 7/100, 1/100, 1/100, 1/10]
     SUCCESS_THRESHOLD = 0.05
 
     DEFAULT_CONFIG = {**AbstractEnv.DEFAULT_CONFIG,
@@ -67,7 +67,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "OVER_OTHER_PARKING_SPOT_REWARD": -0.9,
             "VELOCITY_REWARD": 2,
             "COLLISION_REWARD": -200,
-            "REVERSE_REWARD": -1,
+            "REVERSE_REWARD": -0.5,
             "GOAL_REWARD": 2000,
         },
         **{
@@ -81,15 +81,14 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
             "centering_position": [0.5, 0.5],
             "parking_spots": 15,  # 'random', # Parking Spots per side            
-            "duration": 50,
+            "duration": 100,
             "_predict_only": is_predict_only(),
             "screen_width": 1600,
             "screen_height": 900,
             "DIFFICULTY_LEVELS": 2,
-            "GOAL_REWARD": 20,
             "OBS_STACK_SIZE": 1,
             "GOAL_LENGTH": 1000,
-            "vehicles_count": 14,
+            "vehicles_count": 'random',
             "PARKING_LOT_WIDTH": 90,
             "PARKING_LOT_LENGTH": 70,
             "SIMULATION_FREQUENCY": 5, # The frequency at which the system dynamics are simulated [Hz]
@@ -117,6 +116,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self.config["REWARD_SCALE"] = np.absolute(self.config["COLLISION_REWARD"])
         EnvViewer.SCREEN_HEIGHT = self.config['screen_height']
         EnvViewer.SCREEN_WIDTH = self.config['screen_width']
+
 
     def step(self, action):
         self.steps += 1
@@ -194,8 +194,9 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             self.parking_spots = self.config["parking_spots"]
 
         if self.config["vehicles_count"] == 'random':
-            self.vehicles_count = self.np_random.randint(
-                self.parking_spots) * 2
+            high=self.parking_spots*self.scene_complexity/6
+            #print("high ",high)
+            self.vehicles_count = self.np_random.randint(low=0, high=high) * 2
 
         elif self.config["vehicles_count"] == 'all':
             self.vehicles_count = (self.parking_spots*2) - 1
@@ -308,7 +309,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self._add_virtual_vehicles()
 
 
-    def distance_2_goal_reward(self, achieved_goal, desired_goal, p=0.5):
+    def _distance_2_goal_reward(self, achieved_goal, desired_goal, p=0.5):
         return - np.power(np.dot( np.abs(achieved_goal - desired_goal), self.REWARD_WEIGHTS), p)
 
     def compute_reward(self, achieved_goal, desired_goal, info, p=0.5):
@@ -324,7 +325,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         """
 
         # DISTANCE TO GOAL
-        distance_to_goal_reward = self.distance_2_goal_reward(achieved_goal, desired_goal, p)
+        distance_to_goal_reward = self._distance_2_goal_reward(achieved_goal, desired_goal, p)
+        #distance_to_goal_reward = min(-0.2, distance_to_goal_reward)
         
         #print("distance_to_goal_reward ", distance_to_goal_reward)
 
@@ -343,6 +345,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         # reverse_reward + \
         # against_traffic_reward + \
         # collision_reward)
+        #print("distance_to_goal_reward ", distance_to_goal_reward, " reverse_reward ",reverse_reward, " continuous_reward ", continuous_reward)
         goal_reward = self.config["GOAL_REWARD"]
         if self.vehicle.crashed:
             reward = collision_reward + min(0.0, continuous_reward)
@@ -371,12 +374,12 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
     def _is_success(self, achieved_goal, desired_goal):
         # DISTANCE TO GOAL
-        distance_to_goal_reward = self.distance_2_goal_reward(
+        distance_to_goal_reward = self._distance_2_goal_reward(
             achieved_goal, desired_goal)
 
         #print("desired_goal ", desired_goal)
         #print("achieved_goal ", achieved_goal)
-        #print("distance_to_goal_reward ", distance_to_goal_reward)
+        #
         self.is_success = (distance_to_goal_reward > -self.SUCCESS_THRESHOLD)
         return self.is_success
 

@@ -104,6 +104,9 @@ class AbstractEnv(gym.Env):
         self.episode_count = 0
         self.episode_reward_buffer = deque(maxlen=self.BUFFER_LENGTH)
 
+        if 'DIFFICULTY_LEVELS' in self.config:
+            self.scene_complexity = self.config['DIFFICULTY_LEVELS']
+
 
         
 
@@ -199,7 +202,8 @@ class AbstractEnv(gym.Env):
         if terminal:
             self.episode_reward_buffer.append(self.episode_reward)
             self.episode_count +=1
-            self._set_curriculam(curriculam_reward_threshold=1500)
+            #self._set_curriculam(curriculam_reward_threshold=1500)
+            self._set_curriculam(curriculam_reward_threshold=0.5)
 
         self.close_vehicles = self.observation.close_vehicles
         constraint = self._constraint(action)
