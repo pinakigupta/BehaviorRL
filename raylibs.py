@@ -254,7 +254,7 @@ def ray_train(save_in_sub_folder=None):
 
     model = gym.make(train_env_id).config["MODEL"] 
     print("delegated_cpus ", delegated_cpus)
-    return
+
 
     ray_trials = ray.tune.run(
             CustomTrainer,
