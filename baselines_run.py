@@ -58,8 +58,8 @@ warnings.filterwarnings("ignore")
 #################################################################
 
 
-def main(**kwargs):
-    predict_only = is_predict_only(**kwargs)
+def main(**mainkwargs):
+    predict_only = is_predict_only(**mainkwargs)
     mega_batch_itr = 1
     sys_args = sys.argv
 
@@ -68,16 +68,20 @@ def main(**kwargs):
     max_iteration = 1
     if not predict_only:
         if RUN_WITH_RAY:
-            from raylibs import ray_train
+            from raylibs import ray_train, ray_init
             from ray_rollout import ray_retrieve_agent
             from settings import update_policy
+            available_cluster_cpus = ray_init()
             play_env = gym.make(play_env_id)
             '''retrieved_agent = ray_retrieve_agent(play_env_id)
             retrieved_agent_policy = retrieved_agent.get_policy()
             update_policy(retrieved_agent_policy)'''
             save_in_sub_folder = pathname + "/" + ray_folder + "/" + InceptcurrentDT
             print("save_in_sub_folder is ", save_in_sub_folder)
-            ray_train(save_in_sub_folder=save_in_sub_folder)
+            ray_train(save_in_sub_folder=save_in_sub_folder, 
+                      available_cluster_cpus=available_cluster_cpus, 
+                      **mainkwargs
+                     )
         else:
             while mega_batch_itr <= max_iteration:
                 from baselines.common import tf_util, mpi_util
@@ -111,9 +115,10 @@ def main(**kwargs):
 
     else:
         if RUN_WITH_RAY:
-            from raylibs import ray_play
+            from raylibs import ray_play, ray_init
             from ray_rollout import ray_retrieve_agent
             from settings import update_policy
+            ray_init()
             play_env = gym.make(play_env_id)
             retrieved_agent = ray_retrieve_agent(play_env_id)
             retrieved_agent_policy = retrieved_agent.get_policy()
@@ -134,4 +139,5 @@ def main(**kwargs):
 
 
 if __name__ == "__main__":
-    main(**dict(arg.split('=') for arg in sys.argv[1:]))
+    argdict = {**dict(arg.split('=') for arg in sys.argv[1:])}
+    main(**argdict)

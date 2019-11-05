@@ -85,15 +85,21 @@ def ray_alive_nodes():
     return alive_nodes
 
 
-def ray_cluster_status_check(ray_yaml_file="Ray-Cluster.yaml" , initial_workers_check=True):
+def ray_cluster_status_check(ray_yaml_file="Ray-Cluster.yaml", 
+                             initial_workers_check=True,
+                             min_cluster_nodes=None,
+                             init_cluster_nodes=None,
+                             **kwargs
+                            ):
     import yaml
     with open(ray_yaml_file, 'r') as stream:
         try:
             yaml_data = yaml.safe_load(stream)
         except yaml.YAMLError as exc:
             print(exc)
-    min_cluster_nodes = yaml_data['min_workers']+1 #+1 for head node, parse yaml file for min workers
-    init_cluster_nodes = yaml_data['initial_workers']+1 #+1 for head node, , parse yaml file for initial workers
+    if min_cluster_nodes is None:
+        min_cluster_nodes = yaml_data['min_workers']+1 #+1 for head node, parse yaml file for min workers
+        init_cluster_nodes = yaml_data['initial_workers']+1 #+1 for head node, , parse yaml file for initial workers
     if initial_workers_check:
         min_cluster_nodes = max(min_cluster_nodes,init_cluster_nodes)
     while True: #run waiting for the entire cluster to be initialized (or something else is wrong ?)
@@ -112,36 +118,39 @@ def ray_cluster_status_check(ray_yaml_file="Ray-Cluster.yaml" , initial_workers_
 
 
 LOCAL_MODE = False  #Use local mode for debug purposes
-if is_predict_only():
-    try:
-        subprocess.run(["sudo", "pkill", "redis-server"])
-        subprocess.run(["sudo", "pkill", "ray_RolloutWork"])
-    except:
-        print("ray process not running")
-    LOCAL_MODE = True    
-    ray.init(num_gpus=0, local_mode=True)
-else:
-    try: # to init in the cluster
-        ray.init(redis_add)
-        ray_cluster_status_check()
-        available_cluster_cpus = int(ray.cluster_resources().get("CPU"))
-        LOCAL_MODE = False
-    except: # try to init in your machine/isolated compute instance
-        # Kill the redis-server. This seems the surest way to kill it
-        subprocess.run(["sudo", "pkill", "redis-server"])
-        subprocess.run(["sudo", "pkill", "ray_RolloutWork"])
-        try: # shutting down for a freash init assuming ray init process started when attempted to run in a cluster
-            ray.shutdown()
+def ray_init(LOCAL_MODE=LOCAL_MODE):
+    if is_predict_only():
+        try:
+            subprocess.run(["sudo", "pkill", "redis-server"])
+            subprocess.run(["sudo", "pkill", "ray_RolloutWork"])
         except:
-            print("ray shutdown failed. Perhaps ray was not initialized ?")
+            print("ray process not running")
+        LOCAL_MODE = True    
+        ray.init(num_gpus=0, local_mode=True)
+        return 0
+    else:
+        try: # to init in the cluster
+            ray.init(redis_add)
+            ray_cluster_status_check(mainkwargs)
+            available_cluster_cpus = int(ray.cluster_resources().get("CPU"))
+            LOCAL_MODE = False
+        except: # try to init in your machine/isolated compute instance
+            # Kill the redis-server. This seems the surest way to kill it
+            subprocess.run(["sudo", "pkill", "redis-server"])
+            subprocess.run(["sudo", "pkill", "ray_RolloutWork"])
+            try: # shutting down for a freash init assuming ray init process started when attempted to run in a cluster
+                ray.shutdown()
+            except:
+                print("ray shutdown failed. Perhaps ray was not initialized ?")
 
-        ray.init(num_gpus=0, local_mode=LOCAL_MODE)
-    if not LOCAL_MODE:
-        available_cluster_cpus = int(ray.available_resources().get("CPU"))
-        #for node in ray_alive_nodes():
-        #    print("ray node:  ", node["alive"],"\n")
-        print("cluster_resources ", ray.cluster_resources(),"\n")
-        print("available_resources ", ray.available_resources())
+            ray.init(num_gpus=0, local_mode=LOCAL_MODE)
+        if not LOCAL_MODE:
+            available_cluster_cpus = int(ray.available_resources().get("CPU"))
+            #for node in ray_alive_nodes():
+            #    print("ray node:  ", node["alive"],"\n")
+            print("cluster_resources ", ray.cluster_resources(),"\n")
+            print("available_resources ", ray.available_resources())
+        return available_cluster_cpus
             
 
 def explore(config):
@@ -189,7 +198,7 @@ def on_train_result(info):
         lambda ev: ev.foreach_env(
             lambda env: env.set_curriculam(curriculam)))
 
-def ray_train(save_in_sub_folder=None):
+def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, **mainkwargs):
     subprocess.run(["chmod", "-R", "a+rwx", save_in_sub_folder + "/"])
     # Postprocess the perturbed config to ensure it's still valid
 
