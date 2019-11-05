@@ -19,7 +19,16 @@ import time
 import pprint
 import atexit
 from color import color
+from ray.tune import register_env
 
+register_env('multilane-v0', lambda config: urban_env.envs.MultilaneEnv(config))
+register_env('merge-v0', lambda config: urban_env.envs.MergeEnv(config))
+register_env('roundabout-v0', lambda config: urban_env.envs.RoundaboutEnv(config))
+register_env('two-way-v0', lambda config: urban_env.envs.TwoWayEnv(config))
+register_env('parking-v0', lambda config: urban_env.envs.ParkingEnv(config))
+register_env('parking_2outs-v0', lambda config: urban_env.envs.ParkingEnv_2outs(config))
+register_env('LG-SIM-ENV-v0', lambda config: urban_env.envs.LG_Sim_Env(config))
+register_env('multitask-v0', lambda config: MultiTaskEnv(config))
 
 def exit_handler():
     subprocess.run(["chmod", "-R", "a+rwx", "."])
@@ -58,11 +67,10 @@ warnings.filterwarnings("ignore")
 #################################################################
 
 
-def main(**mainkwargs):
+def main(mainkwargs):
     predict_only = is_predict_only(**mainkwargs)
     mega_batch_itr = 1
     sys_args = sys.argv
-
     policy = None
     play_env = None
     max_iteration = 1
@@ -71,17 +79,19 @@ def main(**mainkwargs):
             from raylibs import ray_train, ray_init
             from ray_rollout import ray_retrieve_agent
             from settings import update_policy
-            available_cluster_cpus = ray_init()
+            available_cluster_cpus = ray_init(mainkwargs)
             play_env = gym.make(play_env_id)
             '''retrieved_agent = ray_retrieve_agent(play_env_id)
             retrieved_agent_policy = retrieved_agent.get_policy()
             update_policy(retrieved_agent_policy)'''
             save_in_sub_folder = pathname + "/" + ray_folder + "/" + InceptcurrentDT
             print("save_in_sub_folder is ", save_in_sub_folder)
-            ray_train(save_in_sub_folder=save_in_sub_folder, 
-                      available_cluster_cpus=available_cluster_cpus, 
-                      **mainkwargs
-                     )
+            mainkwargs = {**mainkwargs, 
+                          **{"save_in_sub_folder": save_in_sub_folder, 
+                             "available_cluster_cpus": available_cluster_cpus,
+                            }
+                         }
+            ray_train(**mainkwargs)
         else:
             while mega_batch_itr <= max_iteration:
                 from baselines.common import tf_util, mpi_util
@@ -118,7 +128,7 @@ def main(**mainkwargs):
             from raylibs import ray_play, ray_init
             from ray_rollout import ray_retrieve_agent
             from settings import update_policy
-            ray_init()
+            ray_init(mainkwargs)
             play_env = gym.make(play_env_id)
             retrieved_agent = ray_retrieve_agent(play_env_id)
             retrieved_agent_policy = retrieved_agent.get_policy()
@@ -139,5 +149,10 @@ def main(**mainkwargs):
 
 
 if __name__ == "__main__":
-    argdict = {**dict(arg.split('=') for arg in sys.argv[1:])}
-    main(**argdict)
+    argdict = dict(arg.split('=') for arg in sys.argv[1:])
+    argdict = {**argdict,
+               **{
+                   "LOCAL_MODE": False,
+                 }
+               }
+    main(argdict)

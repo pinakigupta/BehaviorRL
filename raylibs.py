@@ -31,15 +31,6 @@ from urban_env.envs.abstract import AbstractEnv
 
 from ray_rollout import retrieve_ray_folder_info, ray_retrieve_agent, filetonum, rollout
 
-register_env('multilane-v0', lambda config: urban_env.envs.MultilaneEnv(config))
-register_env('merge-v0', lambda config: urban_env.envs.MergeEnv(config))
-register_env('roundabout-v0', lambda config: urban_env.envs.RoundaboutEnv(config))
-register_env('two-way-v0', lambda config: urban_env.envs.TwoWayEnv(config))
-register_env('parking-v0', lambda config: urban_env.envs.ParkingEnv(config))
-register_env('parking_2outs-v0', lambda config: urban_env.envs.ParkingEnv_2outs(config))
-register_env('LG-SIM-ENV-v0', lambda config: urban_env.envs.LG_Sim_Env(config))
-register_env('multitask-v0', lambda config: MultiTaskEnv(config))
-
 redis_add = ray.services.get_node_ip_address() + ":6379"
 
 def get_immediate_subdirectories(a_dir):
@@ -97,6 +88,7 @@ def ray_cluster_status_check(ray_yaml_file="Ray-Cluster.yaml",
             yaml_data = yaml.safe_load(stream)
         except yaml.YAMLError as exc:
             print(exc)
+    print("min_cluster_nodes ",min_cluster_nodes)
     if min_cluster_nodes is None:
         min_cluster_nodes = yaml_data['min_workers']+1 #+1 for head node, parse yaml file for min workers
         init_cluster_nodes = yaml_data['initial_workers']+1 #+1 for head node, , parse yaml file for initial workers
@@ -117,9 +109,11 @@ def ray_cluster_status_check(ray_yaml_file="Ray-Cluster.yaml",
 
 
 
-LOCAL_MODE = False  #Use local mode for debug purposes
-def ray_init(LOCAL_MODE=LOCAL_MODE):
-    if is_predict_only():
+#LOCAL_MODE = False  #Use local mode for debug purposes
+def ray_init(LOCAL_MODE=False, **mainkwargs):
+    available_cluster_cpus = 0
+   
+    if is_predict_only(**mainkwargs):
         try:
             subprocess.run(["sudo", "pkill", "redis-server"])
             subprocess.run(["sudo", "pkill", "ray_RolloutWork"])
@@ -127,11 +121,11 @@ def ray_init(LOCAL_MODE=LOCAL_MODE):
             print("ray process not running")
         LOCAL_MODE = True    
         ray.init(num_gpus=0, local_mode=True)
-        return 0
+        return available_cluster_cpus
     else:
         try: # to init in the cluster
             ray.init(redis_add)
-            ray_cluster_status_check(mainkwargs)
+            ray_cluster_status_check(**mainkwargs)
             available_cluster_cpus = int(ray.cluster_resources().get("CPU"))
             LOCAL_MODE = False
         except: # try to init in your machine/isolated compute instance
@@ -198,10 +192,14 @@ def on_train_result(info):
         lambda ev: ev.foreach_env(
             lambda env: env.set_curriculam(curriculam)))
 
-def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, **mainkwargs):
+def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, LOCAL_MODE=None, **mainkwargs):
+
+    #print("mainkwargs ", mainkwargs," save_in_sub_folder ", save_in_sub_folder, "available_cluster_cpus ", available_cluster_cpus)
+    
+
     subprocess.run(["chmod", "-R", "a+rwx", save_in_sub_folder + "/"])
     # Postprocess the perturbed config to ensure it's still valid
-
+    
     s3pathname = 's3://datastore-s3/groups/Behavior/Pinaki'
     upload_dir_path = s3pathname + "/" + ray_folder + '/' + InceptcurrentDT
     if save_in_sub_folder is not None:
@@ -237,7 +235,7 @@ def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, **mainkwargs
     CustomTrainer = PPOTrainer.with_updates(
         make_policy_optimizer=make_async_optimizer)
                                 
-
+    
     restore_folder=None
     algo = "PPO" # RL Algorithm of choice
     LOAD_MODEL_FOLDER = "20190828-201729" # Location of previous model (if needed) for training 
@@ -264,9 +262,9 @@ def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, **mainkwargs
     model = gym.make(train_env_id).config["MODEL"] 
     print("delegated_cpus ", delegated_cpus)
 
-
+    
     ray_trials = ray.tune.run(
-            CustomTrainer,
+            "PPO",
             name="pygame-ray",
             stop={"training_iteration": int(num_timesteps)},
             checkpoint_freq=checkpoint_freq,
