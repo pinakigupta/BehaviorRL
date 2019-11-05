@@ -88,7 +88,7 @@ def ray_cluster_status_check(ray_yaml_file="Ray-Cluster.yaml",
             yaml_data = yaml.safe_load(stream)
         except yaml.YAMLError as exc:
             print(exc)
-    print("min_cluster_nodes ",min_cluster_nodes)
+    print("min_cluster_nodes ", min_cluster_nodes)
     if min_cluster_nodes is None:
         min_cluster_nodes = yaml_data['min_workers']+1 #+1 for head node, parse yaml file for min workers
         init_cluster_nodes = yaml_data['initial_workers']+1 #+1 for head node, , parse yaml file for initial workers
@@ -112,7 +112,7 @@ def ray_cluster_status_check(ray_yaml_file="Ray-Cluster.yaml",
 #LOCAL_MODE = False  #Use local mode for debug purposes
 def ray_init(LOCAL_MODE=False, **mainkwargs):
     available_cluster_cpus = 0
-   
+    print("mainkwargs ", mainkwargs)
     if is_predict_only(**mainkwargs):
         try:
             subprocess.run(["sudo", "pkill", "redis-server"])
@@ -142,7 +142,7 @@ def ray_init(LOCAL_MODE=False, **mainkwargs):
             available_cluster_cpus = int(ray.available_resources().get("CPU"))
             #for node in ray_alive_nodes():
             #    print("ray node:  ", node["alive"],"\n")
-            print("cluster_resources ", ray.cluster_resources(),"\n")
+            print("cluster_resources ", ray.cluster_resources(), "\n")
             print("available_resources ", ray.available_resources())
         return available_cluster_cpus
             
@@ -193,7 +193,6 @@ def on_train_result(info):
             lambda env: env.set_curriculam(curriculam)))
 
 def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, LOCAL_MODE=None, **mainkwargs):
-
     #print("mainkwargs ", mainkwargs," save_in_sub_folder ", save_in_sub_folder, "available_cluster_cpus ", available_cluster_cpus)
     
 

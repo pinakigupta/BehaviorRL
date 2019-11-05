@@ -79,7 +79,7 @@ def main(mainkwargs):
             from raylibs import ray_train, ray_init
             from ray_rollout import ray_retrieve_agent
             from settings import update_policy
-            available_cluster_cpus = ray_init(mainkwargs)
+            available_cluster_cpus = ray_init(**mainkwargs)
             play_env = gym.make(play_env_id)
             '''retrieved_agent = ray_retrieve_agent(play_env_id)
             retrieved_agent_policy = retrieved_agent.get_policy()
@@ -128,7 +128,7 @@ def main(mainkwargs):
             from raylibs import ray_play, ray_init
             from ray_rollout import ray_retrieve_agent
             from settings import update_policy
-            ray_init(mainkwargs)
+            ray_init(**mainkwargs)
             play_env = gym.make(play_env_id)
             retrieved_agent = ray_retrieve_agent(play_env_id)
             retrieved_agent_policy = retrieved_agent.get_policy()
