@@ -11,6 +11,7 @@ import pandas
 from gym import GoalEnv
 from gym.spaces import Dict, Discrete, Box, Tuple
 import copy
+import sys
 
 from urban_env.envs.abstract import AbstractEnv
 from urban_env.road.lane import StraightLane, LineType, AbstractLane
@@ -60,7 +61,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
     PARKING_MAX_VELOCITY = 7.0  # m/s
     OBS_SCALE = 100
     REWARD_WEIGHTS = [7/100, 7/100, 1/100, 1/100, 1/10]
-    SUCCESS_THRESHOLD = 0.05
+    SUCCESS_THRESHOLD = -0.5
 
     DEFAULT_CONFIG = {**AbstractEnv.DEFAULT_CONFIG,
         **{
@@ -113,7 +114,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         super(ParkingEnv_2outs, self).__init__(config)
         obs = self.reset()
         self.REWARD_WEIGHTS = np.array(self.REWARD_WEIGHTS)
-        self.config["REWARD_SCALE"] = np.absolute(self.config["COLLISION_REWARD"])
+        self.config["REWARD_SCALE"] = np.absolute(self.config["GOAL_REWARD"])
         EnvViewer.SCREEN_HEIGHT = self.config['screen_height']
         EnvViewer.SCREEN_WIDTH = self.config['screen_width']
 
@@ -340,12 +341,14 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         # REVERESE DRIVING REWARD
         reverse_reward = self.config["REVERSE_REWARD"] * np.squeeze(info["is_reverse"])
-        continuous_reward = (distance_to_goal_reward + reverse_reward)  # + \
+        velocity_reward = self.config["VELOCITY_REWARD"] * (self.vehicle.velocity - 0.5*self.PARKING_MAX_VELOCITY) / (self.PARKING_MAX_VELOCITY)
+        continuous_reward = (distance_to_goal_reward + reverse_reward + velocity_reward)  # + \
         # over_other_parking_spots_reward)
         # reverse_reward + \
         # against_traffic_reward + \
         # collision_reward)
-        #print("distance_to_goal_reward ", distance_to_goal_reward, " reverse_reward ",reverse_reward, " continuous_reward ", continuous_reward)
+        sys.stdout.flush()
+        #print("distance_to_goal_reward ", distance_to_goal_reward, " reverse_reward ",reverse_reward, " velocity_reward ", velocity_reward)
         goal_reward = self.config["GOAL_REWARD"]
         if self.vehicle.crashed:
             reward = collision_reward + min(0.0, continuous_reward)
