@@ -23,7 +23,7 @@ if [ $# \> 1 ]
   then
     exec_cmd=$2
   else
-    exec_cmd="cd BehaviorRL;python -W ignore baselines_run.py min_cluster_nodes=$min_cluster_nodes init_cluster_nodes=$init_cluster_nodes " # Your default ray exec cmnd
+    exec_cmd="cd rl_baselines_ad;python -W ignore baselines_run.py min_cluster_nodes=$min_cluster_nodes init_cluster_nodes=$init_cluster_nodes " # Your default ray exec cmnd
 fi
  
 #copying from the volatile docker container to the persistent mount drive
