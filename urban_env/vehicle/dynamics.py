@@ -32,8 +32,19 @@ class Vehicle(Loggable):
                       "MAX_VELOCITY": 40, #Maximum reachable velocity [m/s]
     }
 
-    def __init__(self, road, position, lane_index=None, heading=0, velocity=0, length=5.0,
-                 width=2.0, virtual=False, color=None, config=DEFAULT_CONFIG, **kwargs):
+    def __init__(self, 
+                 road, 
+                 position, 
+                 lane_index=None, 
+                 heading=0, 
+                 velocity=0, 
+                 length=5.0,
+                 width=2.0, 
+                 virtual=False, 
+                 color=None, 
+                 config=DEFAULT_CONFIG, 
+                 **kwargs
+                 ):
         self.LENGTH = length
         self.WIDTH = width
         self.road = road
@@ -370,8 +381,14 @@ class Obstacle(Vehicle):
 
     def __init__(self, road, position, heading=0, config=None, color=None, **kwargs):
         super(Obstacle, self).__init__(
-            road, position, velocity=0, heading=heading, color=color, config=config)
+                                       road=road, 
+                                       position=position, 
+                                       heading=heading, 
+                                       color=color, 
+                                       config=config, 
+                                       **kwargs)
         self.target_velocity = 0
+        self.velocity = 0
         #self.LENGTH = self.WIDTH
 
     def Id(self):

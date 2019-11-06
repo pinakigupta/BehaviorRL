@@ -283,10 +283,9 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                              road=self.road,
                              position=lane.position(lane.length/2, 0), 
                              heading=goal_heading,
-                             config=self.config,
+                             config={**self.config, **{"COLLISIONS_ENABLED": False}},
                              color=WHITE
                              )
-        self.goal.COLLISIONS_ENABLED = False
         self.road.vehicles.insert(0, self.goal)
 
         ##### ADDING OTHER VEHICLES #####
@@ -298,15 +297,17 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             parking_spots_used.append(lane)
 
             # + self.np_random.randint(2) * np.pi
-            vehicle_heading = lane.heading
             self.road.vehicles.append(Obstacle(road=self.road,
                                                position=lane.position(lane.length/2, 0),
-                                               heading=vehicle_heading,
+                                               heading=lane.heading,
                                                velocity=0,
                                                config=self.config
                                               )
                                      )
         
+        #for lane in self.road.network.lanes_list()[:-5]:
+        #    if lane not in parking_spots_used:
+                
         self._add_virtual_vehicles()
 
 
