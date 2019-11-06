@@ -78,6 +78,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 "relative_features": ['x', 'y', 'psi'],
                 "scale": 100,
                 "vehicles_count": 10,
+                "goals_count": 1,
                            },
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
             "centering_position": [0.5, 0.5],
@@ -169,7 +170,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         for _from, to_dict in self.road.network.graph.items():
             for _to, lanes in to_dict.items():
                 for _id, lane in enumerate(lanes):
-                    if lane not in [goal.lane for goal in self.goal]:
+                    if lane not in [goal.lane for goal in self.road.goal]:
                         over_others_parking_spots = lane.on_lane(position)
                     if (over_others_parking_spots):
                         return True
@@ -282,7 +283,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         ##### ADDING GOAL #####
         parking_spots_used = []
-        self.goal = []
         # lane = self.np_random.choice(self.road.network.lanes_list())
         for _ in range(1):
             lane = self.np_random.choice(self.road.network.lanes_list()[:-5])
@@ -295,7 +295,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                 config={**self.config, **{"COLLISIONS_ENABLED": False}},
                                 color=WHITE
                                 )
-            self.goal.append(obstacle)
+            self.road.goal.append(obstacle)
             self.road.vehicles.insert(0, obstacle)
             self.road.add_virtual_vehicle(obstacle)
 

@@ -185,7 +185,7 @@ class LG_Sim_Env(GoalEnv):
             'sin_h': np.sin(np.deg2rad(-self.ego.state.transform.rotation.y))
         }
         obs = np.ravel(pandas.DataFrame.from_records([d])[self.features])
-        goal = np.ravel(pandas.DataFrame.from_records([self.goal])[self.features])
+        goal = np.ravel(pandas.DataFrame.from_records([self.road.goal])[self.features])
         obs = {
             "observation": obs / self.OBS_SCALE,
             "achieved_goal": obs / self.OBS_SCALE,
@@ -231,7 +231,7 @@ class LG_Sim_Env(GoalEnv):
         self.sim.add_agent("SchoolBus", lgsvl.AgentType.NPC, state)
 
         # SET THE GOAL LOCATION
-        self.goal = {            
+        self.road.goal = {            
             'x': sx - 17.0,
             'z': sz - 8.0,
             'vx': 0,

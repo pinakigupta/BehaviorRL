@@ -217,11 +217,11 @@ class KinematicsGoalObservation(KinematicObservation):
     def observe(self):
         obs = np.ravel(self.normalize(pandas.DataFrame.from_records([self.vehicle.to_dict(self.relative_features, self.vehicle)])[self.features]))
         goal = np.ravel(self.normalize(pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) \
-                                                                      for v in self.env.goal])[self.features]))
+                                                                      for v in self.env.road.goal])[self.features]))
         constraint = pandas.DataFrame.from_records(
                     [v.to_dict(self.relative_features, self.vehicle) 
                                 for v in self.env.road.virtual_vehicles
-                                    if v not in self.env.goal])[self.features]
+                                    if v not in self.env.road.goal])[self.features]
         constraint = np.ravel(self.normalize(constraint))
         obs_dict = {
                         #"observation": obs / self.scale,
@@ -238,8 +238,8 @@ class KinematicsGoalObservation(KinematicObservation):
         close_vehicles_dict = {
                                 "observation": closest_to_ref,
                                 "achieved_goal": [self.vehicle],
-                                "constraint": [v for v in self.env.road.virtual_vehicles if v not in self.env.goal],
-                                "desired_goal": [self.env.goal]                 
+                                "constraint": [v for v in self.env.road.virtual_vehicles if v not in self.env.road.goal],
+                                "desired_goal": [self.env.road.goal]                 
                               }
         return close_vehicles_dict
 
