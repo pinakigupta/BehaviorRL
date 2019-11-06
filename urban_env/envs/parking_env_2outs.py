@@ -125,6 +125,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         acceleration = action[0].item() * vehicle_params['max_acceleration']
         steering = action[1].item() * vehicle_params['max_steer_angle']
         ###############################################
+        if(self.vehicle.velocity > self.PARKING_MAX_VELOCITY):
+            acceleration = min(acceleration, 0)
+        elif(self.vehicle.velocity < -self.PARKING_MAX_VELOCITY):
+            acceleration = max(acceleration, 0)
 
         # Forward action to the vehicle
         self.vehicle.control_action =({
