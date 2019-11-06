@@ -216,7 +216,9 @@ class KinematicsGoalObservation(KinematicObservation):
         obs = np.ravel(self.normalize(pandas.DataFrame.from_records([self.vehicle.to_dict(self.relative_features, self.vehicle)])[self.features]))
         goal = np.ravel(self.normalize(pandas.DataFrame.from_records([self.env.goal.to_dict(self.relative_features, self.vehicle)])[self.features]))
         constraint = pandas.DataFrame.from_records(
-                    [v.to_dict(self.relative_features, self.vehicle) for v in self.env.road.virtual_vehicles])[self.features]
+                    [v.to_dict(self.relative_features, self.vehicle) 
+                                for v in self.env.road.virtual_vehicles
+                                    if v is not self.env.goal])[self.features]
         constraint = np.ravel(self.normalize(constraint))
         obs_tuple = {
                         #"observation": obs / self.scale,

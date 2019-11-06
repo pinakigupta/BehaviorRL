@@ -139,7 +139,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         obs, reward, done, info = super(ParkingEnv_2outs, self).step(self.vehicle.control_action)
 
         #terminal = self._is_terminal()
-        #self.print_obs_space(ref_vehicle=self.vehicle)
+        self.print_obs_space(ref_vehicle=self.vehicle)
         return obs, reward, done, info
 
     def reset(self):
@@ -272,6 +272,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self.vehicle.MAX_VELOCITY = self.PARKING_MAX_VELOCITY
         self.vehicle.is_ego_vehicle = True
         self.road.vehicles.append(self.vehicle)
+        
 
         ##### ADDING GOAL #####
         parking_spots_used = []
@@ -287,6 +288,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                              color=WHITE
                              )
         self.road.vehicles.insert(0, self.goal)
+        self.road.add_virtual_vehicle(self.goal)
 
         ##### ADDING OTHER VEHICLES #####
         # vehicles_type = utils.class_from_path(scene.config["other_vehicles_type"])
@@ -343,7 +345,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         # REVERESE DRIVING REWARD
         reverse_reward = self.config["REVERSE_REWARD"] * np.squeeze(info["is_reverse"])
         velocity_reward = self.config["VELOCITY_REWARD"] * (self.vehicle.velocity - 0.5*self.PARKING_MAX_VELOCITY) / (self.PARKING_MAX_VELOCITY)
-        continuous_reward = (distance_to_goal_reward + reverse_reward + velocity_reward)  # + \
+        continuous_reward = (distance_to_goal_reward + reverse_reward )  # + \
         # over_other_parking_spots_reward)
         # reverse_reward + \
         # against_traffic_reward + \
