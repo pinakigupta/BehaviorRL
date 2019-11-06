@@ -276,7 +276,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         ##### ADDING GOAL #####
         parking_spots_used = []
         # lane = self.np_random.choice(self.road.network.lanes_list())
-        lane = self.road.network.lanes_list()[-5]
+        lane = self.np_random.choice(self.road.network.lanes_list()[:-5])
         parking_spots_used.append(lane)
         goal_heading = lane.heading  # + self.np_random.randint(2) * np.pi
         self.goal = Obstacle(
