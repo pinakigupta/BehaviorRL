@@ -270,9 +270,8 @@ class ControlledVehicle(Vehicle):
                                                 out_q=out_q
                                                 )
 
-    @abc.abstractmethod
     def Id(self):
-        raise NotImplementedError()
+        return super(ControlledVehicle, self).Id()
 
     @abc.abstractmethod
     def __str__(self):
@@ -404,7 +403,7 @@ class MDPVehicle(ControlledVehicle):
         return states
 
     def Id(self):
-        return str(id(self))[-3:]
+        return super(MDPVehicle, self).Id()
 
     def __str__(self):
         str = ""

@@ -395,7 +395,7 @@ class Obstacle(Vehicle):
         #self.LENGTH = self.WIDTH
 
     def Id(self):
-        return str(id(self))[-3:]
+        return super(Obstacle, self).Id()
 
     def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q=None, pred_horizon=-1, **kwargs):
         return None

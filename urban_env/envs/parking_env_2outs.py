@@ -60,8 +60,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
     """
     PARKING_MAX_VELOCITY = 7.0  # m/s
     OBS_SCALE = 100
-    REWARD_WEIGHTS = [7/100, 7/100, 1/100, 1/100, 1/10]
-    SUCCESS_THRESHOLD = -0.5
+    REWARD_WEIGHTS = [15/100, 15/100, 1/100, 1/100, 3/100]
+    SUCCESS_THRESHOLD = 0.05
 
     DEFAULT_CONFIG = {**AbstractEnv.DEFAULT_CONFIG,
         **{
@@ -130,7 +130,9 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self.vehicle.control_action =({
                                         "acceleration": acceleration,
                                         "steering": steering
-                                                    })
+                                                    
+                                       }
+                                     )
 
         # print("prev_act, curr_act, accel, steer, speed:", self.previous_action, action, acceleration, steering, self.vehicle.velocity)
         #self._simulate()
@@ -139,7 +141,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         obs, reward, done, info = super(ParkingEnv_2outs, self).step(self.vehicle.control_action)
 
         #terminal = self._is_terminal()
-        #self.print_obs_space(ref_vehicle=self.vehicle)
+        #self.print_obs_space(ref_vehicle=self.vehicle, obs_type="desired_goal")
         return obs, reward, done, info
 
     def reset(self):
@@ -351,7 +353,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         # against_traffic_reward + \
         # collision_reward)
         sys.stdout.flush()
-        #print("distance_to_goal_reward ", distance_to_goal_reward, " reverse_reward ",reverse_reward, " velocity_reward ", velocity_reward)
+        #print("distance_to_goal_reward ", distance_to_goal_reward, " reverse_reward ", reverse_reward, \
+        #    " velocity_reward ", velocity_reward, " velocity ", self.vehicle.velocity)
         goal_reward = self.config["GOAL_REWARD"]
         if self.vehicle.crashed:
             reward = collision_reward + min(0.0, continuous_reward)
@@ -404,7 +407,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         return terminal
 
 
-    def print_obs_space(self, ref_vehicle):
+    def print_obs_space(self, ref_vehicle, obs_type="observation"):
         if not ref_vehicle:
             return
         print("-------------- start obs ", ref_vehicle.Id(), "  ----------------------")
@@ -417,23 +420,21 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         #sys.stdout.flush()
         pp = pprint.PrettyPrinter(indent=4)
         numoffeatures = len(self.config["observation"]["features"])
-        numfofobs = len(self.obs["observation"])
+        numfofobs = len(self.obs[obs_type])
         numofvehicles = numfofobs//numoffeatures
-        close_vehicle_ids = [int(ref_vehicle.Id())]
-        modified_obs = self.observations[ref_vehicle].observe()
-        close_vehicles = self.road.closest_vehicles_to(ref_vehicle,
-                                                           numofvehicles - 1,
-                                                           7.0 * MDPVehicle.SPEED_MAX
-                                                      )
+        modified_obs = self.observations[ref_vehicle].observe()[obs_type]
+        close_vehicles = self.observations[ref_vehicle].closest_vehicles()[obs_type]                                                      
+        close_vehicle_ids = []
         for v in close_vehicles:
             close_vehicle_ids.append(int(v.Id()))
+        numofclosevehicles = len(close_vehicle_ids)
         close_vehicle_ids.extend([-1]*(numofvehicles-len(close_vehicle_ids)))
         Idx = 0
         obs_Idx = 0
         while True:
-            temp = copy.deepcopy(modified_obs["observation"])
-            del(modified_obs["observation"])
-            modified_obs["observation"] = np.insert(temp, obs_Idx, close_vehicle_ids[Idx])
+            temp = copy.deepcopy(modified_obs)
+            del(modified_obs)
+            modified_obs = np.insert(temp, obs_Idx, close_vehicle_ids[Idx])
             del(temp)
             Idx += 1
             obs_Idx += numoffeatures+1
@@ -441,7 +442,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 break
 
         np.set_printoptions(precision=3, suppress=True)
-        obs_format = pp.pformat(np.round(np.reshape(modified_obs["observation"], (numofvehicles, numoffeatures+1 )), 3))
+        obs_format = pp.pformat(np.round(np.reshape(modified_obs, (numofvehicles, numoffeatures+1 )), 3))
         obs_format = obs_format.rstrip("\n")
         print(obs_format)
         print("\n\n\n")
@@ -453,7 +454,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             lane = self.road.network.get_lane(lane_index)
             x0 = lane.length/2
             position = lane.position(x0, 0)
-            virtual_obstacle_right = Obstacle(
+            virtual_obstacle_ = Obstacle(
                                             road=self.road,
                                             position=position,
                                             heading=lane.heading_at(x0),
@@ -462,19 +463,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                             target_lane_index=lane_index,                                            
                                             config=self.config
                                             )
-            virtual_obstacle_right.virtual = True                                       
-            virtual_obstacle_right.LENGTH = lane.length
-            self.road.add_vehicle(copy.deepcopy(virtual_obstacle_right))
-            self.road.add_virtual_vehicle(copy.deepcopy(virtual_obstacle_right))
-
-        '''virtual_obstacle_left  = Obstacle(
-                                          road=self.road,
-                                          position=[-40, 0],
-                                          heading=np.pi/2,
-                                          velocity=0,
-                                          config=self.config
-                                          )
-        virtual_obstacle_left.virtual = True                                       
-        virtual_obstacle_left.LENGTH = 50
-        self.road.add_vehicle(virtual_obstacle_left)
-        self.road.add_virtual_vehicle(virtual_obstacle_left)'''        
+            virtual_obstacle_.virtual = True                                       
+            virtual_obstacle_.LENGTH = lane.length
+            self.road.add_vehicle(virtual_obstacle_)
+            self.road.add_virtual_vehicle(virtual_obstacle_)
+    

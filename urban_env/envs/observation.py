@@ -124,6 +124,8 @@ class KinematicObservation(ObservationType):
             df['length'] = df['length']/400
         return df
 
+
+
     def observe(self):
 
         
@@ -220,15 +222,25 @@ class KinematicsGoalObservation(KinematicObservation):
                                 for v in self.env.road.virtual_vehicles
                                     if v is not self.env.goal])[self.features]
         constraint = np.ravel(self.normalize(constraint))
-        obs_tuple = {
+        obs_dict = {
                         #"observation": obs / self.scale,
                         "observation": super(KinematicsGoalObservation, self).observe(),
                         "achieved_goal": obs ,
                         "constraint": constraint,
                         "desired_goal": goal 
                     }
-        return obs_tuple
-
+        return obs_dict
+    def closest_vehicles(self):
+        closest_to_ref = [self.vehicle]
+        if self.close_vehicles:
+            closest_to_ref = closest_to_ref + self.close_vehicles
+        close_vehicles_dict = {
+                                "observation": closest_to_ref,
+                                "achieved_goal": [self.vehicle],
+                                "constraint": [v for v in self.env.road.virtual_vehicles if v is not self.env.goal],
+                                "desired_goal": [self.env.goal]                 
+                              }
+        return close_vehicles_dict
 
 def observation_factory(env, ref_vehicle, config):
     if config["type"] == "TimeToCollision":
