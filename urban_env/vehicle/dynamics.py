@@ -278,9 +278,12 @@ class Vehicle(Loggable):
             'lane_psi': self.lane.heading_at(self.position[0]),
         }
         if (origin_vehicle is not self):
-            origin_dict = origin_vehicle.to_dict(origin_vehicle)
+            origin_dict = origin_vehicle.to_dict([], origin_vehicle)
             for key in relative_features:
                 d[key] -= origin_dict[key]
+        else:
+            for key in relative_features:
+                d[key] = 0             
         return d
 
     def dump(self):
@@ -337,7 +340,7 @@ class Vehicle(Loggable):
 
     @abc.abstractmethod
     def Id(self):
-        return "V"+str(id(self))[-3:]
+        return str(id(self))[-3:]
 
     def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q=None, pred_horizon=-1, **kwargs):
         """

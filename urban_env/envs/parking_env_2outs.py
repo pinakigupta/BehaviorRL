@@ -75,7 +75,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "observation": {
                 "type": "KinematicsGoal",
                 "features": ['x', 'y', 'vx', 'vy', 'psi'],
-                "relative_features": ['x', 'y', 'vx', 'vy', 'psi'],
+                "relative_features": ['x', 'y', 'psi'],
                 "scale": 100,
                 "vehicles_count": 10,
                            },
@@ -139,7 +139,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         obs, reward, done, info = super(ParkingEnv_2outs, self).step(self.vehicle.control_action)
 
         #terminal = self._is_terminal()
-        self.print_obs_space(ref_vehicle=self.vehicle)
+        #self.print_obs_space(ref_vehicle=self.vehicle)
         return obs, reward, done, info
 
     def reset(self):
@@ -419,14 +419,14 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         numoffeatures = len(self.config["observation"]["features"])
         numfofobs = len(self.obs["observation"])
         numofvehicles = numfofobs//numoffeatures
-        close_vehicle_ids = [int(ref_vehicle.Id()[1:])]
+        close_vehicle_ids = [int(ref_vehicle.Id())]
         modified_obs = self.observations[ref_vehicle].observe()
         close_vehicles = self.road.closest_vehicles_to(ref_vehicle,
                                                            numofvehicles - 1,
                                                            7.0 * MDPVehicle.SPEED_MAX
                                                       )
         for v in close_vehicles:
-            close_vehicle_ids.append(int(v.Id()[1:]))
+            close_vehicle_ids.append(int(v.Id()))
         close_vehicle_ids.extend([-1]*(numofvehicles-len(close_vehicle_ids)))
         Idx = 0
         obs_Idx = 0
