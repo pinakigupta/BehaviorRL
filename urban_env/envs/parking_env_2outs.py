@@ -169,7 +169,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         for _from, to_dict in self.road.network.graph.items():
             for _to, lanes in to_dict.items():
                 for _id, lane in enumerate(lanes):
-                    if lane != self.goal.lane:
+                    if lane not in [goal.lane for goal in self.goal]:
                         over_others_parking_spots = lane.on_lane(position)
                     if (over_others_parking_spots):
                         return True
@@ -282,19 +282,22 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         ##### ADDING GOAL #####
         parking_spots_used = []
+        self.goal = []
         # lane = self.np_random.choice(self.road.network.lanes_list())
-        lane = self.np_random.choice(self.road.network.lanes_list()[:-5])
-        parking_spots_used.append(lane)
-        goal_heading = lane.heading  # + self.np_random.randint(2) * np.pi
-        self.goal = Obstacle(
-                             road=self.road,
-                             position=lane.position(lane.length/2, 0), 
-                             heading=goal_heading,
-                             config={**self.config, **{"COLLISIONS_ENABLED": False}},
-                             color=WHITE
-                             )
-        self.road.vehicles.insert(0, self.goal)
-        self.road.add_virtual_vehicle(self.goal)
+        for _ in range(1):
+            lane = self.np_random.choice(self.road.network.lanes_list()[:-5])
+            parking_spots_used.append(lane)
+            goal_heading = lane.heading  # + self.np_random.randint(2) * np.pi
+            obstacle =  Obstacle(
+                                road=self.road,
+                                position=lane.position(lane.length/2, 0), 
+                                heading=goal_heading,
+                                config={**self.config, **{"COLLISIONS_ENABLED": False}},
+                                color=WHITE
+                                )
+            self.goal.append(obstacle)
+            self.road.vehicles.insert(0, obstacle)
+            self.road.add_virtual_vehicle(obstacle)
 
         ##### ADDING OTHER VEHICLES #####
         # vehicles_type = utils.class_from_path(scene.config["other_vehicles_type"])
