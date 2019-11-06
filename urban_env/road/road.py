@@ -251,6 +251,7 @@ class Road(Loggable):
         self.network = network or []
         self.vehicles = vehicles or []
         self.virtual_vehicles = []
+        self.goal = []
         self.np_random = np_random if np_random else np.random.RandomState()
         self.ego_vehicle = None
         self.config = config
