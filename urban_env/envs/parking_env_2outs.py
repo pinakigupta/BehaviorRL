@@ -60,7 +60,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
     """
     PARKING_MAX_VELOCITY = 7.0  # m/s
     OBS_SCALE = 100
-    REWARD_WEIGHTS = [15/100, 15/100, 1/100, 1/100, 3/100]
+    REWARD_WEIGHTS = [15/100, 15/100, 1/100, 1/100, 2/100, 2/100]
     SUCCESS_THRESHOLD = 0.05
 
     DEFAULT_CONFIG = {**AbstractEnv.DEFAULT_CONFIG,
