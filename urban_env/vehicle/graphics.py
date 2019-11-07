@@ -57,6 +57,9 @@ class VehicleGraphics(object):
         #     x = v.position[0] + length / 2
         #     y = v.position[1] - width
         #######################################################
+        if v.hidden:
+            return
+            
         veh_length = min(v.LENGTH, 200)
         veh_width =  v.WIDTH
         s = pygame.Surface((surface.pix(veh_length), surface.pix(veh_length)), pygame.SRCALPHA)  # per-pixel alpha

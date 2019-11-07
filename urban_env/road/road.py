@@ -251,7 +251,7 @@ class Road(Loggable):
         self.network = network or []
         self.vehicles = vehicles or []
         self.virtual_vehicles = []
-        self.goal = []
+        self.goals = []
         self.np_random = np_random if np_random else np.random.RandomState()
         self.ego_vehicle = None
         self.config = config
@@ -277,6 +277,23 @@ class Road(Loggable):
                            and not v.virtual
                            and v not in self.virtual_vehicles
                            # and -2*vehicle.LENGTH < vehicle.lane_distance_to(v)
+                           and abs(vehicle.lane_distance_to(v)) < perception_distance],
+                          key=lambda v: abs(vehicle.lane_distance_to(v))
+                          )
+        return sorted_v[:count]
+
+
+    def closest_goals_to(self, vehicle, count, perception_distance=math.inf):
+        if not hasattr(vehicle, 'route_lane_index') or vehicle.route_lane_index is None:
+            sorted_v = sorted([v for v in self.goals
+                               if v is not vehicle
+                               and abs(vehicle.distance_to(v)) < perception_distance],
+                              key=lambda v: abs(vehicle.distance_to(v))
+                              )
+            return sorted_v[:count]
+
+        sorted_v = sorted([v for v in self.goals
+                           if v is not vehicle
                            and abs(vehicle.lane_distance_to(v)) < perception_distance],
                           key=lambda v: abs(vehicle.lane_distance_to(v))
                           )

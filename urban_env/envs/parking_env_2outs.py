@@ -170,7 +170,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         for _from, to_dict in self.road.network.graph.items():
             for _to, lanes in to_dict.items():
                 for _id, lane in enumerate(lanes):
-                    if lane not in [goal.lane for goal in self.road.goal]:
+                    if lane not in [goal.lane for goal in self.road.goals]:
                         over_others_parking_spots = lane.on_lane(position)
                     if (over_others_parking_spots):
                         return True
@@ -284,7 +284,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         ##### ADDING GOAL #####
         parking_spots_used = []
         # lane = self.np_random.choice(self.road.network.lanes_list())
-        for _ in range(1):
+        for _ in range(4):
             lane = self.np_random.choice(self.road.network.lanes_list()[:-5])
             parking_spots_used.append(lane)
             goal_heading = lane.heading  # + self.np_random.randint(2) * np.pi
@@ -293,9 +293,9 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                 position=lane.position(lane.length/2, 0), 
                                 heading=goal_heading,
                                 config={**self.config, **{"COLLISIONS_ENABLED": False}},
-                                color=WHITE
+                                #color=WHITE
                                 )
-            self.road.goal.append(obstacle)
+            self.road.goals.append(obstacle)
             self.road.vehicles.insert(0, obstacle)
             self.road.add_virtual_vehicle(obstacle)
 
@@ -308,7 +308,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             parking_spots_used.append(lane)
 
             # + self.np_random.randint(2) * np.pi
-            self.road.vehicles.append(Obstacle(road=self.road,
+            self.road.vehicles.append(Obstacle(
+                                               road=self.road,
                                                position=lane.position(lane.length/2, 0),
                                                heading=lane.heading,
                                                velocity=0,
@@ -319,7 +320,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         #for lane in self.road.network.lanes_list()[:-5]:
         #    if lane not in parking_spots_used:
                 
-        self._add_virtual_vehicles()
+        self._add_constraint_vehicles()
 
 
     def _distance_2_goal_reward(self, achieved_goal, desired_goal, p=0.5):
@@ -455,7 +456,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         print("\n\n\n")
 
 
-    def _add_virtual_vehicles(self):
+    def _add_constraint_vehicles(self):
         for i in range(4):
             lane_index = ("e", "f", i)
             lane = self.road.network.get_lane(lane_index)

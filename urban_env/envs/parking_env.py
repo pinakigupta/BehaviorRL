@@ -168,7 +168,7 @@ class ParkingEnv(AbstractEnv, GoalEnv):
         for _from, to_dict in self.road.network.graph.items():
             for _to, lanes in to_dict.items():
                 for _id, lane in enumerate(lanes):
-                    if lane != self.road.goal.lane:
+                    if lane != self.road.goals.lane:
                         over_others_parking_spots = lane.on_lane(position)
                     if (over_others_parking_spots):
                         return True
@@ -256,9 +256,9 @@ class ParkingEnv(AbstractEnv, GoalEnv):
         lane = self.np_random.choice(self.road.network.lanes_list())
         parking_spots_used.append(lane)
         goal_heading = lane.heading #+ self.np_random.randint(2) * np.pi
-        self.road.goal = Obstacle(self.road, lane.position(lane.length/2, 0), heading=goal_heading)
-        self.road.goal.COLLISIONS_ENABLED = False
-        self.road.vehicles.insert(0, self.road.goal)
+        self.road.goals = Obstacle(self.road, lane.position(lane.length/2, 0), heading=goal_heading)
+        self.road.goals.COLLISIONS_ENABLED = False
+        self.road.vehicles.insert(0, self.road.goals)
 
         ##### ADDING OTHER VEHICLES #####
         # vehicles_type = utils.class_from_path(scene.config["other_vehicles_type"])             

@@ -180,6 +180,7 @@ class KinematicObservation(ObservationType):
             goal = (target_position - lane_coords[0]) / self.env.config["PERCEPTION_DISTANCE"] # Normalize
             goal = min(1.0, max(-1.0, goal)) # Clip
             obs[0] = goal # Just a temporary implementation wo explicitly mentioning the goal
+
         '''obs_idx = 1
         for virtual_v in self.env.road.virtual_vehicles:
             obs[obs_idx] = virtual_v.position[1]/self.y_position_range
@@ -197,9 +198,10 @@ class KinematicObservation(ObservationType):
 
 
 class KinematicsGoalObservation(KinematicObservation):
-    def __init__(self, env, ref_vehicle, scale, **kwargs):
+    def __init__(self, env, ref_vehicle, scale, goals_count=1, **kwargs):
         self.scale = scale
         self.vehicle = ref_vehicle
+        self.goals_count = goals_count
         super(KinematicsGoalObservation, self).__init__(env, ref_vehicle, **kwargs)
 
     def space(self):
@@ -216,21 +218,35 @@ class KinematicsGoalObservation(KinematicObservation):
 
     def observe(self):
         obs = np.ravel(self.normalize(pandas.DataFrame.from_records([self.vehicle.to_dict(self.relative_features, self.vehicle)])[self.features]))
-        goal = np.ravel(self.normalize(pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) \
-                                                                      for v in self.env.road.goal])[self.features]))
+        self.close_goals = self.env.road.closest_goals_to(self.vehicle,
+                                                          self.goals_count,
+                                                          self.env.config["PERCEPTION_DISTANCE"])
+
+        if self.vehicle.is_ego():
+            for v in self.env.road.goals:
+                if v in self.close_goals:
+                    v.color = WHITE
+                    v.hidden = False
+                else:
+                    v.hidden = True
+
+        goal = pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) \
+                                                                      for v in self.close_goals])[self.features]
+        goal = np.ravel(self.normalize(goal))
         constraint = pandas.DataFrame.from_records(
                     [v.to_dict(self.relative_features, self.vehicle) 
                                 for v in self.env.road.virtual_vehicles
-                                    if v not in self.env.road.goal])[self.features]
+                                    if v not in self.env.road.goals])[self.features]
         constraint = np.ravel(self.normalize(constraint))
         obs_dict = {
-                        #"observation": obs / self.scale,
                         "observation": super(KinematicsGoalObservation, self).observe(),
                         "achieved_goal": obs ,
                         "constraint": constraint,
                         "desired_goal": goal 
                     }
         return obs_dict
+
+
     def closest_vehicles(self):
         closest_to_ref = [self.vehicle]
         if self.close_vehicles:
@@ -238,10 +254,11 @@ class KinematicsGoalObservation(KinematicObservation):
         close_vehicles_dict = {
                                 "observation": closest_to_ref,
                                 "achieved_goal": [self.vehicle],
-                                "constraint": [v for v in self.env.road.virtual_vehicles if v not in self.env.road.goal],
-                                "desired_goal": [self.env.road.goal]                 
+                                "constraint": [v for v in self.env.road.virtual_vehicles if v not in self.env.road.goals],
+                                "desired_goal": [self.close_goals]                 
                               }
         return close_vehicles_dict
+
 
 def observation_factory(env, ref_vehicle, config):
     if config["type"] == "TimeToCollision":
