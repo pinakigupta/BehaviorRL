@@ -74,11 +74,11 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         **{
             "observation": {
                 "type": "KinematicsGoal",
-                "features": ['x', 'y', 'vx', 'vy', 'psi'],
-                "relative_features": ['x', 'y', 'psi'],
+                "features": ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h'],
+                "relative_features": ['x', 'y'],
                 "scale": 100,
-                "vehicles_count": 10,
-                "goals_count": 1,
+                "vehicles_count": 8,
+                "goals_count": 6,
                            },
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
             "centering_position": [0.5, 0.5],
@@ -324,7 +324,19 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
 
     def _distance_2_goal_reward(self, achieved_goal, desired_goal, p=0.5):
-        return - np.power(np.dot( np.abs(achieved_goal - desired_goal), self.REWARD_WEIGHTS), p)
+        min_distance_2_goal_reward = 1e6
+        numoffeatures = len(self.config["observation"]["features"])
+        numfofobs = len(desired_goal)
+        numofvehicles = numfofobs//numoffeatures
+        desired_goal_list_debug_only = []
+        distance_2_goal_reward_list_debug_only = []
+        for i in range(numofvehicles):
+            distance_2_goal_reward = \
+                np.power(np.dot( np.abs(achieved_goal - desired_goal[i*numoffeatures:(i+1)*numoffeatures]), self.REWARD_WEIGHTS), p)
+            min_distance_2_goal_reward = min(min_distance_2_goal_reward, distance_2_goal_reward)
+            desired_goal_list_debug_only.append(desired_goal[i*numoffeatures:(i+1)*numoffeatures])
+            distance_2_goal_reward_list_debug_only.append(distance_2_goal_reward)
+        return -min_distance_2_goal_reward
 
     def compute_reward(self, achieved_goal, desired_goal, info, p=0.5):
         """

@@ -266,7 +266,6 @@ class Vehicle(Loggable):
         sin_h = self.direction[1]
         psi = self.heading
         d = {
-            'presence': 1,
             'x': x,
             'y': y,
             'vx': vx,

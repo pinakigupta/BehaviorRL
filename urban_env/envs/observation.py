@@ -66,7 +66,7 @@ class KinematicObservation(ObservationType):
     """
         Observe the kinematics of nearby vehicles.
     """
-    FEATURES = ['presence', 'x', 'y', 'vx', 'vy', 'psi', 'lane_psi', 'length']
+    FEATURES = [ 'x', 'y', 'vx', 'vy', 'psi', 'lane_psi', 'length']
     #STACK_SIZE = 2
 
     def __init__(self, env, ref_vehicle, features=FEATURES, relative_features=FEATURES, vehicles_count=9, **kwargs):
@@ -230,9 +230,12 @@ class KinematicsGoalObservation(KinematicObservation):
                 else:
                     v.hidden = True
 
-        goal = pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) \
-                                                                      for v in self.close_goals])[self.features]
-        goal = np.ravel(self.normalize(goal))
+        raw_goals = pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) for v in [self.close_goals[0]]])[self.features]
+        raw_goals = raw_goals.append(pandas.DataFrame.from_records(\
+            [v.to_dict(self.relative_features, self.vehicle) for v in self.close_goals[1:]])[self.features], ignore_index=True)
+        goal = np.ravel(self.normalize(raw_goals))
+
+
         constraint = pandas.DataFrame.from_records(
                     [v.to_dict(self.relative_features, self.vehicle) 
                                 for v in self.env.road.virtual_vehicles

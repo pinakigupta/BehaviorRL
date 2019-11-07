@@ -35,7 +35,7 @@ def is_predict_only(**kwargs):
     if 'predict' in kwargs:
         if kwargs['predict'] == "True":
             num_timesteps = '1'
-    #if 'predict' in sys.argv:
+    #if 'predict' in sys.argv: 
     #    num_timesteps = '1'
     return float(num_timesteps) == 1
 
@@ -57,7 +57,7 @@ play_env_id = 'parking_2outs-v0'
 alg = 'ppo2'
 network = 'mlp'
 # Keeping steps at 1 will only sping off prediction/simulation. > 1 for training.
-num_timesteps = '100'
+num_timesteps = '200'
 
 # To be compatible with Ray please keep this a normal integer representation. i.e 1000 not 1e3
 
