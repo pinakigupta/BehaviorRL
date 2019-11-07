@@ -230,11 +230,15 @@ class KinematicsGoalObservation(KinematicObservation):
                 else:
                     v.hidden = True
 
-        raw_goals = pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) for v in [self.close_goals[0]]])[self.features]
-        raw_goals = raw_goals.append(pandas.DataFrame.from_records(\
-            [v.to_dict(self.relative_features, self.vehicle) for v in self.close_goals[1:]])[self.features], ignore_index=True)
-        goal = np.ravel(self.normalize(raw_goals))
-
+        raw_goals = pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) for v in self.close_goals])[self.features]
+        #raw_goals = raw_goals.append(pandas.DataFrame.from_records(\
+        #    [v.to_dict(self.relative_features, self.vehicle) for v in self.close_goals[1:]])[self.features], ignore_index=True)
+        goal = self.normalize(raw_goals)
+        # Fill missing rows
+        if goal.shape[0] < self.goals_count:
+            rows = -np.ones((self.goals_count - goal.shape[0], len(self.features)))
+            goal = goal.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
+        goal = np.ravel(goal) #flatten
 
         constraint = pandas.DataFrame.from_records(
                     [v.to_dict(self.relative_features, self.vehicle) 
@@ -258,7 +262,7 @@ class KinematicsGoalObservation(KinematicObservation):
                                 "observation": closest_to_ref,
                                 "achieved_goal": [self.vehicle],
                                 "constraint": [v for v in self.env.road.virtual_vehicles if v not in self.env.road.goals],
-                                "desired_goal": [self.close_goals]                 
+                                "desired_goal": self.close_goals                 
                               }
         return close_vehicles_dict
 

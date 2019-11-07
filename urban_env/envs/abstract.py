@@ -56,6 +56,7 @@ class AbstractEnv(gym.Env):
         "SIMULATION_FREQUENCY": 15, # The frequency at which the system dynamics are simulated [Hz]
         "POLICY_FREQUENCY": 1 , #The frequency at which the agent can take actions [Hz]
         "PERCEPTION_DISTANCE": 7.0 * MDPVehicle.SPEED_MAX, # The maximum distance of any vehicle present in the observation [m]
+        "CURRICULAM_REWARD_THRESHOLD": 0.5,
         "MODEL":                {
                                 #    "use_lstm": True,
                                     "fcnet_hiddens": [256],
@@ -203,7 +204,7 @@ class AbstractEnv(gym.Env):
             self.episode_reward_buffer.append(self.episode_reward)
             self.episode_count +=1
             #self._set_curriculam(curriculam_reward_threshold=1500)
-            self._set_curriculam(curriculam_reward_threshold=0.5)
+            self._set_curriculam(curriculam_reward_threshold = self.config["CURRICULAM_REWARD_THRESHOLD"])
 
         self.close_vehicles = self.observation.close_vehicles
         constraint = self._constraint(action)
@@ -404,6 +405,7 @@ class AbstractEnv(gym.Env):
 
     def set_curriculam(self, value):
         self.set_config("DIFFICULTY_LEVELS", value)
+        self.scene_complexity = self.config["DIFFICULTY_LEVELS"]
 
     def get_curriculam(self):
         return self.config["DIFFICULTY_LEVELS"]

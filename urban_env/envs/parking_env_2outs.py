@@ -67,9 +67,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         **{
             "OVER_OTHER_PARKING_SPOT_REWARD": -0.9,
             "VELOCITY_REWARD": 2,
-            "COLLISION_REWARD": -200,
-            "REVERSE_REWARD": -0.5,
+            "COLLISION_REWARD": -500,
+            "REVERSE_REWARD": -1,
             "GOAL_REWARD": 2000,
+            "CURRICULAM_REWARD_THRESHOLD": 0.75,
         },
         **{
             "observation": {
@@ -111,13 +112,15 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         # reverse : [-1 to 1] => from -1 to 0 Reverse and from 0 to 1 Forward.
         #self.action_space = Box(low=np.array([-1, -1]), high=np.array([1, 1]), dtype=np.float32)
 
-
         super(ParkingEnv_2outs, self).__init__(config)
+        if is_predict_only():
+            self.set_curriculam(12)
         obs = self.reset()
         self.REWARD_WEIGHTS = np.array(self.REWARD_WEIGHTS)
         self.config["REWARD_SCALE"] = np.absolute(self.config["GOAL_REWARD"])
         EnvViewer.SCREEN_HEIGHT = self.config['screen_height']
         EnvViewer.SCREEN_WIDTH = self.config['screen_width']
+
 
 
     def step(self, action):
@@ -146,7 +149,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         obs, reward, done, info = super(ParkingEnv_2outs, self).step(self.vehicle.control_action)
 
         #terminal = self._is_terminal()
-        #self.print_obs_space(ref_vehicle=self.vehicle, obs_type="desired_goal")
+        self.print_obs_space(ref_vehicle=self.vehicle, obs_type="desired_goal")
         return obs, reward, done, info
 
     def reset(self):

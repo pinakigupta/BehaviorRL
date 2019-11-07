@@ -237,8 +237,8 @@ def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, LOCAL_MODE=N
     
     restore_folder=None
     algo = "PPO" # RL Algorithm of choice
-    LOAD_MODEL_FOLDER = "20190828-201729" # Location of previous model (if needed) for training 
-    RESTORE_COND = "NONE" # RESTORE: Use a previous model to start new training 
+    LOAD_MODEL_FOLDER = "20191107-190345" # Location of previous model (if needed) for training 
+    RESTORE_COND = "RESTORE_AND_RESUME" # RESTORE: Use a previous model to start new training 
                           # RESTORE_AND_RESUME: Use a previous model to finish previous unfinished training 
                           # NONE: Start fresh
     if RESTORE_COND == "RESTORE_AND_RESUME":
