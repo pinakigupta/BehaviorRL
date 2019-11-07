@@ -203,8 +203,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         if self.config["vehicles_count"] == 'random':
             high=self.parking_spots*self.scene_complexity/6
-            #print("high ",high)
             self.vehicles_count = self.np_random.randint(low=0, high=high) * 2
+            self.vehicles_count = min(self.vehicles_count, (self.parking_spots*2) - 1)
 
         elif self.config["vehicles_count"] == 'all':
             self.vehicles_count = (self.parking_spots*2) - 1
@@ -279,32 +279,14 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self.vehicle.MAX_VELOCITY = self.PARKING_MAX_VELOCITY
         self.vehicle.is_ego_vehicle = True
         self.road.vehicles.append(self.vehicle)
-        
-
-        ##### ADDING GOAL #####
         parking_spots_used = []
-        # lane = self.np_random.choice(self.road.network.lanes_list())
-        for _ in range(4):
-            lane = self.np_random.choice(self.road.network.lanes_list()[:-5])
-            parking_spots_used.append(lane)
-            goal_heading = lane.heading  # + self.np_random.randint(2) * np.pi
-            obstacle =  Obstacle(
-                                road=self.road,
-                                position=lane.position(lane.length/2, 0), 
-                                heading=goal_heading,
-                                config={**self.config, **{"COLLISIONS_ENABLED": False}},
-                                #color=WHITE
-                                )
-            self.road.goals.append(obstacle)
-            self.road.vehicles.insert(0, obstacle)
-            self.road.add_virtual_vehicle(obstacle)
+        lane = self.np_random.choice(self.road.network.lanes_list()[:-4])
 
         ##### ADDING OTHER VEHICLES #####
-        # vehicles_type = utils.class_from_path(scene.config["other_vehicles_type"])
         for _ in range(self.vehicles_count):
             while lane in parking_spots_used:  # this loop should never be infinite since we assert that there should be more parking spots/lanes than vehicles
                 # to-do: chceck for empty spots
-                lane = self.np_random.choice(self.road.network.lanes_list()[:-5])
+                lane = self.np_random.choice(self.road.network.lanes_list()[:-4])
             parking_spots_used.append(lane)
 
             # + self.np_random.randint(2) * np.pi
@@ -316,9 +298,27 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                                config=self.config
                                               )
                                      )
-        
-        #for lane in self.road.network.lanes_list()[:-5]:
-        #    if lane not in parking_spots_used:
+
+
+        ##### ADDING OTHER GOALS #####
+        for lane in self.road.network.lanes_list()[:-4]:
+            if lane in parking_spots_used:  
+                continue
+            parking_spots_used.append(lane)
+
+            goal_heading = lane.heading  # + self.np_random.randint(2) * np.pi
+            obstacle =  Obstacle(
+                                road=self.road,
+                                position=lane.position(lane.length/2, 0), 
+                                heading=goal_heading,
+                                config={**self.config, **{"COLLISIONS_ENABLED": False}},
+                                #color=WHITE
+                                )
+            self.road.goals.append(obstacle)
+            self.road.vehicles.insert(0, obstacle)
+            self.road.add_virtual_vehicle(obstacle)
+                                           
+
                 
         self._add_constraint_vehicles()
 
