@@ -85,11 +85,11 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
             "centering_position": [0.5, 0.5],
             "parking_spots": 15,  # 'random', # Parking Spots per side            
-            "duration": 50,
+            "duration": 100,
             "_predict_only": is_predict_only(),
             "screen_width": 1600,
             "screen_height": 900,
-            "DIFFICULTY_LEVELS": 3,
+            "DIFFICULTY_LEVELS": 2,
             "OBS_STACK_SIZE": 1,
             "GOAL_LENGTH": 1000,
             "vehicles_count": 'random',
@@ -372,7 +372,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         # REVERESE DRIVING REWARD
         reverse_reward = self.config["REVERSE_REWARD"] * np.squeeze(info["is_reverse"])
         velocity_reward = self.config["VELOCITY_REWARD"] * (self.vehicle.velocity - 0.5*self.PARKING_MAX_VELOCITY) / (self.PARKING_MAX_VELOCITY)
-        continuous_reward = (distance_to_goal_reward + reverse_reward )  # + \
+        continuous_reward = (distance_to_goal_reward + reverse_reward + -10)  # + \
         # over_other_parking_spots_reward)
         # reverse_reward + \
         # against_traffic_reward + \
@@ -385,8 +385,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             reward = collision_reward + min(0.0, continuous_reward)
         elif self.is_success:
             reward = goal_reward + continuous_reward
-        elif(info["is_terminal"]):
-            reward = self.config["TERM_REWARD"]
+        #elif(info["is_terminal"]):
+        #    reward = self.config["TERM_REWARD"]
         else:
             reward = continuous_reward
 
