@@ -67,10 +67,11 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         **{
             "OVER_OTHER_PARKING_SPOT_REWARD": -0.9,
             "VELOCITY_REWARD": 2,
-            "COLLISION_REWARD": -500,
+            "COLLISION_REWARD": -750,
+            "TERM_REWARD": -400,
             "REVERSE_REWARD": -1,
             "GOAL_REWARD": 2000,
-            "CURRICULAM_REWARD_THRESHOLD": 0.75,
+            "CURRICULAM_REWARD_THRESHOLD": 0.6,
         },
         **{
             "observation": {
@@ -84,11 +85,11 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
             "centering_position": [0.5, 0.5],
             "parking_spots": 15,  # 'random', # Parking Spots per side            
-            "duration": 100,
+            "duration": 50,
             "_predict_only": is_predict_only(),
             "screen_width": 1600,
             "screen_height": 900,
-            "DIFFICULTY_LEVELS": 4,
+            "DIFFICULTY_LEVELS": 3,
             "OBS_STACK_SIZE": 1,
             "GOAL_LENGTH": 1000,
             "vehicles_count": 'random',
@@ -114,7 +115,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         super(ParkingEnv_2outs, self).__init__(config)
         if is_predict_only():
-            self.set_curriculam(12)
+            self.set_curriculam(6)
         obs = self.reset()
         self.REWARD_WEIGHTS = np.array(self.REWARD_WEIGHTS)
         self.config["REWARD_SCALE"] = np.absolute(self.config["GOAL_REWARD"])
@@ -135,12 +136,12 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             acceleration = max(acceleration, 0)
 
         # Forward action to the vehicle
-        self.vehicle.control_action =({
+        self.vehicle.control_action = (
+                                       {
                                         "acceleration": acceleration,
-                                        "steering": steering
-                                                    
+                                        "steering": steering                                                    
                                        }
-                                     )
+                                      )
 
         # print("prev_act, curr_act, accel, steer, speed:", self.previous_action, action, acceleration, steering, self.vehicle.velocity)
         #self._simulate()
@@ -149,7 +150,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         obs, reward, done, info = super(ParkingEnv_2outs, self).step(self.vehicle.control_action)
 
         #terminal = self._is_terminal()
-        #self.print_obs_space(ref_vehicle=self.vehicle, obs_type="desired_goal")
+        self.print_obs_space(ref_vehicle=self.vehicle, obs_type="observation")
+        self.print_obs_space(ref_vehicle=self.vehicle, obs_type="desired_goal")
         return obs, reward, done, info
 
     def reset(self):
@@ -383,6 +385,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             reward = collision_reward + min(0.0, continuous_reward)
         elif self.is_success:
             reward = goal_reward + continuous_reward
+        elif(info["is_terminal"]):
+            reward = self.config["TERM_REWARD"]
         else:
             reward = continuous_reward
 
@@ -400,7 +404,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "is_success": int(self._is_success(self.obs['achieved_goal'], self.obs['desired_goal'])),
             "is_collision": int(self.vehicle.crashed),
             "is_over_others_parking_spot": int(self.is_over_others_parking_spot(self.vehicle.position)),
-            "is_reverse": int(self.vehicle.velocity < 0)
+            "is_reverse": int(self.vehicle.velocity < 0),
+            "is_terminal": self._is_terminal()
         }
         return info
 

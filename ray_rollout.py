@@ -169,7 +169,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
 def ray_retrieve_agent(env_id=play_env_id):
     #subprocess.run(["xhost", "+"], shell=True)
     #LOAD_MODEL_FOLDER = "20190916-031304" # Location of previous model for prediction 
-    LOAD_MODEL_FOLDER = "20191107-190345" # Location of previous model for prediction 
+    LOAD_MODEL_FOLDER = "20191107-123456" # Location of previous model for prediction 
     results_folder, _ , algo = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
     print("results_folder = ", results_folder) 
     print("algo = ", algo)
