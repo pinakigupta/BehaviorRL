@@ -150,8 +150,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         obs, reward, done, info = super(ParkingEnv_2outs, self).step(self.vehicle.control_action)
 
         #terminal = self._is_terminal()
-        self.print_obs_space(ref_vehicle=self.vehicle, obs_type="observation")
-        self.print_obs_space(ref_vehicle=self.vehicle, obs_type="desired_goal")
+        #self.print_obs_space(ref_vehicle=self.vehicle, obs_type="observation")
+        #self.print_obs_space(ref_vehicle=self.vehicle, obs_type="desired_goal")
         return obs, reward, done, info
 
     def reset(self):
