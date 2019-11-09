@@ -79,11 +79,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 "features": ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h'],
                 "relative_features": ['x', 'y'],
                 "scale": 100,
-                "vehicles_count": 8,
-                "goals_count": 6,
+                "vehicles_count": 2,
+                "goals_count": 1,
                            },
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
-            "centering_position": [0.5, 0.5],
             "parking_spots": 15,  # 'random', # Parking Spots per side            
             "duration": 100,
             "_predict_only": is_predict_only(),
@@ -91,10 +90,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "screen_height": 900,
             "DIFFICULTY_LEVELS": 2,
             "OBS_STACK_SIZE": 1,
-            "GOAL_LENGTH": 1000,
-            "vehicles_count": 'random',
+            "vehicles_count": 'none',
             "PARKING_LOT_WIDTH": 90,
             "PARKING_LOT_LENGTH": 70,
+            "LOAD_MODEL_FOLDER":  "20191107-123456",
             "SIMULATION_FREQUENCY": 5, # The frequency at which the system dynamics are simulated [Hz]
             "POLICY_FREQUENCY": 1 , #The frequency at which the agent can take actions [Hz]
             "MODEL":             {
@@ -152,6 +151,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         #terminal = self._is_terminal()
         #self.print_obs_space(ref_vehicle=self.vehicle, obs_type="observation")
         #self.print_obs_space(ref_vehicle=self.vehicle, obs_type="desired_goal")
+        
         return obs, reward, done, info
 
     def reset(self):
@@ -214,6 +214,9 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         elif self.config["vehicles_count"] == 'all':
             self.vehicles_count = (self.parking_spots*2) - 1
 
+        elif self.config["vehicles_count"] == 'none':
+            self.vehicles_count = 0
+
         else:
             self.vehicles_count = self.config["vehicles_count"]
 
@@ -272,6 +275,20 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         """
             Create some new random vehicles of a given type, and add them on the road.
         """
+        parking_spots_used = []
+        lane = self.np_random.choice(self.road.network.lanes_list()[:-4])
+        parking_spots_used.append(lane)
+        obstacle =  Obstacle(
+                                road=self.road,
+                                position=lane.position(lane.length/2, 0), 
+                                heading=lane.heading,
+                                config={**self.config, **{"COLLISIONS_ENABLED": False}},
+                                #color=WHITE
+                                )
+        self.road.goals.append(obstacle)
+        self.road.vehicles.insert(0, obstacle)
+        self.road.add_virtual_vehicle(obstacle)
+
         ##### ADDING EGO #####
         self.vehicle =  Vehicle(
                                road=self.road, 
@@ -284,7 +301,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self.vehicle.MAX_VELOCITY = self.PARKING_MAX_VELOCITY
         self.vehicle.is_ego_vehicle = True
         self.road.vehicles.append(self.vehicle)
-        parking_spots_used = []
+
         lane = self.np_random.choice(self.road.network.lanes_list()[:-4])
 
         ##### ADDING OTHER VEHICLES #####
@@ -306,22 +323,21 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
 
         ##### ADDING OTHER GOALS #####
-        for lane in self.road.network.lanes_list()[:-4]:
+        '''for lane in self.road.network.lanes_list()[:-4]:
             if lane in parking_spots_used:  
                 continue
             parking_spots_used.append(lane)
 
-            goal_heading = lane.heading  # + self.np_random.randint(2) * np.pi
             obstacle =  Obstacle(
                                 road=self.road,
                                 position=lane.position(lane.length/2, 0), 
-                                heading=goal_heading,
+                                heading=lane.heading,
                                 config={**self.config, **{"COLLISIONS_ENABLED": False}},
                                 #color=WHITE
                                 )
             self.road.goals.append(obstacle)
             self.road.vehicles.insert(0, obstacle)
-            self.road.add_virtual_vehicle(obstacle)
+            self.road.add_virtual_vehicle(obstacle)'''
                                            
 
                 
@@ -372,7 +388,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         # REVERESE DRIVING REWARD
         reverse_reward = self.config["REVERSE_REWARD"] * np.squeeze(info["is_reverse"])
         velocity_reward = self.config["VELOCITY_REWARD"] * (self.vehicle.velocity - 0.5*self.PARKING_MAX_VELOCITY) / (self.PARKING_MAX_VELOCITY)
-        continuous_reward = (distance_to_goal_reward + reverse_reward + -10)  # + \
+        continuous_reward = (distance_to_goal_reward + reverse_reward - 10)  # + \
         # over_other_parking_spots_reward)
         # reverse_reward + \
         # against_traffic_reward + \

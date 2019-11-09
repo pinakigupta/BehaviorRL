@@ -5,6 +5,7 @@ import copy
 import subprocess
 import glob
 import ray
+import gym
 
 from ray.rllib.rollout import default_policy_agent_mapping, DefaultMapping
 from ray.rllib.agents.registry import get_agent_class
@@ -169,7 +170,9 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
 def ray_retrieve_agent(env_id=play_env_id):
     #subprocess.run(["xhost", "+"], shell=True)
     #LOAD_MODEL_FOLDER = "20190916-031304" # Location of previous model for prediction 
-    LOAD_MODEL_FOLDER = "20191108-160402" # Location of previous model for prediction 
+    #LOAD_MODEL_FOLDER = "20191108-233809" # Location of previous model for prediction 
+    config = gym.make(env_id).config
+    LOAD_MODEL_FOLDER = config["LOAD_MODEL_FOLDER"]
     results_folder, _ , algo = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
     print("results_folder = ", results_folder) 
     print("algo = ", algo)
