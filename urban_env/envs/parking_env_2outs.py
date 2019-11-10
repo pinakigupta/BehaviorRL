@@ -74,6 +74,14 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "CURRICULAM_REWARD_THRESHOLD": 0.6,
         },
         **{
+            "LOAD_MODEL_FOLDER":  "20191109-161648",
+            "RESTORE_COND": None, 
+            "MODEL":             {
+                                #    "use_lstm": True,
+                                    "fcnet_hiddens": [256, 256],
+                                 }, 
+        },
+        **{
             "observation": {
                 "type": "KinematicsGoal",
                 "features": ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h'],
@@ -93,13 +101,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "vehicles_count": 'none',
             "PARKING_LOT_WIDTH": 90,
             "PARKING_LOT_LENGTH": 70,
-            "LOAD_MODEL_FOLDER":  "20191109-161648",
             "SIMULATION_FREQUENCY": 5, # The frequency at which the system dynamics are simulated [Hz]
             "POLICY_FREQUENCY": 1 , #The frequency at which the agent can take actions [Hz]
-            "MODEL":             {
-                                #    "use_lstm": True,
-                                    "fcnet_hiddens": [256, 256],
-                                 }, 
             }
     }
 

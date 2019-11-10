@@ -10,6 +10,7 @@ import glob
 import redis
 import ray
 import gym
+import settings
 
 from ray.tune import Experiment, Trainable, run_experiments, register_env, sample_from
 from ray.tune.schedulers import PopulationBasedTraining, AsyncHyperBandScheduler
@@ -194,7 +195,7 @@ def on_train_result(info):
 
 def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, LOCAL_MODE=None, **mainkwargs):
     #print("mainkwargs ", mainkwargs," save_in_sub_folder ", save_in_sub_folder, "available_cluster_cpus ", available_cluster_cpus)
-    
+    config = gym.make(train_env_id).config
 
     subprocess.run(["chmod", "-R", "a+rwx", save_in_sub_folder + "/"])
     # Postprocess the perturbed config to ensure it's still valid
@@ -237,11 +238,12 @@ def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, LOCAL_MODE=N
     
     restore_folder=None
     algo = "PPO" # RL Algorithm of choice
-    LOAD_MODEL_FOLDER = "20191107-190345" # Location of previous model (if needed) for training 
-    RESTORE_COND = "NONE" # RESTORE: Use a previous model to start new training 
+    LOAD_MODEL_FOLDER = config["LOAD_MODEL_FOLDER"] # Location of previous model (if needed) for training 
+    #RESTORE_COND = "NONE" # RESTORE: Use a previous model to start new training 
                           # RESTORE_AND_RESUME: Use a previous model to finish previous unfinished training 
                           # NONE: Start fresh
-    if RESTORE_COND == "NONE":
+    RESTORE_COND = config["RESTORE_COND"]
+    if RESTORE_COND == "RESTORE_AND_RESUME":
         restore_folder, local_restore_path, _ = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
         local_dir=local_restore_path
         resume=True
@@ -255,10 +257,10 @@ def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, LOCAL_MODE=N
 
     checkpoint_freq=int(num_timesteps)//min(int(num_timesteps), 20)
 
-    import settings
+    
     retrieved_agent_policy = settings.retrieved_agent_policy
 
-    model = gym.make(train_env_id).config["MODEL"] 
+    model = config["MODEL"] 
     print("delegated_cpus ", delegated_cpus)
 
     
