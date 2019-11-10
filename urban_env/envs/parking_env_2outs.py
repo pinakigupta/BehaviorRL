@@ -391,7 +391,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         # REVERESE DRIVING REWARD
         reverse_reward = self.config["REVERSE_REWARD"] * np.squeeze(info["is_reverse"])
         velocity_reward = self.config["VELOCITY_REWARD"] * (self.vehicle.velocity - 0.5*self.PARKING_MAX_VELOCITY) / (self.PARKING_MAX_VELOCITY)
-        continuous_reward = (distance_to_goal_reward + reverse_reward + -10)  # + \
+        continuous_reward = (distance_to_goal_reward + reverse_reward )  # + \
         # over_other_parking_spots_reward)
         # reverse_reward + \
         # against_traffic_reward + \
