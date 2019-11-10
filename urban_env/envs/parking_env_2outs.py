@@ -93,7 +93,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "vehicles_count": 'none',
             "PARKING_LOT_WIDTH": 90,
             "PARKING_LOT_LENGTH": 70,
-            "LOAD_MODEL_FOLDER":  "20191107-123456",
+            "LOAD_MODEL_FOLDER":  "20191109-161648",
             "SIMULATION_FREQUENCY": 5, # The frequency at which the system dynamics are simulated [Hz]
             "POLICY_FREQUENCY": 1 , #The frequency at which the agent can take actions [Hz]
             "MODEL":             {
@@ -388,7 +388,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         # REVERESE DRIVING REWARD
         reverse_reward = self.config["REVERSE_REWARD"] * np.squeeze(info["is_reverse"])
         velocity_reward = self.config["VELOCITY_REWARD"] * (self.vehicle.velocity - 0.5*self.PARKING_MAX_VELOCITY) / (self.PARKING_MAX_VELOCITY)
-        continuous_reward = (distance_to_goal_reward + reverse_reward - 10)  # + \
+        continuous_reward = (distance_to_goal_reward + reverse_reward + -10)  # + \
         # over_other_parking_spots_reward)
         # reverse_reward + \
         # against_traffic_reward + \
