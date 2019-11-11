@@ -74,7 +74,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "CURRICULAM_REWARD_THRESHOLD": 0.6,
         },
         **{
-            "LOAD_MODEL_FOLDER":  "20191109-161648",
+            "LOAD_MODEL_FOLDER":  "20191110-231920",
             "RESTORE_COND": None, 
             "MODEL":             {
                                 #    "use_lstm": True,
@@ -278,6 +278,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         """
             Create some new random vehicles of a given type, and add them on the road.
         """
+        self.border_lane_count = 4
         parking_spots_used = []
         lane = self.np_random.choice(self.road.network.lanes_list()[:-4])
         parking_spots_used.append(lane)
@@ -305,13 +306,13 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self.vehicle.is_ego_vehicle = True
         self.road.vehicles.append(self.vehicle)
 
-        lane = self.np_random.choice(self.road.network.lanes_list()[:-4])
+        lane = self.np_random.choice(self.road.network.lanes_list()[:-self.border_lane_count])
 
         ##### ADDING OTHER VEHICLES #####
         for _ in range(self.vehicles_count):
             while lane in parking_spots_used:  # this loop should never be infinite since we assert that there should be more parking spots/lanes than vehicles
                 # to-do: chceck for empty spots
-                lane = self.np_random.choice(self.road.network.lanes_list()[:-4])
+                lane = self.np_random.choice(self.road.network.lanes_list()[:-self.border_lane_count])
             parking_spots_used.append(lane)
 
             # + self.np_random.randint(2) * np.pi
@@ -391,7 +392,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         # REVERESE DRIVING REWARD
         reverse_reward = self.config["REVERSE_REWARD"] * np.squeeze(info["is_reverse"])
         velocity_reward = self.config["VELOCITY_REWARD"] * (self.vehicle.velocity - 0.5*self.PARKING_MAX_VELOCITY) / (self.PARKING_MAX_VELOCITY)
-        continuous_reward = (distance_to_goal_reward + reverse_reward )  # + \
+        continuous_reward = (distance_to_goal_reward + reverse_reward + over_other_parking_spots_reward )  # + \
         # over_other_parking_spots_reward)
         # reverse_reward + \
         # against_traffic_reward + \
@@ -496,7 +497,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
 
     def _add_constraint_vehicles(self):
-        for i in range(4):
+        for i in range(self.border_lane_count):
             lane_index = ("e", "f", i)
             lane = self.road.network.get_lane(lane_index)
             x0 = lane.length/2
@@ -514,4 +515,28 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             virtual_obstacle_.LENGTH = lane.length
             self.road.add_vehicle(virtual_obstacle_)
             self.road.add_virtual_vehicle(virtual_obstacle_)
-    
+
+        lane_ids = [["a", "b" ],  ["b", "c"]]
+        spot_idxs = [[0], [self.config["parking_spots"]-1]]
+        for lane_id in lane_ids:
+            for spot_idx in spot_idxs:
+                lane_index = (*lane_id, *spot_idx)
+                lane = self.road.network.get_lane(lane_index)
+                x0 = lane.length/2
+                position = lane.position(x0, 0)
+                virtual_obstacle_ = Obstacle(
+                                                    road=self.road,
+                                                    position=position,
+                                                    heading=lane.heading_at(x0),
+                                                    velocity=0,
+                                                    lane_index=lane_index,
+                                                    target_lane_index=lane_index,                                            
+                                                    config=self.config
+                                            )
+                virtual_obstacle_.is_projection = True
+                virtual_obstacle_.virtual = True                                       
+                virtual_obstacle_.LENGTH = lane.length
+                self.road.add_vehicle(virtual_obstacle_)
+                #self.road.add_virtual_vehicle(virtual_obstacle_) 
+
+
