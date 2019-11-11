@@ -65,7 +65,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
     DEFAULT_CONFIG = {**AbstractEnv.DEFAULT_CONFIG,
         **{
-            "OVER_OTHER_PARKING_SPOT_REWARD": -0.9,
+            "OVER_OTHER_PARKING_SPOT_REWARD": -10,
             "VELOCITY_REWARD": 2,
             "COLLISION_REWARD": -750,
             "TERM_REWARD": -400,
@@ -153,7 +153,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         #terminal = self._is_terminal()
         #self.print_obs_space(ref_vehicle=self.vehicle, obs_type="observation")
-        #self.print_obs_space(ref_vehicle=self.vehicle, obs_type="desired_goal")
+        #self.print_obs_space(ref_vehicle=self.vehicle, obs_type="constraint")
         
         return obs, reward, done, info
 
@@ -537,6 +537,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 virtual_obstacle_.virtual = True                                       
                 virtual_obstacle_.LENGTH = lane.length
                 self.road.add_vehicle(virtual_obstacle_)
-                #self.road.add_virtual_vehicle(virtual_obstacle_) 
+                self.road.add_virtual_vehicle(virtual_obstacle_) 
 
 
