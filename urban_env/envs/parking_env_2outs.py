@@ -74,7 +74,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "CURRICULAM_REWARD_THRESHOLD": 0.6,
         },
         **{
-            "LOAD_MODEL_FOLDER":  "20191110-231920",
+            "LOAD_MODEL_FOLDER":  "20191111-151522",
             "RESTORE_COND": None, 
             "MODEL":             {
                                 #    "use_lstm": True,
@@ -179,10 +179,12 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             for _to, lanes in to_dict.items():
                 for _id, lane in enumerate(lanes):
                     if lane not in [goal.lane for goal in self.road.goals]:
+                        goal_position = [goal.position[1] for goal in self.road.goals]
+                        if lane.position(lane.length/2, 0)[1] in goal_position:
+                            continue
                         over_others_parking_spots = lane.on_lane(position)
                     if (over_others_parking_spots):
                         return True
-
         return False
 
     def rot(self, point, angle):
@@ -384,6 +386,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         # OVER OTHER PARKING SPOTS REWARD
         over_other_parking_spots_reward = self.config["OVER_OTHER_PARKING_SPOT_REWARD"] * \
             np.squeeze(info["is_over_others_parking_spot"])
+        
+        #print("over_other_parking_spots_reward ", over_other_parking_spots_reward)
 
         # COLLISION REWARD
         collision_reward = self.config["COLLISION_REWARD"] * \
@@ -515,7 +519,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             virtual_obstacle_.LENGTH = lane.length
             self.road.add_vehicle(virtual_obstacle_)
             self.road.add_virtual_vehicle(virtual_obstacle_)
-
+        
         lane_ids = [["a", "b" ],  ["b", "c"]]
         spot_idxs = [[0], [self.config["parking_spots"]-1]]
         for lane_id in lane_ids:
@@ -537,6 +541,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 virtual_obstacle_.virtual = True                                       
                 virtual_obstacle_.LENGTH = lane.length
                 self.road.add_vehicle(virtual_obstacle_)
-                self.road.add_virtual_vehicle(virtual_obstacle_) 
+                self.road.add_virtual_vehicle(virtual_obstacle_)
 
 
