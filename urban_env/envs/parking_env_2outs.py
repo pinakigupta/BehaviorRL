@@ -390,7 +390,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         over_other_parking_spots_reward = self.config["OVER_OTHER_PARKING_SPOT_REWARD"] * \
             np.squeeze(info["is_over_others_parking_spot"])
         
-        print("over_other_parking_spots_reward ", over_other_parking_spots_reward)
+        #print("over_other_parking_spots_reward ", over_other_parking_spots_reward)
 
         # COLLISION REWARD
         collision_reward = self.config["COLLISION_REWARD"] * np.squeeze(info["is_collision"])
