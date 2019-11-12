@@ -522,7 +522,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             self.road.add_vehicle(virtual_obstacle_)
             self.road.add_virtual_vehicle(virtual_obstacle_)
         
-        '''lane_ids = [["a", "b" ],  ["b", "c"]]
+        lane_ids = [["a", "b" ],  ["b", "c"]]
         spot_idxs = [[0], [self.config["parking_spots"]-1]]
         for lane_id in lane_ids:
             for spot_idx in spot_idxs:
@@ -543,6 +543,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 virtual_obstacle_.virtual = True                                       
                 virtual_obstacle_.LENGTH = lane.length
                 self.road.add_vehicle(virtual_obstacle_)
-                self.road.add_virtual_vehicle(virtual_obstacle_)'''
+                self.road.add_virtual_vehicle(virtual_obstacle_)
 
 
