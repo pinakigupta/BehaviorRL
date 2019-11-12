@@ -179,8 +179,11 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             for _to, lanes in to_dict.items():
                 for _id, lane in enumerate(lanes):
                     if lane not in [goal.lane for goal in self.road.goals]:
-                        goal_position = [goal.position[1] for goal in self.road.goals]
-                        if lane.position(lane.length/2, 0)[1] in goal_position:
+                        goal_y_position = [goal.position[1] for goal in self.road.goals]
+                        lane_x = lane.position(lane.length/2, 0)[0]
+                        lane_y = lane.position(lane.length/2, 0)[1]
+                        goal_x_offset_min = min([abs(goal.position[0]-lane_x) for goal in self.road.goals])
+                        if lane_y in goal_y_position and goal_x_offset_min < 2.5*lane.width:
                             continue
                         over_others_parking_spots = lane.on_lane(position)
                     if (over_others_parking_spots):
@@ -387,11 +390,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         over_other_parking_spots_reward = self.config["OVER_OTHER_PARKING_SPOT_REWARD"] * \
             np.squeeze(info["is_over_others_parking_spot"])
         
-        #print("over_other_parking_spots_reward ", over_other_parking_spots_reward)
+        print("over_other_parking_spots_reward ", over_other_parking_spots_reward)
 
         # COLLISION REWARD
-        collision_reward = self.config["COLLISION_REWARD"] * \
-            np.squeeze(info["is_collision"])
+        collision_reward = self.config["COLLISION_REWARD"] * np.squeeze(info["is_collision"])
 
         # REVERESE DRIVING REWARD
         reverse_reward = self.config["REVERSE_REWARD"] * np.squeeze(info["is_reverse"])
@@ -520,7 +522,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             self.road.add_vehicle(virtual_obstacle_)
             self.road.add_virtual_vehicle(virtual_obstacle_)
         
-        lane_ids = [["a", "b" ],  ["b", "c"]]
+        '''lane_ids = [["a", "b" ],  ["b", "c"]]
         spot_idxs = [[0], [self.config["parking_spots"]-1]]
         for lane_id in lane_ids:
             for spot_idx in spot_idxs:
@@ -541,6 +543,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 virtual_obstacle_.virtual = True                                       
                 virtual_obstacle_.LENGTH = lane.length
                 self.road.add_vehicle(virtual_obstacle_)
-                self.road.add_virtual_vehicle(virtual_obstacle_)
+                self.road.add_virtual_vehicle(virtual_obstacle_)'''
 
 
