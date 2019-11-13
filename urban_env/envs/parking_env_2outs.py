@@ -74,7 +74,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "CURRICULAM_REWARD_THRESHOLD": 0.6,
         },
         **{
-            "LOAD_MODEL_FOLDER":  "20191111-151522",
+            "LOAD_MODEL_FOLDER": "20191113-175452",
             "RESTORE_COND": None, 
             "MODEL":             {
                                 #    "use_lstm": True,
@@ -330,7 +330,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                               )
                                      )
 
-
         ##### ADDING OTHER GOALS #####
         '''for lane in self.road.network.lanes_list()[:-4]:
             if lane in parking_spots_used:  
@@ -521,10 +520,17 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             virtual_obstacle_.LENGTH = lane.length
             self.road.add_vehicle(virtual_obstacle_)
             self.road.add_virtual_vehicle(virtual_obstacle_)
-        
+                
         lane_ids = [["a", "b" ],  ["b", "c"]]
-        spot_idxs = [[0], [self.config["parking_spots"]-1]]
+        lane_set = []
         for lane_id in lane_ids:
+            for goal in self.road.goals:
+                if list(goal.lane_index[0:2]) != lane_id:
+                    lane_set.append(lane_id)
+
+        #print("lane_ids ",lane_ids, " lane_set ", lane_set )
+        spot_idxs = [[0], [self.config["parking_spots"]-1]]
+        for lane_id in lane_set:
             for spot_idx in spot_idxs:
                 lane_index = (*lane_id, *spot_idx)
                 lane = self.road.network.get_lane(lane_index)
