@@ -78,7 +78,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "RESTORE_COND": None, 
             "MODEL":             {
                                 #    "use_lstm": True,
-                                    "fcnet_hiddens": [256, 256],
+                                     "fcnet_hiddens": [64, 64],
+                                     "hidden_activation": "relu",
                                  }, 
         },
         **{
