@@ -25,6 +25,16 @@ B) Self play
 
 ![](img/MultiAgentPPO2.gif)
 
+Another environment I have started working on is a parking lot env. This is quite different than the structured environment(s). Please see the architecture difference between them as depicted by the flow diagram. 
+
+![RLarchitecture](img/RLarchitecture.png)
+
+The parking lot env is a goal oriented env, with virtual vehicles constraining the lot borders. The action space is continuous steering and  acceleration commands, while the observation space involves 
+{ "desired goals", "constraints" , "observed vehicles"}. Currently I don't have any other vehicles as part of this environment.
+
+![](img/EmptyParkingLot.gif)
+
+
 ## Getting Started (Docker)
 0) This code requires (Don't install anything yet):
 
