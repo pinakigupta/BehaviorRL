@@ -79,7 +79,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "MODEL":             {
                                 #    "use_lstm": True,
                                      "fcnet_hiddens": [64, 64],
-                                     "fcnet_activation": "relu",
+                                #     "fcnet_activation": "relu",
                                  }, 
         },
         **{
@@ -398,7 +398,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         # REVERESE DRIVING REWARD
         reverse_reward = self.config["REVERSE_REWARD"] * np.squeeze(info["is_reverse"])
         velocity_reward = self.config["VELOCITY_REWARD"] * (self.vehicle.velocity - 0.5*self.PARKING_MAX_VELOCITY) / (self.PARKING_MAX_VELOCITY)
-        continuous_reward = (distance_to_goal_reward + reverse_reward + over_other_parking_spots_reward )  # + \
+        continuous_reward = (distance_to_goal_reward + reverse_reward  )  # + \
         # over_other_parking_spots_reward)
         # reverse_reward + \
         # against_traffic_reward + \
@@ -530,7 +530,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                     lane_set.append(lane_id)
 
         #print("lane_ids ",lane_ids, " lane_set ", lane_set )
-        spot_idxs = [[0], [self.config["parking_spots"]-1]]
+        spot_idxs = [[self.config["parking_spots"]//2]]
         for lane_id in lane_set:
             for spot_idx in spot_idxs:
                 lane_index = (*lane_id, *spot_idx)
@@ -540,15 +540,16 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 virtual_obstacle_ = Obstacle(
                                                     road=self.road,
                                                     position=position,
-                                                    heading=lane.heading_at(x0),
+                                                    heading=lane.heading_at(x0)+np.pi/2,
                                                     velocity=0,
                                                     lane_index=lane_index,
                                                     target_lane_index=lane_index,                                            
                                                     config=self.config
                                             )
-                virtual_obstacle_.is_projection = True
+                #virtual_obstacle_.is_projection = True
                 virtual_obstacle_.virtual = True                                       
-                virtual_obstacle_.LENGTH = lane.length
+                virtual_obstacle_.LENGTH = int(lane.width*self.config["parking_spots"])
+                virtual_obstacle_.WIDTH = int(lane.length)
                 self.road.add_vehicle(virtual_obstacle_)
                 self.road.add_virtual_vehicle(virtual_obstacle_)
 
