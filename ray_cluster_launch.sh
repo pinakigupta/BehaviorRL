@@ -12,20 +12,23 @@ source yaml.sh
 yaml_key_val="$(parse_yaml "$ray_yaml_file" )" #parse_yaml script parses the ray yaml file
 while IFS=' ' read -ra ADDR; do
      	for i in "${ADDR[@]}"; do
-              if [[ $i == *"min_workers"* ]]; then
-                 IFS=':' read -ra min_cluster_nodes <<< "$i"
+              if [[ $i == *"max_workers"* ]]; then
+                 IFS='max_workers: ' read min_cluster_nodes_i <<< "$i"
               fi
       done
  done <<< "$yaml_key_val"
+
+min_cluster_nodes=$(sed -e 's/max_workers=(\(.*\))/\1/' <<< "$min_cluster_nodes_i")
 
 
 if [ $# \> 1 ]
   then
     exec_cmd=$2
   else
-    exec_cmd="cd rl_baselines_ad;python -W ignore baselines_run.py min_cluster_nodes=${min_cluster_nodes} init_cluster_nodes=${min_cluster_nodes} " # Your default ray exec cmnd
+    exec_cmd="cd rl_baselines_ad;python -W ignore baselines_run.py min_cluster_nodes=$min_cluster_nodes init_cluster_nodes=$min_cluster_nodes " # Your default ray exec cmnd
 fi
- 
+
+
 #copying from the volatile docker container to the persistent mount drive
 sync_cmd="rsync -a  /BehaviorRL/ray_results/   /rl_baselines_ad/ray_results/" 
 
