@@ -20,6 +20,8 @@ from ray.rllib.agents.trainer_template import build_trainer
 
 import ray.rllib.agents.ppo as ppo
 import ray.rllib.agents.impala as impala
+from ray.rllib.agents.ppo import PPOTrainer
+from ray.rllib.optimizers import AsyncGradientsOptimizer
 
 
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, RUN_WITH_RAY, InceptcurrentDT, is_predict_only
@@ -226,8 +228,7 @@ def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, LOCAL_MODE=N
                                   mixins=[impala.impala.OverrideDefaultResourceRequest]
                                  )
     
-    from ray.rllib.agents.ppo import PPOTrainer
-    from ray.rllib.optimizers import AsyncGradientsOptimizer
+
 
     def make_async_optimizer(workers, config):
         return AsyncGradientsOptimizer(workers, grads_per_step=100)
@@ -266,7 +267,7 @@ def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, LOCAL_MODE=N
 
     
     ray_trials = ray.tune.run(
-            "PPO",
+            PPOTrainer,
             name="pygame-ray",
             stop={"training_iteration": int(num_timesteps)},
             checkpoint_freq=checkpoint_freq,
