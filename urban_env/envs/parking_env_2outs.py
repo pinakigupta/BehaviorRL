@@ -100,7 +100,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "DIFFICULTY_LEVELS": 2,
             "OBS_STACK_SIZE": 1,
             "vehicles_count": 0,
-            "goals_count": 1,
+            "goals_count": 10,
             "PARKING_LOT_WIDTH": 90,
             "PARKING_LOT_LENGTH": 70,
             "SIMULATION_FREQUENCY": 5, # The frequency at which the system dynamics are simulated [Hz]
@@ -340,7 +340,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                                position=lane.position(lane.length/2, 0),
                                                heading=lane.heading,
                                                velocity=0,
-                                               config=self.config
+                                               config={**self.config, **{"COLLISIONS_ENABLED": False}},
                                               )
                                     )
 
@@ -538,7 +538,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         lane_ids = [["a", "b" ],  ["b", "c"]]
         lane_set = []
         for lane_id in lane_ids:
-            for goal in self.road.goals:
+            for goal in [self.road.goals[0]]:
                 if list(goal.lane_index[0:2]) != lane_id:
                     lane_set.append(lane_id)
 

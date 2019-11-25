@@ -207,6 +207,10 @@ class KinematicsGoalObservation(KinematicObservation):
     def space(self):
         try:
             obs = self.observe()
+            print("goal.shape ", obs["desired_goal"].shape)
+            print("constraint.shape ", obs["constraint"].shape)
+            print("observation.shape ", obs["observation"].shape)
+
             return spaces.Dict(dict(
                 desired_goal=spaces.Box(-np.inf, np.inf, shape=obs["desired_goal"].shape, dtype=np.float32),
                 achieved_goal=spaces.Box(-np.inf, np.inf, shape=obs["achieved_goal"].shape, dtype=np.float32),
@@ -239,6 +243,8 @@ class KinematicsGoalObservation(KinematicObservation):
             rows = -np.ones((self.goals_count - goal.shape[0], len(self.features)))
             goal = goal.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
         goal = np.ravel(goal) #flatten
+
+        
 
         constraint = pandas.DataFrame.from_records(
                     [v.to_dict(self.relative_features, self.vehicle) 
