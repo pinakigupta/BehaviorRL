@@ -74,7 +74,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "CURRICULAM_REWARD_THRESHOLD": 0.6,
         },
         **{
-            "LOAD_MODEL_FOLDER": "20191118-143801",
+            "LOAD_MODEL_FOLDER": "20191125-164514",
             "RESTORE_COND": None, 
             "MODEL":             {
                                 #    "use_lstm": True,
@@ -88,19 +88,20 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 "features": ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h'],
                 "relative_features": ['x', 'y'],
                 "scale": 100,
-                "vehicles_count": 2,
-                "goals_count": 1,
+                "vehicles_count": 10,
+                "goals_count": 10,
+                "constraints_count": 5,
                            },
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
-            "parking_spots": 15,  # 'random', # Parking Spots per side            
+            "parking_spots": 10,  # 'random', # Parking Spots per side            
             "duration": 100,
             "_predict_only": is_predict_only(),
             "screen_width": 1600,
             "screen_height": 900,
-            "DIFFICULTY_LEVELS": 2,
+            "DIFFICULTY_LEVELS": 1,
             "OBS_STACK_SIZE": 1,
             "vehicles_count": 0,
-            "goals_count": 10,
+            "goals_count": 'all',
             "PARKING_LOT_WIDTH": 90,
             "PARKING_LOT_LENGTH": 70,
             "SIMULATION_FREQUENCY": 5, # The frequency at which the system dynamics are simulated [Hz]
@@ -535,12 +536,14 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             self.road.add_vehicle(virtual_obstacle_)
             self.road.add_virtual_vehicle(virtual_obstacle_)
                 
+        '''
         lane_ids = [["a", "b" ],  ["b", "c"]]
         lane_set = []
         for lane_id in lane_ids:
             for goal in [self.road.goals[0]]:
                 if list(goal.lane_index[0:2]) != lane_id:
                     lane_set.append(lane_id)
+        
 
         print("lane_ids ",lane_ids, " lane_set ", lane_set )
         spot_idxs = [[self.config["parking_spots"]//2]]
@@ -565,6 +568,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 virtual_obstacle_.WIDTH = int(lane.length)
                 #virtual_obstacle_.hidden = True
                 self.road.add_vehicle(virtual_obstacle_)
-                self.road.add_virtual_vehicle(virtual_obstacle_)
+                self.road.add_virtual_vehicle(virtual_obstacle_)'''
 
 

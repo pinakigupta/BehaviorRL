@@ -198,19 +198,16 @@ class KinematicObservation(ObservationType):
 
 
 class KinematicsGoalObservation(KinematicObservation):
-    def __init__(self, env, ref_vehicle, scale, goals_count=1, **kwargs):
+    def __init__(self, env, ref_vehicle, scale, goals_count=1, constraints_count=0, **kwargs):
         self.scale = scale
         self.vehicle = ref_vehicle
         self.goals_count = goals_count
+        self.constraints_count = constraints_count
         super(KinematicsGoalObservation, self).__init__(env, ref_vehicle, **kwargs)
 
     def space(self):
         try:
             obs = self.observe()
-            print("goal.shape ", obs["desired_goal"].shape)
-            print("constraint.shape ", obs["constraint"].shape)
-            print("observation.shape ", obs["observation"].shape)
-
             return spaces.Dict(dict(
                 desired_goal=spaces.Box(-np.inf, np.inf, shape=obs["desired_goal"].shape, dtype=np.float32),
                 achieved_goal=spaces.Box(-np.inf, np.inf, shape=obs["achieved_goal"].shape, dtype=np.float32),
@@ -243,13 +240,14 @@ class KinematicsGoalObservation(KinematicObservation):
             rows = -np.ones((self.goals_count - goal.shape[0], len(self.features)))
             goal = goal.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
         goal = np.ravel(goal) #flatten
-
         
-
         constraint = pandas.DataFrame.from_records(
                     [v.to_dict(self.relative_features, self.vehicle) 
                                 for v in self.env.road.virtual_vehicles
                                     if v not in self.env.road.goals])[self.features]
+        if constraint.shape[0] < self.constraints_count:
+            rows = -np.ones((self.constraints_count - constraint.shape[0], len(self.features)))
+            constraint = constraint.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True) 
         constraint = np.ravel(self.normalize(constraint))
         obs_dict = {
                         "observation": super(KinematicsGoalObservation, self).observe(),
