@@ -74,8 +74,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "CURRICULAM_REWARD_THRESHOLD": 0.6,
         },
         **{
-            "LOAD_MODEL_FOLDER": "20191125-164514",
-            "RESTORE_COND": None, 
+            "LOAD_MODEL_FOLDER": "20191125-191328",
+            "RESTORE_COND": "RESTORE", 
             "MODEL":             {
                                 #    "use_lstm": True,
                                      "fcnet_hiddens": [256, 128, 128],
@@ -100,7 +100,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "screen_height": 900,
             "DIFFICULTY_LEVELS": 1,
             "OBS_STACK_SIZE": 1,
-            "vehicles_count": 0,
+            "vehicles_count": 'random',
             "goals_count": 1,
             "PARKING_LOT_WIDTH": 90,
             "PARKING_LOT_LENGTH": 70,
@@ -219,8 +219,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         # Defining parked vehicles 
         if self.config["vehicles_count"] == 'random':
-            high=self.parking_spots*self.scene_complexity/6
-            self.vehicles_count = self.np_random.randint(low=0, high=high) * 2
+            high=self.parking_spots*self.scene_complexity/10
+            self.vehicles_count = self.np_random.randint(low=0, high=high) 
             self.vehicles_count = min(self.vehicles_count, (self.parking_spots*2) - 1)
 
         elif self.config["vehicles_count"] == 'all':
