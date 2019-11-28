@@ -21,6 +21,7 @@ from ray.rllib.agents.trainer_template import build_trainer
 import ray.rllib.agents.ppo as ppo
 import ray.rllib.agents.impala as impala
 from ray.rllib.agents.ppo import PPOTrainer
+import ray.rllib.agents.es as es
 from ray.rllib.optimizers import AsyncGradientsOptimizer
 
 
@@ -281,6 +282,7 @@ def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, LOCAL_MODE=N
             # trial_executor=RayTrialExecutor(),
             # resources_per_trial={"cpu": delegated_cpus, "gpu": 0},
             restore=restore_folder,
+            #**es.DEFAULT_CONFIG,
             **{
                 "num_samples": 1,
                 "config": {

@@ -61,7 +61,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
     PARKING_MAX_VELOCITY = 7.0  # m/s
     OBS_SCALE = 100
     REWARD_WEIGHTS = [15/100, 15/100, 1/100, 1/100, 2/100, 2/100]
-    SUCCESS_THRESHOLD = 0.05
+    SUCCESS_THRESHOLD = 0.001
 
     DEFAULT_CONFIG = {**AbstractEnv.DEFAULT_CONFIG,
         **{
@@ -74,7 +74,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "CURRICULAM_REWARD_THRESHOLD": 0.6,
         },
         **{
-            "LOAD_MODEL_FOLDER": "20191125-191328",
+            "LOAD_MODEL_FOLDER": "20191126-211822",
             "RESTORE_COND": "RESTORE", 
             "MODEL":             {
                                 #    "use_lstm": True,
@@ -100,7 +100,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "screen_height": 900,
             "DIFFICULTY_LEVELS": 1,
             "OBS_STACK_SIZE": 1,
-            "vehicles_count": 'random',
+            "vehicles_count": 2,
             "goals_count": 1,
             "PARKING_LOT_WIDTH": 90,
             "PARKING_LOT_LENGTH": 70,
@@ -210,7 +210,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             https://www.webpages.uidaho.edu/niatt_labmanual/chapters/parkinglotdesign/theoryandconcepts/parkingstalllayoutconsiderations.htm
             parking angle = 90, 75, 60, 45
         """
-
         # Defining parking spots 
         if self.config["parking_spots"] == 'random':
             self.parking_spots = self.np_random.randint(1, 21)
@@ -341,7 +340,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                                position=lane.position(lane.length/2, 0),
                                                heading=lane.heading,
                                                velocity=0,
-                                               config={**self.config, **{"COLLISIONS_ENABLED": False}},
+                                               config=self.config,
                                               )
                                     )
 
@@ -367,16 +366,18 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self._add_constraint_vehicles()
 
 
-    def _distance_2_goal_reward(self, achieved_goal, desired_goal, p=0.5):
+    def _distance_2_goal_reward(self, achieved_goal, desired_goal, p=2):
         min_distance_2_goal_reward = 1e6
         numoffeatures = len(self.config["observation"]["features"])
-        numfofobs = len(desired_goal)
-        numofvehicles = numfofobs//numoffeatures
+        #numfofobs = len(desired_goal)
+        #numofvehicles = numfofobs//numoffeatures
+        numofvehicles = len(self.observations[self.vehicle].closest_vehicles()["desired_goal"])
         desired_goal_list_debug_only = []
         distance_2_goal_reward_list_debug_only = []
         for i in range(numofvehicles):
-            distance_2_goal_reward = \
-                np.power(np.dot( np.abs(achieved_goal - desired_goal[i*numoffeatures:(i+1)*numoffeatures]), self.REWARD_WEIGHTS), p)
+            goal_err = achieved_goal - desired_goal[i*numoffeatures:(i+1)*numoffeatures]
+            weighed_goal_err = np.multiply(np.abs(goal_err), self.REWARD_WEIGHTS)
+            distance_2_goal_reward = np.sum(weighed_goal_err**p)**(1/p)
             min_distance_2_goal_reward = min(min_distance_2_goal_reward, distance_2_goal_reward)
             desired_goal_list_debug_only.append(desired_goal[i*numoffeatures:(i+1)*numoffeatures])
             distance_2_goal_reward_list_debug_only.append(distance_2_goal_reward)
@@ -456,7 +457,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         #print("desired_goal ", desired_goal)
         #print("achieved_goal ", achieved_goal)
-        #
+        #print("distance_to_goal_reward ", distance_to_goal_reward)
         self.is_success = (distance_to_goal_reward > -self.SUCCESS_THRESHOLD)
         return self.is_success
 

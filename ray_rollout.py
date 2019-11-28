@@ -12,7 +12,6 @@ from ray.rllib.agents.registry import get_agent_class
 from ray.rllib.env import MultiAgentEnv
 from ray.rllib.env.base_env import _DUMMY_AGENT_ID
 from ray.rllib.policy.sample_batch import DEFAULT_POLICY_ID
-from ray.tune import register_env
 
 
 from settings import req_dirs, models_folder, ray_folder

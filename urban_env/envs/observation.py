@@ -204,6 +204,7 @@ class KinematicsGoalObservation(KinematicObservation):
         self.goals_count = goals_count
         self.constraints_count = constraints_count
         super(KinematicsGoalObservation, self).__init__(env, ref_vehicle, **kwargs)
+        self._set_closest_goals()
 
     def space(self):
         try:
@@ -219,10 +220,7 @@ class KinematicsGoalObservation(KinematicObservation):
 
     def observe(self):
         obs = np.ravel(self.normalize(pandas.DataFrame.from_records([self.vehicle.to_dict(self.relative_features, self.vehicle)])[self.features]))
-        self.close_goals = self.env.road.closest_goals_to(self.vehicle,
-                                                          self.goals_count,
-                                                          self.env.config["PERCEPTION_DISTANCE"])
-
+        self._set_closest_goals()
         if self.vehicle.is_ego():
             for v in self.env.road.goals:
                 if v in self.close_goals:
@@ -257,6 +255,10 @@ class KinematicsGoalObservation(KinematicObservation):
                     }
         return obs_dict
 
+    def _set_closest_goals(self):
+        self.close_goals = self.env.road.closest_goals_to(self.vehicle,
+                                                          self.goals_count,
+                                                          self.env.config["PERCEPTION_DISTANCE"])
 
     def closest_vehicles(self):
         closest_to_ref = [self.vehicle]
