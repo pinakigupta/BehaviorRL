@@ -100,19 +100,20 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "screen_height": 900,
             "DIFFICULTY_LEVELS": 1,
             "OBS_STACK_SIZE": 1,
-            "vehicles_count": 'random',
+            "vehicles_count": 0,
             "goals_count": 1,
             "SIMULATION_FREQUENCY": 5,  # The frequency at which the system dynamics are simulated [Hz]
             "POLICY_FREQUENCY": 1,  # The frequency at which the agent can take actions [Hz]
             "x_position_range": DEFAULT_PARKING_LOT_WIDTH,
             "y_position_range": DEFAULT_PARKING_LOT_LENGTH,
             "velocity_range": 1.5*PARKING_MAX_VELOCITY,
+            "MAX_VELOCITY": PARKING_MAX_VELOCITY,
             },
         **{
             "PARKING_LOT_WIDTH": DEFAULT_PARKING_LOT_WIDTH,
             "PARKING_LOT_LENGTH": DEFAULT_PARKING_LOT_LENGTH,
             "parking_spots": 'random',  # Parking Spots per side            
-            "parking_angle": 0,  # Parking angle in deg           
+            "parking_angle": 'random',  # Parking angle in deg           
           }
     }
 
@@ -143,10 +144,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         acceleration = action[0].item() * vehicle_params['max_acceleration']
         steering = action[1].item() * vehicle_params['max_steer_angle']
         ###############################################
-        if(self.vehicle.velocity > self.PARKING_MAX_VELOCITY):
-            acceleration = min(acceleration, 0)
-        elif(self.vehicle.velocity < -self.PARKING_MAX_VELOCITY):
-            acceleration = max(acceleration, 0)
+        #if(self.vehicle.velocity > self.PARKING_MAX_VELOCITY):
+        #    acceleration = min(acceleration, 0)
+        #elif(self.vehicle.velocity < -self.PARKING_MAX_VELOCITY):
+        #    acceleration = max(acceleration, 0)
 
         # Forward action to the vehicle
         self.vehicle.control_action = (
@@ -163,8 +164,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         obs, reward, done, info = super(ParkingEnv_2outs, self).step(self.vehicle.control_action)
 
         #terminal = self._is_terminal()
-        self.print_obs_space(ref_vehicle=self.vehicle, obs_type="observation")
-        self.print_obs_space(ref_vehicle=self.vehicle, obs_type="desired_goal")
+        #self.print_obs_space(ref_vehicle=self.vehicle, obs_type="observation")
+        #self.print_obs_space(ref_vehicle=self.vehicle, obs_type="desired_goal")
         #self.print_obs_space(ref_vehicle=self.vehicle, obs_type="constraint")
         
         return obs, reward, done, info
