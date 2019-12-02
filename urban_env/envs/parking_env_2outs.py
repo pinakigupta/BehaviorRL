@@ -76,7 +76,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         },
         **{
             "LOAD_MODEL_FOLDER": "20191202-030910",
-            "RESTORE_COND": "RESTORE", 
+            "RESTORE_COND": None, 
             "MODEL":             {
                                 #    "use_lstm": True,
                                      "fcnet_hiddens": [256, 128, 128],
@@ -338,7 +338,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                route_lane_index=None,
                                config=self.config
                                )
-        self.vehicle.MAX_VELOCITY = self.PARKING_MAX_VELOCITY
+        #self.vehicle.MAX_VELOCITY = self.PARKING_MAX_VELOCITY
         self.vehicle.is_ego_vehicle = True
         self.road.vehicles.append(self.vehicle)
 
