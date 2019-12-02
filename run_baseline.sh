@@ -3,6 +3,19 @@ outputfile="output.txt"
 runfile="baselines_run.py"
 pdb_commands="-m pdb -c continue"
 
+# Automatically parse the yaml file and get the remote mount path
+source yaml.sh
+yaml_key_val="$(parse_yaml "$ray_yaml_file" )" #parse_yaml script parses the ray yaml file
+while IFS=' ' read -ra ADDR; do
+     	for i in "${ADDR[@]}"; do
+              if [[ $i == *"min_workers"* ]]; then
+                 IFS='min_workers: ' read min_cluster_nodes_i <<< "$i"
+              fi
+      done
+ done <<< "$yaml_key_val"
+
+min_cluster_nodes=$(sed -e 's/min_workers=(\(.*\))/\1/' <<< "$min_cluster_nodes_i")
+
 
 if [ $# \> 0 ]
   then
@@ -29,7 +42,7 @@ if (( $worker_numbers > 1 ));  then
     mpirun  -bind-to none -np $worker_numbers --allow-run-as-root  python -W ignore $runfile  2>&1 | tee  $outputfile
   else
     echo "MPI not running. This can be because Ray is running or there is only 1 cpu allocated to this machine"
-    python -W ignore  $runfile  2>&1 | tee  $outputfile
+    python -W ignore  $runfile  min_cluster_nodes=$min_cluster_nodes init_cluster_nodes=$min_cluster_nodes 2>&1 | tee  $outputfile
 fi
 
 
