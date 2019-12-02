@@ -59,9 +59,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
     """
     PARKING_MAX_VELOCITY = 7.0  # m/s
-    OBS_SCALE = 100
-    REWARD_WEIGHTS = [15/100, 15/100, 1/100, 1/100, 2/100, 2/100]
-    SUCCESS_THRESHOLD = 0.001
 
     DEFAULT_CONFIG = {**AbstractEnv.DEFAULT_CONFIG,
         **{
@@ -72,6 +69,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "REVERSE_REWARD": -1,
             "GOAL_REWARD": 2000,
             "CURRICULAM_REWARD_THRESHOLD": 0.9,
+            "SUCCESS_THRESHOLD": 0.001,
+            "REWARD_WEIGHTS": np.array([15/100, 15/100, 1/100, 1/100, 2/100, 2/100]),
         },
         **{
             "LOAD_MODEL_FOLDER": "20191202-030910",
@@ -124,8 +123,9 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         super(ParkingEnv_2outs, self).__init__(config)
         if is_predict_only():
             self.set_curriculam(6)
+            self.config["SUCCESS_THRESHOLD"] *= 2.0
         obs = self.reset()
-        self.REWARD_WEIGHTS = np.array(self.REWARD_WEIGHTS)
+        #self.REWARD_WEIGHTS = np.array(self.config["REWARD_WEIGHTS"])
         self.config["REWARD_SCALE"] = np.absolute(self.config["GOAL_REWARD"])
         EnvViewer.SCREEN_HEIGHT = self.config['screen_height']
         EnvViewer.SCREEN_WIDTH = self.config['screen_width']
@@ -387,7 +387,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         distance_2_goal_reward_list_debug_only = []
         for i in range(numofvehicles):
             goal_err = achieved_goal - desired_goal[i*numoffeatures:(i+1)*numoffeatures]
-            weighed_goal_err = np.multiply(np.abs(goal_err), self.REWARD_WEIGHTS)
+            weighed_goal_err = np.multiply(np.abs(goal_err), self.config["REWARD_WEIGHTS"])
             distance_2_goal_reward = np.sum(weighed_goal_err**p)**(1/p)
             min_distance_2_goal_reward = min(min_distance_2_goal_reward, distance_2_goal_reward)
             desired_goal_list_debug_only.append(desired_goal[i*numoffeatures:(i+1)*numoffeatures])
@@ -469,7 +469,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         #print("desired_goal ", desired_goal)
         #print("achieved_goal ", achieved_goal)
         #print("distance_to_goal_reward ", distance_to_goal_reward)
-        self.is_success = (distance_to_goal_reward > -self.SUCCESS_THRESHOLD)
+        self.is_success = (distance_to_goal_reward > -self.config["SUCCESS_THRESHOLD"])
         return self.is_success
 
     def _is_terminal(self):
@@ -500,8 +500,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         #sys.stdout.flush()
         pp = pprint.PrettyPrinter(indent=4)
         numoffeatures = len(self.config["observation"]["features"])
-        numfofobs = len(self.obs[obs_type])
-        numofvehicles = numfofobs//numoffeatures
+        #numfofobs = len(self.obs[obs_type])
+        #numofvehicles = numfofobs//numoffeatures
         modified_obs = self.observations[ref_vehicle].observe()[obs_type]
         close_vehicles = self.observations[ref_vehicle].closest_vehicles()[obs_type]    
         numofvehicles = len(close_vehicles)                                                  
