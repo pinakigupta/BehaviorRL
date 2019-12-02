@@ -93,7 +93,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 "constraints_count": 5,
                            },
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
-            "parking_spots": 10,  # 'random', # Parking Spots per side            
+            "parking_spots": 'random', # Parking Spots per side            
             "duration": 100,
             "_predict_only": is_predict_only(),
             "screen_width": 1600,
@@ -212,7 +212,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         """
         # Defining parking spots 
         if self.config["parking_spots"] == 'random':
-            self.parking_spots = self.np_random.randint(1, 21)
+            self.parking_spots = self.np_random.randint(2, 15)
         else:
             self.parking_spots = self.config["parking_spots"]
 
