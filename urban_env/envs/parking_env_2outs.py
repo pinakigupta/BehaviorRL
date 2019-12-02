@@ -59,6 +59,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
     """
     PARKING_MAX_VELOCITY = 7.0  # m/s
+    DEFAULT_PARKING_LOT_WIDTH = 90
+    DEFAULT_PARKING_LOT_LENGTH = 70
 
     DEFAULT_CONFIG = {**AbstractEnv.DEFAULT_CONFIG,
         **{
@@ -102,10 +104,13 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "goals_count": 1,
             "SIMULATION_FREQUENCY": 5,  # The frequency at which the system dynamics are simulated [Hz]
             "POLICY_FREQUENCY": 1,  # The frequency at which the agent can take actions [Hz]
+            "x_position_range": DEFAULT_PARKING_LOT_WIDTH,
+            "y_position_range": DEFAULT_PARKING_LOT_LENGTH,
+            "velocity_range": 1.5*PARKING_MAX_VELOCITY,
             },
         **{
-            "PARKING_LOT_WIDTH": 90,
-            "PARKING_LOT_LENGTH": 70,
+            "PARKING_LOT_WIDTH": DEFAULT_PARKING_LOT_WIDTH,
+            "PARKING_LOT_LENGTH": DEFAULT_PARKING_LOT_LENGTH,
             "parking_spots": 'random',  # Parking Spots per side            
             "parking_angle": 0,  # Parking angle in deg           
           }
@@ -159,6 +164,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         #terminal = self._is_terminal()
         self.print_obs_space(ref_vehicle=self.vehicle, obs_type="observation")
+        self.print_obs_space(ref_vehicle=self.vehicle, obs_type="desired_goal")
         #self.print_obs_space(ref_vehicle=self.vehicle, obs_type="constraint")
         
         return obs, reward, done, info
@@ -490,7 +496,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
     def print_obs_space(self, ref_vehicle, obs_type="observation"):
         if not ref_vehicle:
             return
-        print("-------------- start obs ", ref_vehicle.Id(), "  ----------------------")
+        print("-------------- start  ", obs_type, ref_vehicle.Id(), "  ----------------------")
         print("obs space, step ", self.steps)
         if ref_vehicle.control_action is not None:
             print("reference accel = ", 

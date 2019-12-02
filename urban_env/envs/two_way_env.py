@@ -10,6 +10,7 @@ import gym
 from gym import GoalEnv
 from urban_env import utils
 from urban_env.envs.abstract import AbstractEnv
+from urban_env.road.lane import AbstractLane
 from urban_env.road.lane import LineType, StraightLane, SineLane
 from urban_env.road.road import Road, RoadNetwork
 from urban_env.envs.graphics import EnvViewer
@@ -54,7 +55,9 @@ class TwoWayEnv(AbstractEnv):
             "GOAL_REWARD": 2000,
             "OBS_STACK_SIZE": 1,
             "GOAL_LENGTH": 1000,
-            
+            "x_position_range": AbstractEnv.DEFAULT_CONFIG["PERCEPTION_DISTANCE"],
+            "y_position_range": AbstractLane.DEFAULT_WIDTH * 2,
+            "velocity_range": MDPVehicle.SPEED_MAX,            
             }
     }
 
