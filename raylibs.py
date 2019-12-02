@@ -74,13 +74,23 @@ def ray_node_ips():
 
 def ray_alive_nodes():
     alive_nodes =[]
-    for node in ray.nodes():
+    if not hasattr(ray, 'nodes'):
+        return alive_nodes
+
+    try:
+        nodes = ray.nodes()
+    except:
+        return alive_nodes
+
+    for node in nodes:
+        print("ray_node", node)
         if node["alive"]:
              alive_nodes.append(node)
     return alive_nodes
 
 
-def ray_cluster_status_check(ray_yaml_file="Ray-Cluster.yaml", 
+def ray_cluster_status_check(
+                             ray_yaml_file="Ray-Cluster.yaml", 
                              initial_workers_check=True,
                              min_cluster_nodes=None,
                              init_cluster_nodes=None,
@@ -92,14 +102,20 @@ def ray_cluster_status_check(ray_yaml_file="Ray-Cluster.yaml",
             yaml_data = yaml.safe_load(stream)
         except yaml.YAMLError as exc:
             print(exc)
-    print("min_cluster_nodes ", min_cluster_nodes)
+    min_cluster_nodes = 0
     if min_cluster_nodes is None:
         min_cluster_nodes = yaml_data['min_workers']+1 #+1 for head node, parse yaml file for min workers
         init_cluster_nodes = yaml_data['initial_workers']+1 #+1 for head node, , parse yaml file for initial workers
+
     if initial_workers_check:
-        min_cluster_nodes = max(min_cluster_nodes,init_cluster_nodes)
+        min_cluster_nodes = max(int(min_cluster_nodes), int(init_cluster_nodes))
+
+    
+
     while True: #run waiting for the entire cluster to be initialized (or something else is wrong ?)
+        print("init_cluster_nodes is ", init_cluster_nodes, "min_cluster_nodes is ", min_cluster_nodes)
         available_nodes = len(ray_alive_nodes()) # gives all available nodes "ready" for compute (ex: not initializing)
+        print("available_nodes ", available_nodes)
         if available_nodes >= min_cluster_nodes:
             print("All nodes available. min_cluster_nodes count ", min_cluster_nodes,
                   "available_nodes count ", available_nodes)
@@ -116,7 +132,6 @@ def ray_cluster_status_check(ray_yaml_file="Ray-Cluster.yaml",
 #LOCAL_MODE = False  #Use local mode for debug purposes
 def ray_init(LOCAL_MODE=False, **mainkwargs):
     available_cluster_cpus = 0
-    print("mainkwargs ", mainkwargs)
     if is_predict_only(**mainkwargs):
         try:
             subprocess.run(["sudo", "pkill", "redis-server"])
@@ -128,8 +143,8 @@ def ray_init(LOCAL_MODE=False, **mainkwargs):
         return available_cluster_cpus
     else:
         try: # to init in the cluster
-            ray.init(redis_add)
             ray_cluster_status_check(**mainkwargs)
+            ray.init(redis_add)
             available_cluster_cpus = int(ray.cluster_resources().get("CPU"))
             LOCAL_MODE = False
         except: # try to init in your machine/isolated compute instance
