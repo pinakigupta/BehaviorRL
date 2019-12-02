@@ -221,8 +221,12 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         # Defining parked vehicles 
         if self.config["vehicles_count"] == 'random':
-            high=self.parking_spots*self.scene_complexity//10
-            self.vehicles_count = self.np_random.randint(low=0, high=high) 
+            low = 0
+            high = self.parking_spots*self.scene_complexity//10
+            if(low == high):
+                self.vehicles_count = low
+            else:
+                self.vehicles_count = self.np_random.randint(low=low, high=high) 
             self.vehicles_count = min(self.vehicles_count, (self.parking_spots*2) - 1)
 
         elif self.config["vehicles_count"] == 'all':
