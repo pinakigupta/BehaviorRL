@@ -147,8 +147,8 @@ def ray_init(LOCAL_MODE=False, **mainkwargs):
         return available_cluster_cpus
     else:
         try: # to init in the cluster
-            ray_cluster_status_check(**mainkwargs)
             ray.init(redis_add)
+            ray_cluster_status_check(**mainkwargs)
             available_cluster_cpus = int(ray.cluster_resources().get("CPU"))
             LOCAL_MODE = False
         except: # try to init in your machine/isolated compute instance
