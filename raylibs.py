@@ -97,6 +97,7 @@ def ray_cluster_status_check(
                              **kwargs
                             ):
     import yaml
+
     with open(ray_yaml_file, 'r') as stream:
         try:
             yaml_data = yaml.safe_load(stream)
@@ -110,28 +111,31 @@ def ray_cluster_status_check(
     if initial_workers_check:
         min_cluster_nodes = max(int(min_cluster_nodes), int(init_cluster_nodes))
 
-    
 
-    while True: #run waiting for the entire cluster to be initialized (or something else is wrong ?)
-        print("init_cluster_nodes is ", init_cluster_nodes, "min_cluster_nodes is ", min_cluster_nodes)
+    while True:#run waiting for the entire cluster to be initialized (or something else is wrong ?)
+        #print("init_cluster_nodes is ", init_cluster_nodes, "min_cluster_nodes is ", min_cluster_nodes)
         available_nodes = len(ray_alive_nodes()) # gives all available nodes "ready" for compute (ex: not initializing)
         print("available_nodes ", available_nodes)
         if available_nodes >= min_cluster_nodes:
             print("All nodes available. min_cluster_nodes count ", min_cluster_nodes,
                   "available_nodes count ", available_nodes)
-            break
+            #break
         else:
             print("available nodes count ", available_nodes," min cluster nodes required",
             min_cluster_nodes)
             #print("ray nodes  ", ray_alive_nodes())
-            print("cluster_resources ", ray.cluster_resources())
-            print("available_resources ", ray.available_resources())
+            try:
+                print("cluster_resources ", ray.cluster_resources())
+                print("available_resources ", ray.available_resources())
+            except:
+                pass
 
 
 
 #LOCAL_MODE = False  #Use local mode for debug purposes
 def ray_init(LOCAL_MODE=False, **mainkwargs):
     available_cluster_cpus = 0
+
     if is_predict_only(**mainkwargs):
         try:
             subprocess.run(["sudo", "pkill", "redis-server"])
