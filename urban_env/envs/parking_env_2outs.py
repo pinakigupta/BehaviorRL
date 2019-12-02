@@ -71,10 +71,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "TERM_REWARD": -400,
             "REVERSE_REWARD": -1,
             "GOAL_REWARD": 2000,
-            "CURRICULAM_REWARD_THRESHOLD": 0.6,
+            "CURRICULAM_REWARD_THRESHOLD": 0.9,
         },
         **{
-            "LOAD_MODEL_FOLDER": "20191126-211822",
+            "LOAD_MODEL_FOLDER": "20191202-030910",
             "RESTORE_COND": "RESTORE", 
             "MODEL":             {
                                 #    "use_lstm": True,
@@ -93,20 +93,23 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 "constraints_count": 5,
                            },
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
-            "parking_spots": 'random', # Parking Spots per side            
             "duration": 100,
             "_predict_only": is_predict_only(),
             "screen_width": 1600,
             "screen_height": 900,
             "DIFFICULTY_LEVELS": 1,
             "OBS_STACK_SIZE": 1,
-            "vehicles_count": 2,
+            "vehicles_count": 'random',
             "goals_count": 1,
-            "PARKING_LOT_WIDTH": 90,
-            "PARKING_LOT_LENGTH": 70,
             "SIMULATION_FREQUENCY": 5, # The frequency at which the system dynamics are simulated [Hz]
             "POLICY_FREQUENCY": 1 , #The frequency at which the agent can take actions [Hz]
-            }
+            },
+        **{
+            "PARKING_LOT_WIDTH": 90,
+            "PARKING_LOT_LENGTH": 70,
+            "parking_spots": 'random', # Parking Spots per side            
+            "parking_angle": 45, # Parking angle in deg           
+          }
     }
 
     def __init__(self, config=DEFAULT_CONFIG):
@@ -253,8 +256,12 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         width = 4.0
 
         # Let's start by randomly choosing the parking angle
-        # angle = parking_angles[self.np_random.randint(len(parking_angles))]
         angle = 0  # np.pi/3
+        if self.config["parking_angle"] == 'random':
+            angle = parking_angles[self.np_random.randint(len(parking_angles))]
+        else:
+            angle = np.deg2rad(self.config["parking_angle"])
+
         # Let's now build the parking lot
         for k in range(self.parking_spots):
             x1 = (k - self.parking_spots // 2) * \
