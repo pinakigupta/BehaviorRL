@@ -101,14 +101,14 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "OBS_STACK_SIZE": 1,
             "vehicles_count": 'random',
             "goals_count": 1,
-            "SIMULATION_FREQUENCY": 5, # The frequency at which the system dynamics are simulated [Hz]
-            "POLICY_FREQUENCY": 1 , #The frequency at which the agent can take actions [Hz]
+            "SIMULATION_FREQUENCY": 5,  # The frequency at which the system dynamics are simulated [Hz]
+            "POLICY_FREQUENCY": 1,  # The frequency at which the agent can take actions [Hz]
             },
         **{
             "PARKING_LOT_WIDTH": 90,
             "PARKING_LOT_LENGTH": 70,
-            "parking_spots": 'random', # Parking Spots per side            
-            "parking_angle": 45, # Parking angle in deg           
+            "parking_spots": 'random',  # Parking Spots per side            
+            "parking_angle": 0,  # Parking angle in deg           
           }
     }
 
@@ -158,7 +158,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         obs, reward, done, info = super(ParkingEnv_2outs, self).step(self.vehicle.control_action)
 
         #terminal = self._is_terminal()
-        #self.print_obs_space(ref_vehicle=self.vehicle, obs_type="observation")
+        self.print_obs_space(ref_vehicle=self.vehicle, obs_type="observation")
         #self.print_obs_space(ref_vehicle=self.vehicle, obs_type="constraint")
         
         return obs, reward, done, info
@@ -503,7 +503,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         numfofobs = len(self.obs[obs_type])
         numofvehicles = numfofobs//numoffeatures
         modified_obs = self.observations[ref_vehicle].observe()[obs_type]
-        close_vehicles = self.observations[ref_vehicle].closest_vehicles()[obs_type]                                                      
+        close_vehicles = self.observations[ref_vehicle].closest_vehicles()[obs_type]    
+        numofvehicles = len(close_vehicles)                                                  
         close_vehicle_ids = []
         for v in close_vehicles:
             close_vehicle_ids.append(int(v.Id()))
@@ -522,7 +523,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 break
 
         np.set_printoptions(precision=3, suppress=True)
-        obs_format = pp.pformat(np.round(np.reshape(modified_obs, (numofvehicles, numoffeatures+1 )), 3))
+        obs_format = pp.pformat(np.round(np.reshape(modified_obs[0:numofvehicles*(numoffeatures+1)], \
+            (numofvehicles, numoffeatures+1 )), 3))
         obs_format = obs_format.rstrip("\n")
         print(obs_format)
         print("\n\n\n")
