@@ -105,8 +105,8 @@ def ray_cluster_status_check(
             print(exc)
     min_cluster_nodes = 0
     if min_cluster_nodes is None:
-        min_cluster_nodes = yaml_data['min_workers']+1 #+1 for head node, parse yaml file for min workers
-        init_cluster_nodes = yaml_data['initial_workers']+1 #+1 for head node, , parse yaml file for initial workers
+        min_cluster_nodes = yaml_data['min_workers'] #+1 for head node, parse yaml file for min workers
+        init_cluster_nodes = yaml_data['initial_workers'] #+1 for head node, , parse yaml file for initial workers
 
     if initial_workers_check:
         min_cluster_nodes = max(int(min_cluster_nodes), int(init_cluster_nodes))
@@ -119,11 +119,10 @@ def ray_cluster_status_check(
         if available_nodes >= min_cluster_nodes:
             print("All nodes available. min_cluster_nodes count ", min_cluster_nodes,
                   "available_nodes count ", available_nodes)
-            #break
+            break
         else:
             print("available nodes count ", available_nodes," min cluster nodes required",
             min_cluster_nodes)
-            #print("ray nodes  ", ray_alive_nodes())
             try:
                 print("cluster_resources ", ray.cluster_resources())
                 print("available_resources ", ray.available_resources())
@@ -147,7 +146,7 @@ def ray_init(LOCAL_MODE=False, **mainkwargs):
         return available_cluster_cpus
     else:
         try: # to init in the cluster
-            ray.init(redis_add)
+            ray.init(address=redis_add)
             ray_cluster_status_check(**mainkwargs)
             available_cluster_cpus = int(ray.cluster_resources().get("CPU"))
             LOCAL_MODE = False
@@ -163,8 +162,6 @@ def ray_init(LOCAL_MODE=False, **mainkwargs):
             ray.init(num_gpus=0, local_mode=LOCAL_MODE)
         if not LOCAL_MODE:
             available_cluster_cpus = int(ray.available_resources().get("CPU"))
-            #for node in ray_alive_nodes():
-            #    print("ray node:  ", node["alive"],"\n")
             print("cluster_resources ", ray.cluster_resources(), "\n")
             print("available_resources ", ray.available_resources())
         return available_cluster_cpus
