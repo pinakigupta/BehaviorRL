@@ -20,6 +20,7 @@ from urban_env.road.lane import StraightLane, LineType
 from urban_env.road.road import Road, RoadNetwork
 from urban_env.vehicle.dynamics import Vehicle, Obstacle
 from urban_env.vehicle.control import MDPVehicle
+from urban_env.vehicle.behavior import IDMVehicle
 from urban_env.utils import *
 from handle_model_files import is_predict_only
 from urban_env.envdict import WHITE, RED
@@ -75,7 +76,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "REWARD_WEIGHTS": np.array([15/100, 15/100, 1/100, 1/100, 2/100, 2/100]),
         },
         **{
-            "LOAD_MODEL_FOLDER": "20191202-030910",
+            "LOAD_MODEL_FOLDER": "20191203-033319",
             "RESTORE_COND": None, 
             "MODEL":             {
                                 #    "use_lstm": True,
@@ -100,7 +101,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "screen_height": 900,
             "DIFFICULTY_LEVELS": 1,
             "OBS_STACK_SIZE": 1,
-            "vehicles_count": 0,
+            "vehicles_count": 'random',
             "goals_count": 1,
             "SIMULATION_FREQUENCY": 5,  # The frequency at which the system dynamics are simulated [Hz]
             "POLICY_FREQUENCY": 1,  # The frequency at which the agent can take actions [Hz]
@@ -135,6 +136,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self.config["REWARD_SCALE"] = np.absolute(self.config["GOAL_REWARD"])
         EnvViewer.SCREEN_HEIGHT = self.config['screen_height']
         EnvViewer.SCREEN_WIDTH = self.config['screen_width']
+        self.scene_complexity = self.config['DIFFICULTY_LEVELS']
 
 
 
@@ -144,10 +146,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         acceleration = action[0].item() * vehicle_params['max_acceleration']
         steering = action[1].item() * vehicle_params['max_steer_angle']
         ###############################################
-        #if(self.vehicle.velocity > self.PARKING_MAX_VELOCITY):
-        #    acceleration = min(acceleration, 0)
-        #elif(self.vehicle.velocity < -self.PARKING_MAX_VELOCITY):
-        #    acceleration = max(acceleration, 0)
+
 
         # Forward action to the vehicle
         self.vehicle.control_action = (
@@ -305,6 +304,9 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         net.add_lane("e", "f", StraightLane([-w, -l], [w, -l], width=0, line_types=hidden))
         net.add_lane("e", "f", StraightLane([-w, l], [w, l], width=0, line_types=hidden))
 
+        #net.add_lane("g", "h", StraightLane([-w, l/2], [w, l/2]))
+
+
         self.road = Road(network=net,
                          np_random=self.np_random,
                          config=self.config)
@@ -338,9 +340,9 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                route_lane_index=None,
                                config=self.config
                                )
-        #self.vehicle.MAX_VELOCITY = self.PARKING_MAX_VELOCITY
         self.vehicle.is_ego_vehicle = True
         self.road.vehicles.append(self.vehicle)
+        ego_x0 = self.vehicle.position[0]
 
         lane = self.np_random.choice(self.road.network.lanes_list()[:-self.border_lane_count])
 
@@ -379,7 +381,22 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             self.road.vehicles.insert(0, obstacle)
             self.road.add_virtual_vehicle(obstacle)
                                            
-
+        dyn_veh_count = 0 #np.random.randint(low=0, high=2*scene_complexity)
+        lane_index = ("g", "h", 0)
+        for i in range(dyn_veh_count):
+            x0 = ego_x0+20+40*i + 10*self.np_random.randn()
+            v =     IDMVehicle(self.road,
+                               position=self.road.network.get_lane(lane_index)
+                               .position(x0, 0),
+                               heading=self.road.network.get_lane(lane_index).heading_at(x0),
+                               velocity=max(0,10 + 2*self.np_random.randn()),
+                               target_velocity=self.config["MAX_VELOCITY"]/2,
+                               #target_lane_index=lane_index, 
+                               #lane_index=lane_index,                             
+                               enable_lane_change=False,
+                               config=self.config
+                               )
+            self.road.add_vehicle(v)
                 
         self._add_constraint_vehicles()
 
