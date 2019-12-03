@@ -313,18 +313,16 @@ class Road(Loggable):
         """
 
         for vehicle in self.vehicles:
-            if not vehicle.is_ego():
-                lane_index = self.network.get_closest_lane_index(position=vehicle.position,
+            lane_index = self.network.get_closest_lane_index(position=vehicle.position,
                                                                  heading=vehicle.heading,
                                                                  )
-                lane_distance = self.network.get_lane(
-                    lane_index).distance(vehicle.position)
-                if lane_distance > 5:
-                    print(vehicle.Id(), " lane_distance ", lane_distance,
+            lane_distance = self.network.get_lane(lane_index).distance(vehicle.position)
+            if lane_distance > self.config["closest_lane_dist_thresh"]:
+                print(vehicle.Id(), " lane_distance ", lane_distance,
                           "from closest lane", lane_index, ".Removing vehicle")
-                    self.vehicles.remove(vehicle)
-                else:
-                    vehicle.act(observations=observations)
+                self.vehicles.remove(vehicle)
+            else:
+                vehicle.act(observations=observations)
 
     def step(self, dt, SCALE=1):
         """

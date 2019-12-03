@@ -101,7 +101,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "screen_height": 900,
             "DIFFICULTY_LEVELS": 1,
             "OBS_STACK_SIZE": 1,
-            "vehicles_count": 'random',
+            "vehicles_count": 0,
             "goals_count": 1,
             "SIMULATION_FREQUENCY": 5,  # The frequency at which the system dynamics are simulated [Hz]
             "POLICY_FREQUENCY": 1,  # The frequency at which the agent can take actions [Hz]
@@ -109,6 +109,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "y_position_range": DEFAULT_PARKING_LOT_LENGTH,
             "velocity_range": 1.5*PARKING_MAX_VELOCITY,
             "MAX_VELOCITY": PARKING_MAX_VELOCITY,
+            "closest_lane_dist_thresh": 500,
             },
         **{
             "PARKING_LOT_WIDTH": DEFAULT_PARKING_LOT_WIDTH,
@@ -138,8 +139,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         EnvViewer.SCREEN_WIDTH = self.config['screen_width']
         self.scene_complexity = self.config['DIFFICULTY_LEVELS']
 
-
-
     def step(self, action):
         self.steps += 1
         ##############################################
@@ -150,11 +149,18 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         # Forward action to the vehicle
         self.vehicle.control_action = (
-                                       {
-                                        "acceleration": acceleration,
-                                        "steering": steering                                                    
-                                       }
+                                        {
+                                            "acceleration": acceleration,
+                                            "steering": steering                                                    
+                                        }
                                       )
+
+        self.other_vehicle.control_action = (
+                                                {
+                                                    "acceleration":  acceleration,
+                                                    "steering": steering                                                 
+                                                }
+                                            )
 
         # print("prev_act, curr_act, accel, steer, speed:", self.previous_action, action, acceleration, steering, self.vehicle.velocity)
         #self._simulate()
@@ -343,6 +349,17 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self.vehicle.is_ego_vehicle = True
         self.road.vehicles.append(self.vehicle)
         ego_x0 = self.vehicle.position[0]
+
+        self.other_vehicle =  Vehicle(
+                               road=self.road, 
+                               position=[5.0, 5.0],
+                               heading=2*np.pi*self.np_random.rand(),
+                               velocity=0,
+                               route_lane_index=None,
+                               config=self.config,
+                               color=RED
+                               )
+        self.road.vehicles.append(self.other_vehicle)
 
         lane = self.np_random.choice(self.road.network.lanes_list()[:-self.border_lane_count])
 

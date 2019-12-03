@@ -229,8 +229,8 @@ class AbstractEnv(gym.Env):
                 # Forward action to the vehicle                    
                 if type(action) is not dict: 
                     self.vehicle.act(self.ACTIONS[action])
-                else:
-                    self.vehicle.act(action)
+                #else:
+                #    self.vehicle.act(action)
 
             self.road.act(self.observations)
             self.road.step(1 / self.config["SIMULATION_FREQUENCY"], SCALE)

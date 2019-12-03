@@ -151,6 +151,8 @@ class Vehicle(Loggable):
         """
         if action is not None:
             self.action = action
+        elif self.control_action is not None:
+            self.action = self.control_action
 
     def step(self, dt):
         """
