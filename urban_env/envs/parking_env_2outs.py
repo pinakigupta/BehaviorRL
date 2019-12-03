@@ -77,7 +77,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         },
         **{
             "LOAD_MODEL_FOLDER": "20191203-115943",
-            "RESTORE_COND": None, 
+            "RESTORE_COND": "RESTORE", 
             "MODEL":             {
                                 #    "use_lstm": True,
                                      "fcnet_hiddens": [256, 128, 128],
@@ -112,8 +112,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "closest_lane_dist_thresh": 500,
             },
         **{
-            "PARKING_LOT_WIDTH": DEFAULT_PARKING_LOT_WIDTH,
-            "PARKING_LOT_LENGTH": DEFAULT_PARKING_LOT_LENGTH,
+            "PARKING_LOT_WIDTH": 'random',
+            "PARKING_LOT_LENGTH": 'random',
             "parking_spots": 'random',  # Parking Spots per side            
             "parking_angle": 'random',  # Parking angle in deg           
           }
@@ -225,6 +225,14 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             https://www.webpages.uidaho.edu/niatt_labmanual/chapters/parkinglotdesign/theoryandconcepts/parkingstalllayoutconsiderations.htm
             parking angle = 90, 75, 60, 45
         """
+        if self.config["PARKING_LOT_WIDTH"] == 'random':
+            self.config["PARKING_LOT_WIDTH"] = self.np_random.randint(int(0.8*self.DEFAULT_PARKING_LOT_WIDTH), 
+                                                                      int(1.2*self.DEFAULT_PARKING_LOT_WIDTH))
+
+        if self.config["PARKING_LOT_LENGTH"] == 'random':
+            self.config["PARKING_LOT_LENGTH"] = self.np_random.randint(int(0.8*self.DEFAULT_PARKING_LOT_LENGTH), 
+                                                                       int(1.2*self.DEFAULT_PARKING_LOT_LENGTH))
+
         # Defining parking spots 
         if self.config["parking_spots"] == 'random':
             self.parking_spots = self.np_random.randint(2, 15)
