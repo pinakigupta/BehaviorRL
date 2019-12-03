@@ -76,7 +76,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "REWARD_WEIGHTS": np.array([15/100, 15/100, 1/100, 1/100, 2/100, 2/100]),
         },
         **{
-            "LOAD_MODEL_FOLDER": "20191203-033319",
+            "LOAD_MODEL_FOLDER": "20191203-115943",
             "RESTORE_COND": None, 
             "MODEL":             {
                                 #    "use_lstm": True,
@@ -99,9 +99,9 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "_predict_only": is_predict_only(),
             "screen_width": 1600,
             "screen_height": 900,
-            "DIFFICULTY_LEVELS": 1,
+            "DIFFICULTY_LEVELS": 10,
             "OBS_STACK_SIZE": 1,
-            "vehicles_count": 0,
+            "vehicles_count": 'random',
             "goals_count": 1,
             "SIMULATION_FREQUENCY": 5,  # The frequency at which the system dynamics are simulated [Hz]
             "POLICY_FREQUENCY": 1,  # The frequency at which the agent can take actions [Hz]
@@ -130,7 +130,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         super(ParkingEnv_2outs, self).__init__(config)
         if is_predict_only():
-            self.set_curriculam(6)
+            self.set_curriculam(20)
             self.config["SUCCESS_THRESHOLD"] *= 2.0
         obs = self.reset()
         #self.REWARD_WEIGHTS = np.array(self.config["REWARD_WEIGHTS"])
@@ -155,12 +155,12 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                         }
                                       )
 
-        self.other_vehicle.control_action = (
+        '''self.other_vehicle.control_action = (
                                                 {
-                                                    "acceleration":  acceleration,
+                                                    "acceleration": acceleration,
                                                     "steering": steering                                                 
                                                 }
-                                            )
+                                            )'''
 
         # print("prev_act, curr_act, accel, steer, speed:", self.previous_action, action, acceleration, steering, self.vehicle.velocity)
         #self._simulate()
@@ -350,7 +350,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self.road.vehicles.append(self.vehicle)
         ego_x0 = self.vehicle.position[0]
 
-        self.other_vehicle =  Vehicle(
+        '''self.other_vehicle =  Vehicle(
                                road=self.road, 
                                position=[5.0, 5.0],
                                heading=2*np.pi*self.np_random.rand(),
@@ -359,7 +359,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                config=self.config,
                                color=RED
                                )
-        self.road.vehicles.append(self.other_vehicle)
+        self.road.vehicles.append(self.other_vehicle)'''
 
         lane = self.np_random.choice(self.road.network.lanes_list()[:-self.border_lane_count])
 
