@@ -30,9 +30,9 @@ Another environment I have started working on is a parking lot env. This is quit
 ![RLarchitecture](img/RLarchitecture.png)
 
 The parking lot env is a goal oriented env, with virtual vehicles constraining the lot borders. The action space is continuous steering and  acceleration commands, while the observation space involves 
-{ "desired goals", "constraints" , "observed vehicles"}. Currently I don't have any other vehicles as part of this environment.
+{ "desired goals", "constraints" , "observed vehicles"}. Currently I don't have any other vehicles as part of this environment. Currently only one goal spot is selected (marked as white) . The agent can only see N (=10) closest vehicles (marked as green). There might be additional parked vehicles in the lot that it can't see (marked as grey).
 
-![](img/EmptyParkingLot.gif)
+![](img/ParkingLotFull.gif)
 
 
 ## Getting Started (Docker)
