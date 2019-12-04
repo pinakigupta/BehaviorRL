@@ -69,17 +69,18 @@ class KinematicObservation(ObservationType):
     FEATURES = [ 'x', 'y', 'vx', 'vy', 'psi', 'lane_psi', 'length']
     #STACK_SIZE = 2
 
-    def __init__(self, env, ref_vehicle, features=FEATURES, relative_features=FEATURES, vehicles_count=9, **kwargs):
+    def __init__(self, env, ref_vehicle, features=FEATURES, relative_features=FEATURES, obs_count=9, obs_size=10, **kwargs):
         """
         :param env: The environment to observe
         :param features: Names of features used in the observation
-        :param vehicles_count: Number of observed vehicles
+        :param obs_count: Number of observed vehicles
         """
         self.env = env
         self.features = features
         self.relative_features = relative_features
-        self.vehicles_count = vehicles_count
-        self.virtual_vehicles_count = 1
+        self.obs_count = obs_count
+        self.obs_size = obs_size
+        self.virtual_obs_count = 1
         self.close_vehicles = None
         self.observations = None
         self.vehicle = ref_vehicle
@@ -87,7 +88,7 @@ class KinematicObservation(ObservationType):
 
 
     def space(self):
-        one_obs_space = spaces.Box(shape=(len(self.features) * (self.vehicles_count + self.virtual_vehicles_count),), low=-1, high=1, dtype=np.float32)
+        one_obs_space = spaces.Box(shape=(len(self.features) * (self.obs_size + self.obs_size),), low=-1, high=1, dtype=np.float32)
         if(self.env.config["OBS_STACK_SIZE"] == 1):
             return one_obs_space
         return spaces.Tuple(tuple([one_obs_space]*self.env.config["OBS_STACK_SIZE"]))
@@ -140,14 +141,14 @@ class KinematicObservation(ObservationType):
                 
         # Add nearby traffic
         self.close_vehicles = self.env.road.closest_vehicles_to(self.vehicle,
-                                                                self.vehicles_count - 1,
+                                                                self.obs_count - 1,
                                                                 self.env.config["PERCEPTION_DISTANCE"])
 
         
         if self.close_vehicles:
             df = df.append(pandas.DataFrame.from_records(
                 [v.to_dict(self.relative_features, self.vehicle)
-                 for v in self.close_vehicles[-self.vehicles_count + 1:]])[self.features],
+                 for v in self.close_vehicles[-self.obs_count + 1:]])[self.features],
                            ignore_index=True)
 
 
@@ -156,8 +157,8 @@ class KinematicObservation(ObservationType):
         #df = df.iloc[1:]
         df = self.normalize(df)
         # Fill missing rows
-        if df.shape[0] < self.vehicles_count+1:
-            rows = -np.ones((self.vehicles_count+1 - df.shape[0], len(self.features)))
+        if df.shape[0] < self.obs_size+1:
+            rows = -np.ones((self.obs_size+1 - df.shape[0], len(self.features)))
             df = df.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
 
         if self.vehicle.is_ego():
@@ -198,10 +199,11 @@ class KinematicObservation(ObservationType):
 
 
 class KinematicsGoalObservation(KinematicObservation):
-    def __init__(self, env, ref_vehicle, scale, goals_count=1, constraints_count=0, **kwargs):
+    def __init__(self, env, ref_vehicle, scale, goals_count=1, goals_size=1, constraints_count=0, **kwargs):
         self.scale = scale
         self.vehicle = ref_vehicle
         self.goals_count = goals_count
+        self.goals_size = goals_size
         self.constraints_count = constraints_count
         super(KinematicsGoalObservation, self).__init__(env, ref_vehicle, **kwargs)
         self._set_closest_goals()
@@ -234,8 +236,8 @@ class KinematicsGoalObservation(KinematicObservation):
         #    [v.to_dict(self.relative_features, self.vehicle) for v in self.close_goals[1:]])[self.features], ignore_index=True)
         goal = self.normalize(raw_goals)
         # Fill missing rows
-        if goal.shape[0] < self.goals_count:
-            rows = -np.ones((self.goals_count - goal.shape[0], len(self.features)))
+        if goal.shape[0] < self.goals_size:
+            rows = -np.ones((self.goals_size - goal.shape[0], len(self.features)))
             goal = goal.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
         goal = np.ravel(goal) #flatten
         

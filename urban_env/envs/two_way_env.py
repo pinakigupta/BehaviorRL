@@ -41,7 +41,8 @@ class TwoWayEnv(AbstractEnv):
                 "type": "Kinematics",
                 "features": ['x', 'y', 'vx', 'vy', 'psi'],
                 "relative_features": ['x'],
-                "vehicles_count": 6
+                "obs_count": 6,
+                "obs_size": 6
             },
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle", 
             "duration": 250,

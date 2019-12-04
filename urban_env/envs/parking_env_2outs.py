@@ -72,11 +72,11 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "REVERSE_REWARD": -1,
             "GOAL_REWARD": 2000,
             "CURRICULAM_REWARD_THRESHOLD": 0.9,
-            "SUCCESS_THRESHOLD": 0.001,
+            "SUCCESS_THRESHOLD": 0.002,
             "REWARD_WEIGHTS": np.array([15/100, 15/100, 1/100, 1/100, 2/100, 2/100]),
         },
         **{
-            "LOAD_MODEL_FOLDER": "20191203-115943",
+            "LOAD_MODEL_FOLDER": "20191203-232528",
             "RESTORE_COND": "RESTORE", 
             "MODEL":             {
                                 #    "use_lstm": True,
@@ -90,8 +90,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 "features": ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h'],
                 "relative_features": ['x', 'y'],
                 "scale": 100,
-                "vehicles_count": 10,
-                "goals_count": 10,
+                "obs_size": 10,
+                "obs_count": 10,
+                "goals_size": 10,
+                "goals_count": 1,
                 "constraints_count": 5,
                            },
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
@@ -99,10 +101,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "_predict_only": is_predict_only(),
             "screen_width": 1600,
             "screen_height": 900,
-            "DIFFICULTY_LEVELS": 10,
+            "DIFFICULTY_LEVELS": 4,
             "OBS_STACK_SIZE": 1,
             "vehicles_count": 'random',
-            "goals_count": 1,
+            "goals_count": 'all',
             "SIMULATION_FREQUENCY": 5,  # The frequency at which the system dynamics are simulated [Hz]
             "POLICY_FREQUENCY": 1,  # The frequency at which the agent can take actions [Hz]
             "x_position_range": DEFAULT_PARKING_LOT_WIDTH,
@@ -112,8 +114,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "closest_lane_dist_thresh": 500,
             },
         **{
-            "PARKING_LOT_WIDTH": 'random',
-            "PARKING_LOT_LENGTH": 'random',
+            "PARKING_LOT_WIDTH": DEFAULT_PARKING_LOT_WIDTH,
+            "PARKING_LOT_LENGTH": DEFAULT_PARKING_LOT_LENGTH,
             "parking_spots": 'random',  # Parking Spots per side            
             "parking_angle": 'random',  # Parking angle in deg           
           }
@@ -130,7 +132,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         super(ParkingEnv_2outs, self).__init__(config)
         if is_predict_only():
-            self.set_curriculam(20)
+            self.set_curriculam(10)
             self.config["SUCCESS_THRESHOLD"] *= 2.0
         obs = self.reset()
         #self.REWARD_WEIGHTS = np.array(self.config["REWARD_WEIGHTS"])
