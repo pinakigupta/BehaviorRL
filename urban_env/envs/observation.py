@@ -12,6 +12,7 @@ from gym import spaces, logger
 from gym.utils import seeding
 import numpy as np
 from collections import deque
+from functools import partial
 
 from urban_env import utils
 from urban_env.envs.finite_mdp import  compute_ttc_grid
@@ -256,11 +257,17 @@ class KinematicsGoalObservation(KinematicObservation):
                         "desired_goal": goal 
                     }
         return obs_dict
+    
+    def eval_func(self, v):
+        obs = np.ravel(self.normalize(pandas.DataFrame.from_records([self.vehicle.to_dict(self.relative_features, self.vehicle)])[self.features]))
+        goal = np.ravel(self.normalize(pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle)])[self.features]))
+        return self.env.distance_2_goal_reward(obs, goal)
 
-    def _set_closest_goals(self):
+    def _set_closest_goals(self):            
         self.close_goals = self.env.road.closest_goals_to(self.vehicle,
                                                           self.goals_count,
-                                                          self.env.config["PERCEPTION_DISTANCE"])
+                                                          self.env.config["PERCEPTION_DISTANCE"],
+                                                          )
 
     def closest_vehicles(self):
         closest_to_ref = [self.vehicle]

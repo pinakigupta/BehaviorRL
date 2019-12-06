@@ -283,21 +283,22 @@ class Road(Loggable):
         return sorted_v[:count]
 
 
-    def closest_goals_to(self, vehicle, count, perception_distance=math.inf):
-        if not hasattr(vehicle, 'route_lane_index') or vehicle.route_lane_index is None:
-            sorted_v = sorted([v for v in self.goals
-                               if v is not vehicle
-                               and abs(vehicle.distance_to(v)) < perception_distance],
-                              key=lambda v: abs(vehicle.distance_to(v))
-                              )
-            return sorted_v[:count]
+    def closest_goals_to(self, vehicle, count, perception_distance=math.inf, eval_func = None):
+        def dist_func(v, vehicle=vehicle, eval_func=eval_func):
+            if eval_func is not None:
+                return eval_func(v)
+            elif not hasattr(vehicle, 'route_lane_index') or vehicle.route_lane_index is None:
+                return abs(vehicle.distance_to(v))
+            else:
+                return abs(vehicle.lane_distance_to(v))
 
         sorted_v = sorted([v for v in self.goals
                            if v is not vehicle
-                           and abs(vehicle.lane_distance_to(v)) < perception_distance],
-                          key=lambda v: abs(vehicle.lane_distance_to(v))
-                          )
+                           and dist_func(v, vehicle, eval_func) < perception_distance],
+                           key =lambda v: dist_func(v, vehicle, eval_func))
+                              
         return sorted_v[:count]
+
 
     def add_vehicle(self, vehicle):
         vehicle.config = {**self.config, **vehicle.config}

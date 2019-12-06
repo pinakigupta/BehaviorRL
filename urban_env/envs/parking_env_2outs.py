@@ -427,25 +427,25 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 
         self._add_constraint_vehicles()
 
+    def distance_2_goal_reward(self, achieved_goal, desired_goal, p=2):
+        goal_err = achieved_goal - desired_goal
+        weighed_goal_err = np.multiply(np.abs(goal_err), self.config["REWARD_WEIGHTS"])
+        return np.sum(weighed_goal_err**p)**(1/p)
 
-    def _distance_2_goal_reward(self, achieved_goal, desired_goal, p=2):
+    def _distance_2_goal_reward(self, achieved_goal, desired_goal):
         min_distance_2_goal_reward = 1e6
         numoffeatures = len(self.config["observation"]["features"])
-        #numfofobs = len(desired_goal)
-        #numofvehicles = numfofobs//numoffeatures
         numofvehicles = len(self.observations[self.vehicle].closest_vehicles()["desired_goal"])
         desired_goal_list_debug_only = []
         distance_2_goal_reward_list_debug_only = []
         for i in range(numofvehicles):
-            goal_err = achieved_goal - desired_goal[i*numoffeatures:(i+1)*numoffeatures]
-            weighed_goal_err = np.multiply(np.abs(goal_err), self.config["REWARD_WEIGHTS"])
-            distance_2_goal_reward = np.sum(weighed_goal_err**p)**(1/p)
-            min_distance_2_goal_reward = min(min_distance_2_goal_reward, distance_2_goal_reward)
+            goal_reward = self.distance_2_goal_reward(achieved_goal, desired_goal[i*numoffeatures:(i+1)*numoffeatures])
+            min_distance_2_goal_reward = min(min_distance_2_goal_reward, goal_reward)
             desired_goal_list_debug_only.append(desired_goal[i*numoffeatures:(i+1)*numoffeatures])
-            distance_2_goal_reward_list_debug_only.append(distance_2_goal_reward)
+            distance_2_goal_reward_list_debug_only.append(goal_reward)
         return -min_distance_2_goal_reward
 
-    def compute_reward(self, achieved_goal, desired_goal, info, p=0.5):
+    def compute_reward(self, achieved_goal, desired_goal, info):
         """
             Proximity to the goal is rewarded
 
@@ -458,7 +458,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         """
 
         # DISTANCE TO GOAL
-        distance_to_goal_reward = self._distance_2_goal_reward(achieved_goal, desired_goal, p)
+        distance_to_goal_reward = self._distance_2_goal_reward(achieved_goal, desired_goal)
         #distance_to_goal_reward = min(-0.2, distance_to_goal_reward)
         
         #print("distance_to_goal_reward ", distance_to_goal_reward)
