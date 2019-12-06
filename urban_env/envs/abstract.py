@@ -185,8 +185,8 @@ class AbstractEnv(gym.Env):
         if self.road is None or self.vehicle is None:
             raise NotImplementedError("The road and vehicle must be initialized in the environment implementation")
 
-        if is_predict_only() and not self.DEFAULT_CONFIG["_predict_only"]:
-            self.DEFAULT_CONFIG["_predict_only"] = True
+        if is_predict_only() and not self.config["_predict_only"]:
+            self.config["_predict_only"] = True
             self.reset()
 
         self._simulate(action)

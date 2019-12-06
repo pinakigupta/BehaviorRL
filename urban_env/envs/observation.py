@@ -223,7 +223,7 @@ class KinematicsGoalObservation(KinematicObservation):
 
     def observe(self):
         obs = np.ravel(self.normalize(pandas.DataFrame.from_records([self.vehicle.to_dict(self.relative_features, self.vehicle)])[self.features]))
-        self._set_closest_goals()
+        #self._set_closest_goals()
         if self.vehicle.is_ego():
             for v in self.env.road.goals:
                 if v in self.close_goals:

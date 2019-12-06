@@ -294,8 +294,8 @@ class Road(Loggable):
 
         sorted_v = sorted([v for v in self.goals
                            if v is not vehicle
-                           and dist_func(v, vehicle, eval_func) < perception_distance],
-                           key =lambda v: dist_func(v, vehicle, eval_func))
+                           and dist_func(v) < perception_distance],
+                           key =lambda v: dist_func(v))
                               
         return sorted_v[:count]
 

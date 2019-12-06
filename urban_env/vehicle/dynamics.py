@@ -215,10 +215,8 @@ class Vehicle(Loggable):
         :param other: the other vehicle
         """
         
-        '''
-        if '_predict_only' in gym.Env.metadata:
-            if gym.Env.metadata['_predict_only']:
-                SCALE= 0.9'''
+        if self.config["_predict_only"]:
+            SCALE = 0.9
             
         if self.virtual and other.virtual:
             return 
