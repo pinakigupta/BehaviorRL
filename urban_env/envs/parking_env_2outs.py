@@ -18,12 +18,12 @@ from urban_env.road.lane import StraightLane, LineType, AbstractLane
 from urban_env.envs.graphics import EnvViewer
 from urban_env.road.lane import StraightLane, LineType
 from urban_env.road.road import Road, RoadNetwork
-from urban_env.vehicle.dynamics import Vehicle, Obstacle
+from urban_env.vehicle.dynamics import Vehicle, Obstacle, Pedestrian
 from urban_env.vehicle.control import MDPVehicle
 from urban_env.vehicle.behavior import IDMVehicle
 from urban_env.utils import *
 from handle_model_files import is_predict_only
-from urban_env.envdict import WHITE, RED
+from urban_env.envdict import WHITE, RED, BLACK
 
 import pprint
 
@@ -72,11 +72,11 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "REVERSE_REWARD": -1,
             "GOAL_REWARD": 2000,
             "CURRICULAM_REWARD_THRESHOLD": 0.9,
-            "SUCCESS_THRESHOLD": 0.002,
+            "SUCCESS_THRESHOLD": 0.0015,
             "REWARD_WEIGHTS": np.array([15/100, 15/100, 1/100, 1/100, 2/100, 2/100]),
         },
         **{
-            "LOAD_MODEL_FOLDER": "20191203-232528",
+            "LOAD_MODEL_FOLDER": "20191206-195418",
             "RESTORE_COND": "RESTORE", 
             "MODEL":             {
                                 #    "use_lstm": True,
@@ -93,7 +93,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 "obs_size": 10,
                 "obs_count": 10,
                 "goals_size": 10,
-                "goals_count": 1,
+                "goals_count": 10,
                 "constraints_count": 5,
                            },
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
@@ -101,7 +101,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "_predict_only": is_predict_only(),
             "screen_width": 1600,
             "screen_height": 900,
-            "DIFFICULTY_LEVELS": 4,
+            "DIFFICULTY_LEVELS": 10,
             "OBS_STACK_SIZE": 1,
             "vehicles_count": 'random',
             "goals_count": 'all',
@@ -132,11 +132,12 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         super(ParkingEnv_2outs, self).__init__(config)
         if is_predict_only():
-            self.set_curriculam(10)
+            self.set_curriculam(20)
             self.config["SUCCESS_THRESHOLD"] *= 2.0
         obs = self.reset()
         #self.REWARD_WEIGHTS = np.array(self.config["REWARD_WEIGHTS"])
         self.config["REWARD_SCALE"] = np.absolute(self.config["GOAL_REWARD"])
+        #self.config["closest_lane_dist_thresh"] = self.config["PARKING_LOT_WIDTH]
         EnvViewer.SCREEN_HEIGHT = self.config['screen_height']
         EnvViewer.SCREEN_WIDTH = self.config['screen_width']
         self.scene_complexity = self.config['DIFFICULTY_LEVELS']
@@ -277,6 +278,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         spots_offset = 0.0
         parking_angles = np.deg2rad([90, 75, 60, 45, 0])
+        #aisle_width = self.np_random.randint(15, 20)
         aisle_width = 20.0
         length = 8.0
         width = 4.0
@@ -346,6 +348,19 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self.road.goals.append(obstacle)
         self.road.vehicles.insert(0, obstacle)
         self.road.add_virtual_vehicle(obstacle)'''
+
+        ###### ADDING PEDESTRIANS ###########
+        self.Ped =  Pedestrian(
+                               road=self.road, 
+                               position=[10, 10],
+                               route_lane_index=None,
+                               heading=2*np.pi*self.np_random.rand(),
+                               velocity=5*self.np_random.rand(),
+                               config=self.config,
+                               color=BLACK
+                               )
+        #self.road.vehicles.append(self.Ped)
+        
 
         ##### ADDING EGO #####
         self.vehicle =  Vehicle(

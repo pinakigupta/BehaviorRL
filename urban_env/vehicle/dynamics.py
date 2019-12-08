@@ -399,3 +399,37 @@ class Obstacle(Vehicle):
 
     def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q=None, pred_horizon=-1, **kwargs):
         return None
+
+
+class Pedestrian(Vehicle):
+    """
+      
+    """
+
+    def __init__(self, road, position, heading=0, config=None, color=None, **kwargs):
+        super(Pedestrian, self).__init__(
+                                       road=road, 
+                                       position=position, 
+                                       heading=0, 
+                                       color=color, 
+                                       config=config, 
+                                       length=1.0,
+                                       width=3.0,
+                                       **kwargs)
+        self.target_velocity = 0
+        self.velocity = 0
+        #self.LENGTH = self.WIDTH
+
+    def Id(self):
+        return super(Pedestrian, self).Id()
+
+    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q=None, pred_horizon=-1, **kwargs):
+        return None
+
+    def check_collision(self, other, SCALE = 1.0):
+        if other.is_ego():
+            super(Pedestrian, self).check_collision(other, SCALE)
+
+    def step(self, dt):
+        v = self.velocity * np.array([np.cos(self.heading), np.sin(self.heading)])
+        self.position += v * dt

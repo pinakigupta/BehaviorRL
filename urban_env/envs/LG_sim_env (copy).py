@@ -23,72 +23,41 @@ from lgsvl.utils import *
 
 from gym import GoalEnv, spaces
 
-from urban_env.envs.parking_env_2outs import ParkingEnv_2outs as ParkingEnv
-
-
 VELOCITY_EPSILON = 0.1
 
-
-class LG_Sim_Env(ParkingEnv):
+class LG_Sim_Env(GoalEnv):
     """       
         LG Simulator Openai Compliyant Environment Class
     """
+
+    COLLISION_REWARD     = -1.0            
+    OVER_OTHER_PARKING_SPOT_REWARD = -0.9
+    REVERSE_REWARD = -0.2    
+
+    PARKING_MAX_VELOCITY = 7.0 # m/s
+
+    OBS_SCALE = 100
+    REWARD_SCALE = np.absolute(COLLISION_REWARD)
+
+    REWARD_WEIGHTS = [7/100, 7/100, 6/100, 6/100, 9/10, 9/10]
+    SUCCESS_THRESHOLD = 0.33
+
+
+    # REWARD_WEIGHTS = [5/100, 5/100, 1/100, 1/100, 5/10, 5/10]
+    # SUCCESS_THRESHOLD = 0.27    
+
     ACTIONS_HOLD_TIME = 1.0
     
-    DEFAULT_CONFIG = {**ParkingEnv.DEFAULT_CONFIG,
-        **{
-            "OVER_OTHER_PARKING_SPOT_REWARD": -10,
-            "VELOCITY_REWARD": 2,
-            "COLLISION_REWARD": -750,
-            "TERM_REWARD": -400,
-            "REVERSE_REWARD": -1,
-            "GOAL_REWARD": 2000,
-            "CURRICULAM_REWARD_THRESHOLD": 0.9,
-            "SUCCESS_THRESHOLD": 0.0015,
-            "REWARD_WEIGHTS": np.array([15/100, 15/100, 1/100, 1/100, 2/100, 2/100]),
+    DEFAULT_CONFIG = {        
+        "map": 'ParkingLot',
+        "observation": {            
+            "features": ['x', 'z', 'vx', 'vz', 'cos_h', 'sin_h'],
+            "scale": 100,
+            "normalize": False
         },
-        **{
-            "LOAD_MODEL_FOLDER": "20191203-232528",
-            "RESTORE_COND": "RESTORE", 
-            "MODEL":             {
-                                #    "use_lstm": True,
-                                     "fcnet_hiddens": [256, 128, 128],
-                                #     "fcnet_activation": "relu",
-                                 }, 
-        },
-        **{
-            "observation": {
-                "type": "KinematicsGoal",
-                "features": ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h'],
-                "relative_features": ['x', 'y'],
-                "scale": 100,
-                "obs_size": 10,
-                "obs_count": 10,
-                "goals_size": 10,
-                "goals_count": 1,
-                "constraints_count": 5,
-                           },
-            "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
-            "DIFFICULTY_LEVELS": 4,
-            "OBS_STACK_SIZE": 1,
-            "vehicles_count": 'random',
-            "goals_count": 'all',
-            "SIMULATION_FREQUENCY": 5,  # The frequency at which the system dynamics are simulated [Hz]
-            "POLICY_FREQUENCY": 1,  # The frequency at which the agent can take actions [Hz]
-            "x_position_range": ParkingEnv.DEFAULT_PARKING_LOT_WIDTH,
-            "y_position_range": ParkingEnv.DEFAULT_PARKING_LOT_LENGTH,
-            "velocity_range": 1.5*ParkingEnv.PARKING_MAX_VELOCITY,
-            "MAX_VELOCITY": ParkingEnv.PARKING_MAX_VELOCITY,
-            "closest_lane_dist_thresh": 500,
-            "map": 'ParkingLot',
-            },
-        **{
-            "PARKING_LOT_WIDTH": ParkingEnv.DEFAULT_PARKING_LOT_WIDTH,
-            "PARKING_LOT_LENGTH": ParkingEnv.DEFAULT_PARKING_LOT_LENGTH,
-            "parking_spots": 'random',  # Parking Spots per side            
-            "parking_angle": 'random',  # Parking angle in deg           
-          }
-    }
+        "parking_spots": 15, #'random', # Parking Spots Per side
+        "vehicles_count": 0, #'random', # Total number of cars in the parking (apart from Ego)    
+    }    
 
 
     def __init__(self):
@@ -318,6 +287,17 @@ class LG_Sim_Env(ParkingEnv):
         #print(reward)
         return reward 
 
+
+    def _reward(self, action):
+        raise NotImplementedError
+
+    def _is_success(self, achieved_goal, desired_goal):
+        # DISTANCE TO GOAL
+        distance_to_goal_reward = self.distance_2_goal_reward(achieved_goal, desired_goal)
+        
+        self.is_success = (distance_to_goal_reward > -self.SUCCESS_THRESHOLD)
+        return self.is_success       
+        
 
     def _is_terminal(self):
         """
