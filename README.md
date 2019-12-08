@@ -34,6 +34,10 @@ The parking lot env is a goal oriented env, with virtual vehicles constraining t
 
 ![](img/ParkingLotFull.gif)
 
+Actually I have a recent update where I have started playing with multiple goals. Look below (still a working progress) .
+
+![](img/ParkingLotMultiGoal.gif)
+
 
 ## Getting Started (Docker)
 0) This code requires (Don't install anything yet):

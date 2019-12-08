@@ -77,7 +77,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "REWARD_WEIGHTS": np.array([15/100, 15/100, 1/100, 1/100, 2/100, 2/100]),
         },
         **{
-            "LOAD_MODEL_FOLDER": "20191206-195418",
+            "LOAD_MODEL_FOLDER": "20191207-051251",
             "RESTORE_COND": "RESTORE", 
             "MODEL":             {
                                 #    "use_lstm": True,
