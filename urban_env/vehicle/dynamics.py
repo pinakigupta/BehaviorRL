@@ -410,14 +410,13 @@ class Pedestrian(Vehicle):
         super(Pedestrian, self).__init__(
                                        road=road, 
                                        position=position, 
-                                       heading=0, 
+                                       heading=heading, 
                                        color=color, 
                                        config=config, 
                                        length=1.0,
-                                       width=3.0,
+                                       width=5.0,
                                        **kwargs)
-        self.target_velocity = 0
-        self.velocity = 0
+        #self.target_velocity = 0
         #self.LENGTH = self.WIDTH
 
     def Id(self):

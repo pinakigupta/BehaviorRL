@@ -355,11 +355,11 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                position=[10, 10],
                                route_lane_index=None,
                                heading=2*np.pi*self.np_random.rand(),
-                               velocity=5*self.np_random.rand(),
+                               velocity=self.np_random.rand(),
                                config=self.config,
                                color=BLACK
                                )
-        #self.road.vehicles.append(self.Ped)
+        self.road.vehicles.append(self.Ped)
         
 
         ##### ADDING EGO #####
