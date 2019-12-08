@@ -12,6 +12,7 @@ from gym import GoalEnv
 from gym.spaces import Dict, Discrete, Box, Tuple
 import copy
 import sys
+from random import choice
 
 from urban_env.envs.abstract import AbstractEnv
 from urban_env.road.lane import StraightLane, LineType, AbstractLane
@@ -105,6 +106,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "OBS_STACK_SIZE": 1,
             "vehicles_count": 'random',
             "goals_count": 'all',
+            "pedestrian_count": 'random',
             "SIMULATION_FREQUENCY": 5,  # The frequency at which the system dynamics are simulated [Hz]
             "POLICY_FREQUENCY": 1,  # The frequency at which the agent can take actions [Hz]
             "x_position_range": DEFAULT_PARKING_LOT_WIDTH,
@@ -242,6 +244,11 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         else:
             self.parking_spots = self.config["parking_spots"]
 
+        if self.config["pedestrian_count"] == 'random':
+            self.pedestrian_count = self.np_random.randint(0, 10)
+        else:
+            self.pedestrian_count =  self.config["pedestrian_count"]
+
         # Defining parked vehicles 
         if self.config["vehicles_count"] == 'random':
             low = 0
@@ -350,16 +357,20 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self.road.add_virtual_vehicle(obstacle)'''
 
         ###### ADDING PEDESTRIANS ###########
-        self.Ped =  Pedestrian(
-                               road=self.road, 
-                               position=[10, 10],
-                               route_lane_index=None,
-                               heading=2*np.pi*self.np_random.rand(),
-                               velocity=self.np_random.rand(),
-                               config=self.config,
-                               color=BLACK
-                               )
-        self.road.vehicles.append(self.Ped)
+        for _ in range(self.pedestrian_count):
+            rand_x = self.np_random.randint(low = 10, high = self.config["PARKING_LOT_WIDTH"]//3)
+            rand_y = self.np_random.randint(low = 10, high = self.config["PARKING_LOT_LENGTH"]//3)
+            self.Ped =  Pedestrian(
+                                road=self.road, 
+                                position=[self.np_random.choice([-rand_x, rand_x]), 
+                                          self.np_random.choice([-rand_y, rand_y])],
+                                route_lane_index=None,
+                                heading=2*np.pi*self.np_random.rand(),
+                                velocity=self.np_random.rand(),
+                                config=self.config,
+                                color=BLACK
+                                )
+            self.road.vehicles.append(self.Ped)
         
 
         ##### ADDING EGO #####
