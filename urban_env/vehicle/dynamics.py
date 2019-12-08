@@ -427,8 +427,10 @@ class Pedestrian(Vehicle):
 
     def check_collision(self, other, SCALE = 1.0):
         if other.is_ego():
+            if np.linalg.norm(other.position - self.position) < 10: # Don't Move
+                self.position -= self.delta_position
             super(Pedestrian, self).check_collision(other, SCALE)
 
     def step(self, dt):
-        v = self.velocity * np.array([np.cos(self.heading), np.sin(self.heading)])
-        self.position += v * dt
+        self.delta_position = self.velocity * np.array([np.cos(self.heading), np.sin(self.heading)]) * dt
+        self.position += self.delta_position
