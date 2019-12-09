@@ -24,13 +24,35 @@ class Vehicle(Loggable):
     """
 
 
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG = {**{
                       "DEFAULT_LENGTH": 5.0 , # Vehicle length [m]
                       "DEFAULT_WIDTH": 2.0 , #  Vehicle width [m] 
                       "COLLISIONS_ENABLED": True, # Enable collision detection between vehicles
                       "DEFAULT_VELOCITIES": [23, 25], #Range for random initial velocities [m/s]
                       "MAX_VELOCITY": 40, #Maximum reachable velocity [m/s]
-    }
+                      },
+                      **{
+                            'front_edge_to_center': 3.898,
+                            'back_edge_to_center': 0.853,
+                            'left_edge_to_center': 0.9655,
+                            'right_edge_to_center': 0.9655,
+
+                            'length': 4.751,
+                            'width': 1.931,
+                            'height': 1.655,
+                            'min_turn_radius': 4.63,
+                            'max_acceleration': 2.94,
+                            'max_deceleration': -6.0,
+                            'max_steer_angle': 0.58904875,
+                            'max_steer_angle_rate': 8.3733,
+                            'min_steer_angle_rate': 0,
+                            'steer_ratio': 16.00,
+                            'wheel_base': 2.95,
+                            'wheel_rolling_radius': 0.335,
+                            'max_abs_speed_when_stopped': 0.2
+                        }
+                    }
+
 
     def __init__(self, 
                  road, 
@@ -357,11 +379,19 @@ class Vehicle(Loggable):
         v.is_projection = True
         #v.virtual = True
         t = 0
-        for _ in actions:  # only used to iterate (MDP # of actions)
+        for action in actions:  # only used to iterate (MDP # of actions)
             # v.act(action)  # High-level decision
+            acceleration = action[0].item() * v.config['max_acceleration']
+            steering = action[1].item() * v.config['max_steer_angle']
+            control_action = (
+                                        {
+                                            "acceleration": acceleration,
+                                            "steering": steering                                                    
+                                        }
+                             )            
             for _ in range(int(action_duration / dt)):
                 t += 1
-                v.act()  # Low-level control action
+                v.act(control_action)  # Low-level control action
                 v.step(dt)
                 if (t % int(trajectory_timestep / dt)) == 0:
                     states.append(copy.deepcopy(v))

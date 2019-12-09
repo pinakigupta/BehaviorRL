@@ -106,7 +106,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "OBS_STACK_SIZE": 1,
             "vehicles_count": 'random',
             "goals_count": 'all',
-            "pedestrian_count": 'random',
+            "pedestrian_count": 0,
             "SIMULATION_FREQUENCY": 5,  # The frequency at which the system dynamics are simulated [Hz]
             "POLICY_FREQUENCY": 1,  # The frequency at which the agent can take actions [Hz]
             "x_position_range": DEFAULT_PARKING_LOT_WIDTH,
