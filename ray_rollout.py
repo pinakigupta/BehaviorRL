@@ -138,7 +138,8 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
                 pred_reward = reward
                 policy_id = mapping_cache.setdefault(
                             _DUMMY_AGENT_ID, policy_agent_mapping(_DUMMY_AGENT_ID))
-                while not pred_done and pred_steps < 4:
+                while not pred_done and \
+                    pred_steps < int(predict_env.config["TRAJECTORY_HORIZON"]*predict_env.config["TRAJECTORY_FREQUENCY"]):
                     pred_action = agent.compute_action(
                                 pred_obs,
                                 prev_action=pred_action,

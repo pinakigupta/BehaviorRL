@@ -54,7 +54,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "REWARD_WEIGHTS": np.array([15/100, 15/100, 1/100, 1/100, 2/100, 2/100]),
         },
         **{
-            "LOAD_MODEL_FOLDER": "20191207-051251",
+            "LOAD_MODEL_FOLDER": "20191208-154258",
             "RESTORE_COND": "RESTORE", 
             "MODEL":             {
                                 #    "use_lstm": True,
@@ -91,9 +91,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "closest_lane_dist_thresh": 500,
             },
         **{
-            "SIMULATION_FREQUENCY": 5,  # The frequency at which the system dynamics are simulated [Hz]
-            "POLICY_FREQUENCY": 1,  # The frequency at which the agent can take actions [Hz]
-            "TRAJECTORY_FREQUENCY": 1, # The frequency at which the agent trajectory is generated, mainly for visualization
+            "SIMULATION_FREQUENCY": 10,  # The frequency at which the system dynamics are simulated [Hz]
+            "POLICY_FREQUENCY": 2,  # The frequency at which the agent can take actions [Hz]
+            "TRAJECTORY_FREQUENCY": 0.5, # The frequency at which the agent trajectory is generated, mainly for visualization
+            "TRAJECTORY_HORIZON": 10,
           },
         **{
             "PARKING_LOT_WIDTH": DEFAULT_PARKING_LOT_WIDTH,

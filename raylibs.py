@@ -311,6 +311,7 @@ def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, LOCAL_MODE=N
                     "env": train_env_id,
                     "remote_worker_envs": False,
                     "model": model,
+                    "ignore_worker_failures": True,
                     "env_config": {
                                     "retrieved_agent_policy": 1,
                                   },               
