@@ -84,7 +84,7 @@ class EnvViewer(object):
         p.append(Process(target=self.env.vehicle.predict_trajectory,
                          args=(actions,
                                1/self.env.vehicle.config["POLICY_FREQUENCY"],
-                               1/3/self.env.vehicle.config["POLICY_FREQUENCY"],
+                               1/self.env.vehicle.config["TRAJECTORY_FREQUENCY"],
                                1/self.env.vehicle.config["SIMULATION_FREQUENCY"],
                                out_q
                             )
@@ -112,7 +112,8 @@ class EnvViewer(object):
         if hasattr(self.env.action_space, 'n'):
             if self.env.is_discrete_action():
                 actions = [self.env.ACTIONS[a] for a in actions]
-        self.vehicle_trajectories.clear()
+        #self.vehicle_trajectories.clear()
+        del self.vehicle_trajectories[:]
 
         
         self.vehicle_trajectories =[v.predict_trajectory(
@@ -128,7 +129,7 @@ class EnvViewer(object):
         self.vehicle_trajectories.append(self.env.vehicle.predict_trajectory(
                                                         actions=actions,
                                                         action_duration=1/self.env.vehicle.config["POLICY_FREQUENCY"],
-                                                        trajectory_timestep=1/3/self.env.vehicle.config["POLICY_FREQUENCY"],
+                                                        trajectory_timestep=1/self.env.vehicle.config["TRAJECTORY_FREQUENCY"],
                                                         dt=1/self.env.vehicle.config["SIMULATION_FREQUENCY"],
                                                     )
                 )

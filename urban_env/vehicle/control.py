@@ -444,7 +444,6 @@ class IDMDPVehicle(MDPVehicle):
         self.retrieved_agent_policy = None
         self.observation = None
         self.sim_steps = 0
-        self.sim_steps_per_policy_step = None
         
 
 
@@ -453,16 +452,13 @@ class IDMDPVehicle(MDPVehicle):
             self.observation = observations[self]
         obs = self.observation.observe()
 
-        if self.sim_steps_per_policy_step is None:
-            self.sim_steps_per_policy_step = self.config["SIMULATION_FREQUENCY"]//self.config["POLICY_FREQUENCY"]
-
             
         if self.retrieved_agent_policy is None:
             import settings
             retrieved_agent_policy = settings.retrieved_agent_policy
             self.retrieved_agent_policy = copy.copy(retrieved_agent_policy)
 
-        if self.sim_steps >= self.sim_steps_per_policy_step:
+        if self.sim_steps >= self.config["SIMULATION_FREQUENCY"]//self.config["POLICY_FREQUENCY"]:
             if self.retrieved_agent_policy is not None:
                 self.discrete_action = ACTIONS_DICT[self.retrieved_agent_policy.compute_single_action(obs, [])[0]]
                 #self.discrete_action = ACTIONS_DICT[0]

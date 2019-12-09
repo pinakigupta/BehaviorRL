@@ -28,29 +28,6 @@ from urban_env.envdict import WHITE, RED, BLACK
 
 import pprint
 
-VELOCITY_EPSILON = 1.0
-
-vehicle_params = {
-    'front_edge_to_center': 3.898,
-    'back_edge_to_center': 0.853,
-    'left_edge_to_center': 0.9655,
-    'right_edge_to_center': 0.9655,
-
-    'length': 4.751,
-    'width': 1.931,
-    'height': 1.655,
-    'min_turn_radius': 4.63,
-    'max_acceleration': 2.94,
-    'max_deceleration': -6.0,
-    'max_steer_angle': 0.58904875,
-    'max_steer_angle_rate': 8.3733,
-    'min_steer_angle_rate': 0,
-    'steer_ratio': 16.00,
-    'wheel_base': 2.95,
-    'wheel_rolling_radius': 0.335,
-    'max_abs_speed_when_stopped': 0.2
-}
-
 
 class ParkingEnv_2outs(AbstractEnv, GoalEnv):
     """
@@ -107,14 +84,17 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "vehicles_count": 'random',
             "goals_count": 'all',
             "pedestrian_count": 0,
-            "SIMULATION_FREQUENCY": 5,  # The frequency at which the system dynamics are simulated [Hz]
-            "POLICY_FREQUENCY": 1,  # The frequency at which the agent can take actions [Hz]
             "x_position_range": DEFAULT_PARKING_LOT_WIDTH,
             "y_position_range": DEFAULT_PARKING_LOT_LENGTH,
             "velocity_range": 1.5*PARKING_MAX_VELOCITY,
             "MAX_VELOCITY": PARKING_MAX_VELOCITY,
             "closest_lane_dist_thresh": 500,
             },
+        **{
+            "SIMULATION_FREQUENCY": 5,  # The frequency at which the system dynamics are simulated [Hz]
+            "POLICY_FREQUENCY": 1,  # The frequency at which the agent can take actions [Hz]
+            "TRAJECTORY_FREQUENCY": 1, # The frequency at which the agent trajectory is generated, mainly for visualization
+          },
         **{
             "PARKING_LOT_WIDTH": DEFAULT_PARKING_LOT_WIDTH,
             "PARKING_LOT_LENGTH": DEFAULT_PARKING_LOT_LENGTH,
@@ -147,8 +127,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
     def step(self, action):
         self.steps += 1
         ##############################################
-        acceleration = action[0].item() * vehicle_params['max_acceleration']
-        steering = action[1].item() * vehicle_params['max_steer_angle']
+        acceleration = action[0].item() * self.vehicle.config['max_acceleration']
+        steering = action[1].item() * self.vehicle.config['max_steer_angle']
         ###############################################
 
 
