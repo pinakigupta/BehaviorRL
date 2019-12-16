@@ -1,7 +1,7 @@
 ######################################################################
 #          Deep Reinforcement Learning for Autonomous Driving
 #                  Created/Modified on: February 5, 2019
-#                      Author: Munir Jojo-Verge, Pinaki Gupta
+#                      Author:   Pinaki Gupta
 #######################################################################
 
 from __future__ import division, print_function, absolute_import
@@ -385,13 +385,14 @@ class AbstractEnv(gym.Env):
     def to_finite_mdp(self):
         return finite_mdp(self, time_quantization=1/self.POLICY_FREQUENCY)
 
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo=None):
         """
             Perform a deep copy but without copying the environment viewer.
         """
         cls = self.__class__
         result = cls.__new__(cls)
-        memo[id(self)] = result
+        if memo is not None:
+            memo[id(self)] = result
         for k, v in self.__dict__.items():
             if k not in ['viewer', 'automatic_rendering_callback']:
                 setattr(result, k, copy.deepcopy(v, memo))

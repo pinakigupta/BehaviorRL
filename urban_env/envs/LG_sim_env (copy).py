@@ -1,7 +1,7 @@
 ######################################################################
 #          Deep Reinforcement Learning for Autonomous Driving
 #                  Created/Modified on: April 17, 2019
-#                      Author: Munir Jojo-Verge, Pinaki Gupta
+#                      Author:   Pinaki Gupta
 #######################################################################
 
 from __future__ import division, print_function, absolute_import
