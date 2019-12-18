@@ -1,6 +1,8 @@
 // See https://aka.ms/vscode-remote/devcontainer.json for format details.
 {
     "dockerFile": "dockerfiles/Dockerfile",
+    "appPort": [ 8080, 8181, 9090] ,
+    "applicationUrl": "http://0.0.0.0:8080;http://0.0.0.0:8181,http://0.0.0.0:9090",
 	"extensions": [
         "ms-python.python",
         "Pylint",

@@ -17,9 +17,8 @@ from gym.spaces import Discrete, Box, Tuple
 from gym.utils import colorize, seeding
 
 
-import lgsvl
-from lgsvl.utils import *
-
+from PythonAPI import lgsvl
+from PythonAPI.lgsvl.utils import *
 
 from gym import GoalEnv, spaces
 
@@ -80,7 +79,7 @@ class LG_Sim_Env(ParkingEnv):
             "velocity_range": 1.5*ParkingEnv.PARKING_MAX_VELOCITY,
             "MAX_VELOCITY": ParkingEnv.PARKING_MAX_VELOCITY,
             "closest_lane_dist_thresh": 500,
-            "map": 'ParkingLot',
+            "map": 'InterchangeDrive',
             },
         **{
             "PARKING_LOT_WIDTH": ParkingEnv.DEFAULT_PARKING_LOT_WIDTH,
@@ -91,32 +90,27 @@ class LG_Sim_Env(ParkingEnv):
     }
 
 
-    def __init__(self):
-        
-        self.config = self.DEFAULT_CONFIG.copy()
-        self.map = self.config["map"]
+    def __init__(self, config=None):
 
-        self.sim = lgsvl.Simulator(os.environ.get("SIMULATOR_HOST", "127.0.0.1"), 8181) 
+        #self.config = self.DEFAULT_CONFIG.copy()
+        if config is None:
+            config = self.DEFAULT_CONFIG
+        else:
+            config = {**self.DEFAULT_CONFIG, **config}
+
+        #super(LG_Sim_Env, self).__init__(config)
+        self.config = config
+
+        #self.sim = lgsvl.Simulator(address=os.environ.get("SIMULATOR_HOST", "127.0.0.1"), port=8080) 
+        self.sim = lgsvl.Simulator(address="127.0.0.1", port=8181) 
+
         self.control = lgsvl.VehicleControl()
 
-        if self.sim.current_scene == self.map:
+        '''if self.sim.current_scene == self.config["map"]:
             self.sim.reset()
-        else:
-            self.sim.load(self.map)       
+        else:'''
+        self.sim.load(self.config["map"])       
 
-        
-        if self.config["parking_spots"] == 'random':
-            self.parking_spots = np.random.randint(1,21)
-        else:
-            self.parking_spots = self.config["parking_spots"]
-
-        if self.config["vehicles_count"] == 'random':
-            self.vehicles_count = np.random.randint(self.parking_spots) * 2
-        else:
-            self.vehicles_count = self.config["vehicles_count"]
-        assert (self.vehicles_count < self.parking_spots*2)
-        
-        self.features = self.config["observation"]["features"]  # Observation features
 
         # Spaces        
         self.define_spaces()        
@@ -138,7 +132,7 @@ class LG_Sim_Env(ParkingEnv):
         self.previous_action = np.array([0.0, 0.0, False])
 
 
-        obs = self.reset()
+        obs = self.observe()
         self.observation_space = spaces.Dict(dict(
             desired_goal=spaces.Box(-np.inf, np.inf, shape=obs["desired_goal"].shape, dtype=np.float32),
             achieved_goal=spaces.Box(-np.inf, np.inf, shape=obs["achieved_goal"].shape, dtype=np.float32),
@@ -148,8 +142,7 @@ class LG_Sim_Env(ParkingEnv):
     def reset(self):
         self.crashed = False
         self.sim.reset()                
-        self._populate_scene()        
-        
+        self._populate_scene()                
         return self.observe()
 
 
@@ -232,13 +225,13 @@ class LG_Sim_Env(ParkingEnv):
 
         state = lgsvl.AgentState()
         state.transform = spawns[0]
-        self.ego = self.sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
+        self.ego = self.sim.add_agent("jaguar2015xe", lgsvl.AgentType.EGO, state)
         self.ego.on_collision(self.on_collision)
 
         # PLACE OTHER VEHICLES ON THE ROAD
         # 10 meters ahead
-        sx = spawns[1].position.x - 10.0        
-        sz = spawns[1].position.z
+        sx = spawns[0].position.x - 10.0        
+        sz = spawns[0].position.z
 
         # side = False
         # for i, name in enumerate(["Sedan", "SUV", "Jeep", "HatchBack", "SchoolBus"]):
@@ -254,7 +247,7 @@ class LG_Sim_Env(ParkingEnv):
         
         #### TESTING THE GOAL LOCATION BY PLACING A BUS
         state = lgsvl.AgentState()
-        state.transform = spawns[1]
+        state.transform = spawns[0]
 
         state.transform.position.x = sx - 17.0
         state.transform.position.z = sz + 15.0
@@ -270,68 +263,9 @@ class LG_Sim_Env(ParkingEnv):
             'cos_h': 1,
             'sin_h': 0
         }
+         
+
     
-    def distance_2_goal_reward(self, achieved_goal, desired_goal, p=0.5):
-        return - np.power(np.dot(self.OBS_SCALE * np.abs(achieved_goal - desired_goal), self.REWARD_WEIGHTS), p)        
-
-    def compute_reward(self, achieved_goal, desired_goal, info, p=0.5):
-        """
-            Proximity to the goal is rewarded
-
-            We use a weighted p-norm
-        :param achieved_goal: the goal that was achieved
-        :param desired_goal: the goal that was desired
-        :param info: any supplementary information
-        :param p: the Lp^p norm used in the reward. Use p<1 to have high kurtosis for rewards in [0, 1]
-        :return: the corresponding reward
-        """
-        
-        # return - np.power(np.dot(self.OBS_SCALE * np.abs(achieved_goal - desired_goal), self.REWARD_WEIGHTS), p)
-
-        # DISTANCE TO GOAL
-        distance_to_goal_reward = self.distance_2_goal_reward(achieved_goal, desired_goal, p)
-        
-        # OVER OTHER PARKING SPOTS REWARD        
-        # over_other_parking_spots_reward = self.OVER_OTHER_PARKING_SPOT_REWARD * np.squeeze(info["is_over_others_parking_spot"])
-
-        # COLLISION REWARD
-        collision_reward = self.COLLISION_REWARD * np.squeeze(info["is_collision"])
-
-         # REVERESE DRIVING REWARD
-        reverse_reward = self.REVERSE_REWARD * np.squeeze(info["is_reverse"])
-
-        # REACHING THE GOAL REWARD
-        # reaching_goal_reward = self.REACHING_GOAL_REWARD *  np.squeeze(info["is_success"])
-
-        reward = (distance_to_goal_reward + \
-                  collision_reward + \
-                  reverse_reward)  
-
-                 # over_other_parking_spots_reward + \
-                 # reverse_reward + \
-                 # against_traffic_reward + \
-                 # moving_reward +\
-                 # reaching_goal_reward + \
-                 # collision_reward)
-
-        reward /= self.REWARD_SCALE
-        #print(reward)
-        return reward 
-
-
-    def _is_terminal(self):
-        """
-            The episode is over if the ego vehicle crashed or the goal is reached.
-        """
-        # The episode cannot terminate unless all time steps are done. The reason for this is that HER + DDPG uses constant
-        # length episodes. If you plan to use other algorithms, please uncomment this line
-        #if info["is_collision"] or info["is_success"]:
-
-        if self.crashed: # or self.vehicle.is_success:
-            self.reset()
-        return False # self.vehicle.crashed or self._is_success(obs['achieved_goal'], obs['desired_goal'])
-    
-
     def on_collision(self, agent1, agent2, contact):
         self.crashed = True
 
