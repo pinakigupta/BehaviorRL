@@ -54,7 +54,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "REWARD_WEIGHTS": np.array([15/100, 15/100, 1/100, 1/100, 2/100, 2/100]),
         },
         **{
-            "LOAD_MODEL_FOLDER": "20191208-154258",
+            "LOAD_MODEL_FOLDER": "20191216-141903",
             "RESTORE_COND": "RESTORE", 
             "MODEL":             {
                                 #    "use_lstm": True,
@@ -83,7 +83,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "OBS_STACK_SIZE": 1,
             "vehicles_count": 'random',
             "goals_count": 'all',
-            "pedestrian_count": 0,
+            "pedestrian_count": 'random',
             "x_position_range": DEFAULT_PARKING_LOT_WIDTH,
             "y_position_range": DEFAULT_PARKING_LOT_LENGTH,
             "velocity_range": 1.5*PARKING_MAX_VELOCITY,
@@ -104,7 +104,12 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
           }
     }
 
-    def __init__(self, config=DEFAULT_CONFIG):
+    def __init__(self, config=None):
+
+        if config is None:
+            config = self.DEFAULT_CONFIG
+        else:
+            config = {**self.DEFAULT_CONFIG, **config}
 
         # ACTION SPACE:
         # Throttle: [0 to 1],
@@ -117,7 +122,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         if is_predict_only():
             self.set_curriculam(20)
             self.config["SUCCESS_THRESHOLD"] *= 2.0
-        obs = self.reset()
+        self.reset()
         #self.REWARD_WEIGHTS = np.array(self.config["REWARD_WEIGHTS"])
         self.config["REWARD_SCALE"] = np.absolute(self.config["GOAL_REWARD"])
         #self.config["closest_lane_dist_thresh"] = self.config["PARKING_LOT_WIDTH]
