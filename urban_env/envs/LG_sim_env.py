@@ -33,6 +33,8 @@ class LG_Sim_Env(ParkingEnv):
         LG Simulator Openai Compliyant Environment Class
     """
     ACTIONS_HOLD_TIME = 1.0
+
+    sim = None
     
     DEFAULT_CONFIG = {**ParkingEnv.DEFAULT_CONFIG,
         **{
@@ -64,7 +66,7 @@ class LG_Sim_Env(ParkingEnv):
                 "obs_size": 10,
                 "obs_count": 10,
                 "goals_size": 10,
-                "goals_count": 1,
+                "goals_count": 10,
                 "constraints_count": 5,
                            },
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
@@ -72,6 +74,7 @@ class LG_Sim_Env(ParkingEnv):
             "OBS_STACK_SIZE": 1,
             "vehicles_count": 'random',
             "goals_count": 'all',
+            "pedestrian_count": 0,
             "SIMULATION_FREQUENCY": 5,  # The frequency at which the system dynamics are simulated [Hz]
             "POLICY_FREQUENCY": 1,  # The frequency at which the agent can take actions [Hz]
             "x_position_range": ParkingEnv.DEFAULT_PARKING_LOT_WIDTH,
@@ -91,6 +94,8 @@ class LG_Sim_Env(ParkingEnv):
 
 
     def __init__(self, config=None):
+        if self.sim is not None:
+            return
 
         #self.config = self.DEFAULT_CONFIG.copy()
         if config is None:
@@ -98,10 +103,10 @@ class LG_Sim_Env(ParkingEnv):
         else:
             config = {**self.DEFAULT_CONFIG, **config}
 
-        #super(LG_Sim_Env, self).__init__(config)
-        self.config = config
+        super(LG_Sim_Env, self).__init__(config)
 
         #self.sim = lgsvl.Simulator(address=os.environ.get("SIMULATOR_HOST", "127.0.0.1"), port=8080) 
+        
         self.sim = lgsvl.Simulator(address="127.0.0.1", port=8181) 
 
         self.control = lgsvl.VehicleControl()
@@ -109,44 +114,26 @@ class LG_Sim_Env(ParkingEnv):
         '''if self.sim.current_scene == self.config["map"]:
             self.sim.reset()
         else:'''
-        self.sim.load(self.config["map"])       
-
+        self.sim.load(self.config["map"])  
+        self.agents = {}     
+        self._populate_scene()
 
         # Spaces        
-        self.define_spaces()        
+        #self.define_spaces()        
                 
 
-        self.crashed = False
+        #self.crashed = False
         
         # self.action_space = spaces.Box(-1., 1., shape=(2,), dtype=np.float32)
-        self.REWARD_WEIGHTS = np.array(self.REWARD_WEIGHTS)
+        #self.REWARD_WEIGHTS = np.array(self.REWARD_WEIGHTS)
         
 
-    def define_spaces(self):
-        # Let;s define the action space as: 
-        # Throttle: [0 to 1], 
-        # Brake: [0 to 1] 
-        # Steering Angle: [-1 to 1],
-        # reverse: True/False (Discrete 0,1) NOT IN USE FOR NOW
-        self.action_space = Box(low=np.array([-1, -1, -1]), high=np.array([1, 1, 1]), dtype=np.float32)
-        self.previous_action = np.array([0.0, 0.0, False])
+    def step(self, action): 
+        obs, reward, done, info = super(LG_Sim_Env, self).step(action)
+        print("stepping")
+        return obs, reward, done, info
 
-
-        obs = self.observe()
-        self.observation_space = spaces.Dict(dict(
-            desired_goal=spaces.Box(-np.inf, np.inf, shape=obs["desired_goal"].shape, dtype=np.float32),
-            achieved_goal=spaces.Box(-np.inf, np.inf, shape=obs["achieved_goal"].shape, dtype=np.float32),
-            observation=spaces.Box(-np.inf, np.inf, shape=obs["observation"].shape, dtype=np.float32),
-        ))        
-
-    def reset(self):
-        self.crashed = False
-        self.sim.reset()                
-        self._populate_scene()                
-        return self.observe()
-
-
-    def step(self, action):                                
+    def step1(self, action):                                
         velocity = np.sqrt(self.ego.state.velocity.x**2 + self.ego.state.velocity.z**2)
         ################################                
         prev_in_reverse = self.previous_action[2].item()
@@ -198,7 +185,7 @@ class LG_Sim_Env(ParkingEnv):
         terminal = self._is_terminal()
         return obs, reward, terminal, info
 
-    def observe(self):                
+    '''def observe(self):                
         
         d = {            
             'x': self.ego.state.transform.position.x,
@@ -215,69 +202,38 @@ class LG_Sim_Env(ParkingEnv):
             "achieved_goal": obs / self.OBS_SCALE,
             "desired_goal": goal / self.OBS_SCALE
         }
-        return obs
+        return obs'''
 
     def _populate_scene(self):
         """
             Create some new random vehicles of a given type, and add them on the road.
         """
-        spawns = self.sim.get_spawn()
 
-        state = lgsvl.AgentState()
-        state.transform = spawns[0]
-        self.ego = self.sim.add_agent("jaguar2015xe", lgsvl.AgentType.EGO, state)
-        self.ego.on_collision(self.on_collision)
+        for v in self.road.vehicles:
+            if v.is_ego_vehicle:
+                self._setup_agent(v, "jaguar2015xe",  lgsvl.AgentType.EGO)
+            elif v in self.road.virtual_vehicles:
+                self._setup_agent(v, "BoxTruck",  lgsvl.AgentType.NPC)
+            else:
+                self._setup_agent(v, "Sedan",  lgsvl.AgentType.NPC)
 
-        # PLACE OTHER VEHICLES ON THE ROAD
-        # 10 meters ahead
-        sx = spawns[0].position.x - 10.0        
-        sz = spawns[0].position.z
+        #self.ego.on_collision(self.on_collision)
 
-        # side = False
-        # for i, name in enumerate(["Sedan", "SUV", "Jeep", "HatchBack", "SchoolBus"]):
-        #     state = lgsvl.AgentState()
-        #     state.transform = spawns[1]
 
-        #     state.transform.position.x = sx - (5 * i)
-        #     state.transform.position.z = sz - (int(side) * 8.0)
-        #     state.transform.rotation.y = 0
-        #     self.sim.add_agent(name, lgsvl.AgentType.NPC, state)
-
-        #     side = not side
         
-        #### TESTING THE GOAL LOCATION BY PLACING A BUS
+    def _setup_agent(self, v, agent_name="Jeep", agent_type=lgsvl.AgentType.NPC):
         state = lgsvl.AgentState()
-        state.transform = spawns[0]
+        state.transform.position = lgsvl.Vector(v.position[0], 0, v.position[1])
+        state.transform.rotation.y = v.heading
+        #state.velocity = v.velocity
+        self.sim.add_agent(agent_name, agent_type, state)
 
-        state.transform.position.x = sx - 17.0
-        state.transform.position.z = sz + 15.0
-        state.transform.rotation.y = 0
-        self.sim.add_agent("SchoolBus", lgsvl.AgentType.NPC, state)
-
-        # SET THE GOAL LOCATION
-        self.road.goals = {            
-            'x': sx - 17.0,
-            'z': sz - 8.0,
-            'vx': 0,
-            'vz': 0,
-            'cos_h': 1,
-            'sin_h': 0
-        }
-         
-
-    
     def on_collision(self, agent1, agent2, contact):
         self.crashed = True
 
-
-    def render(self, mode='human'):
-        """
-            Render the environment.
-
-            Create a viewer if none exists, and use it to render an image.
-        :param mode: the rendering mode
-        """
-        pass
+    def reset(self):
+        return super(LG_Sim_Env, self).reset()
+        
 
     def close(self):
         """

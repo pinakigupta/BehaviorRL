@@ -333,14 +333,15 @@ def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, LOCAL_MODE=N
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
 
 
-def ray_play():
+def ray_play(config=None):
     #subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
-    agent=ray_retrieve_agent()
+    agent=ray_retrieve_agent(config=config)
+    
 
     rollout(agent=agent,
-            env_name=None,
+            env_name='LG-SIM-ENV-v0',
             num_steps=10000,
             no_render=False,
             out=None,
-            predict=True)
+            predict=False)
     #subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])

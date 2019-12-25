@@ -54,8 +54,13 @@ def retrieve_ray_folder_info(target_folder, checkpt=None):
 def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False):
     policy_agent_mapping = default_policy_agent_mapping
 
+    '''if env_name is not None:
+        env = gym.make(env_name)
+        multiagent = False
+        use_lstm = {DEFAULT_POLICY_ID: False}'''
+
     if hasattr(agent, "workers"):
-        env = agent.workers.local_worker().env
+        env = gym.make(env_name) if env_name is not None else agent.workers.local_worker().env
         multiagent = isinstance(env, MultiAgentEnv)
         if agent.workers.local_worker().multiagent:
             policy_agent_mapping = agent.config["multiagent"][
@@ -69,9 +74,8 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
             for p, m in policy_map.items()
         }
     else:
-        env = gym.make(env_name)
-        multiagent = False
-        use_lstm = {DEFAULT_POLICY_ID: False}
+        raise ValueError('Env name/id is None and agent has no workers')
+
 
     if out is not None:
         rollouts = []
@@ -169,8 +173,9 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
         pickle.dump(rollouts, open(out, "wb"))
 
 
-def ray_retrieve_agent(env_id=play_env_id):
-    config = gym.make(env_id).config
+def ray_retrieve_agent(env_id=play_env_id, config=None):
+    #if config is None:
+    #    config = gym.make(env_id).config
     LOAD_MODEL_FOLDER = config["LOAD_MODEL_FOLDER"]
     results_folder, _ , algo = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
     print("results_folder = ", results_folder) 
@@ -186,7 +191,7 @@ def ray_retrieve_agent(env_id=play_env_id):
         config["num_workers"] = min(2, config["num_workers"])
 
     cls = get_agent_class(algo)
-    agent = cls(env=env_id, config=config) 
+    agent = cls(env=None, config=config) 
     agent.restore(results_folder)
     policy = agent.get_policy()
     return agent

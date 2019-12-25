@@ -129,11 +129,22 @@ def main(mainkwargs):
             from ray_rollout import ray_retrieve_agent
             from settings import update_policy
             ray_init(**mainkwargs)
-            play_env = gym.make(play_env_id)
-            retrieved_agent = ray_retrieve_agent(play_env_id)
+            #play_env = gym.make(play_env_id)
+            config = {
+                        "LOAD_MODEL_FOLDER": "20191203-232528",
+                        "RESTORE_COND": "RESTORE", 
+                        "MODEL":             {
+                                            #    "use_lstm": True,
+                                                "fcnet_hiddens": [256, 128, 128],
+                                            #     "fcnet_activation": "relu",
+                                            }, 
+                    }
+            #config=play_env.config
+            retrieved_agent = ray_retrieve_agent(env_id=play_env_id, config=config)
             retrieved_agent_policy = retrieved_agent.get_policy()
             update_policy(retrieved_agent_policy)
-            ray_play()
+            print("entering ray play")
+            ray_play(config=config)
         else:
             from baselines.common import tf_util, mpi_util
             from baselines.common.vec_env import VecEnv

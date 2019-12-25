@@ -168,7 +168,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
     def reset(self):
         self.steps = 0
-        self._build_parking()
         self._populate_parking()
         self.is_success = False
         self.vehicle.crashed = False
@@ -326,6 +325,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         """
             Create some new random vehicles of a given type, and add them on the road.
         """
+
+        self._build_parking()
         self.border_lane_count = 4
         parking_spots_used = []
         '''
