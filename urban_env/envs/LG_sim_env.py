@@ -33,7 +33,7 @@ HAVAL_PARKING_LOT = {
                         "parking_spots": 10,
                         "map_offset": [-40, -4],
                         "aisle_width": 6.5, 
-                        "width": 3,                       
+                        "width": 3,
                     }
 
 
@@ -266,6 +266,7 @@ class LG_Sim_Env(ParkingEnv):
 
     def reset(self):
         return super(LG_Sim_Env, self).reset()
+        self.sim.reset()
         
 
     def close(self):

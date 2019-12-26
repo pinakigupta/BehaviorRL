@@ -103,6 +103,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "parking_angle": 'random',  # Parking angle in deg
             "ego_x0": 0,
             "ego_y0": 0, 
+            "ego_phi0": 0,
             "aisle_width": 20,
             "width": 4,
             "length": 8
@@ -369,7 +370,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self.vehicle =  Vehicle(
                                road=self.road, 
                                position=[self.config["ego_x0"], self.config["ego_y0"]],
-                               heading=np.pi/2, #2*np.pi*self.np_random.rand(),
+                               heading=self.config["ego_phi0"], #2*np.pi*self.np_random.rand(),
                                velocity=0,
                                route_lane_index=None,
                                config=self.config
