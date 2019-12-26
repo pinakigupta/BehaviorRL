@@ -28,6 +28,14 @@ from urban_env.envs.parking_env_2outs import ParkingEnv_2outs as ParkingEnv
 
 VELOCITY_EPSILON = 0.1
 
+HAVAL_PARKING_LOT = {
+                        "parking_angle": 0,
+                        "parking_spots": 10,
+                        "map_offset": [-40, -4],
+                        "aisle_width": 6.5, 
+                        "width": 3,                       
+                    }
+
 
 class LG_Sim_Env(ParkingEnv):
     """       
@@ -73,13 +81,11 @@ class LG_Sim_Env(ParkingEnv):
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
             "DIFFICULTY_LEVELS": 4,
             "OBS_STACK_SIZE": 1,
-            "vehicles_count": 'random',
+            "vehicles_count": 'all',
             "goals_count": 'all',
             "pedestrian_count": 0,
             "SIMULATION_FREQUENCY": 5,  # The frequency at which the system dynamics are simulated [Hz]
             "POLICY_FREQUENCY": 1,  # The frequency at which the agent can take actions [Hz]
-            "x_position_range": ParkingEnv.DEFAULT_PARKING_LOT_WIDTH,
-            "y_position_range": ParkingEnv.DEFAULT_PARKING_LOT_LENGTH,
             "velocity_range": 1.5*ParkingEnv.PARKING_MAX_VELOCITY,
             "MAX_VELOCITY": ParkingEnv.PARKING_MAX_VELOCITY,
             "closest_lane_dist_thresh": 500,
@@ -89,8 +95,11 @@ class LG_Sim_Env(ParkingEnv):
             "PARKING_LOT_WIDTH": ParkingEnv.DEFAULT_PARKING_LOT_WIDTH,
             "PARKING_LOT_LENGTH": ParkingEnv.DEFAULT_PARKING_LOT_LENGTH,
             "parking_spots": 'random',  # Parking Spots per side            
-            "parking_angle": 'random',  # Parking angle in deg           
-          }
+            "parking_angle": 'random',  # Parking angle in deg 
+            "x_position_range": ParkingEnv.DEFAULT_PARKING_LOT_WIDTH,
+            "y_position_range": ParkingEnv.DEFAULT_PARKING_LOT_LENGTH,                      
+          },
+          **HAVAL_PARKING_LOT
     }
 
 
@@ -234,7 +243,8 @@ class LG_Sim_Env(ParkingEnv):
             if v.is_ego_vehicle:
                 self.ego = self._setup_agent(v, "jaguar2015xe",  lgsvl.AgentType.EGO)
             elif v in self.road.virtual_vehicles:
-                self._setup_agent(v, "BoxTruck",  lgsvl.AgentType.NPC)
+                #self._setup_agent(v, "BoxTruck",  lgsvl.AgentType.NPC)
+                pass
             else:
                 self._setup_agent(v, "Sedan",  lgsvl.AgentType.NPC)
 
@@ -244,9 +254,11 @@ class LG_Sim_Env(ParkingEnv):
         
     def _setup_agent(self, v, agent_name="Jeep", agent_type=lgsvl.AgentType.NPC):
         state = lgsvl.AgentState()
-        state.transform.position = lgsvl.Vector(v.position[0], 0, v.position[1])
+        state.transform.position = lgsvl.Vector(v.position[0]+self.config["map_offset"][0],
+                                                0, 
+                                                v.position[1]+self.config["map_offset"][1])
         state.transform.rotation.y = v.heading
-        state.velocity = lgsvl.Vector(v.velocity*cos(v.heading),0, v.velocity*sin(v.heading))
+        state.velocity = lgsvl.Vector(v.velocity*cos(v.heading), 0, v.velocity*sin(v.heading))
         return self.sim.add_agent(agent_name, agent_type, state)
 
     def on_collision(self, agent1, agent2, contact):

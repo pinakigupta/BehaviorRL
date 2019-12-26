@@ -100,7 +100,12 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "PARKING_LOT_WIDTH": DEFAULT_PARKING_LOT_WIDTH,
             "PARKING_LOT_LENGTH": DEFAULT_PARKING_LOT_LENGTH,
             "parking_spots": 'random',  # Parking Spots per side            
-            "parking_angle": 'random',  # Parking angle in deg           
+            "parking_angle": 'random',  # Parking angle in deg
+            "ego_x0": 0,
+            "ego_y0": 0, 
+            "aisle_width": 20,
+            "width": 4,
+            "length": 8
           }
     }
 
@@ -271,9 +276,9 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         spots_offset = 0.0
         parking_angles = np.deg2rad([90, 75, 60, 45, 0])
         #aisle_width = self.np_random.randint(15, 20)
-        aisle_width = 20.0
-        length = 8.0
-        width = 4.0
+        aisle_width = self.config["aisle_width"]
+        length = self.config["length"]
+        width = self.config["width"]
 
         # Let's start by randomly choosing the parking angle
         angle = 0  # np.pi/3
@@ -363,8 +368,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         ##### ADDING EGO #####
         self.vehicle =  Vehicle(
                                road=self.road, 
-                               position=[0, 0],
-                               heading=2*np.pi*self.np_random.rand(),
+                               position=[self.config["ego_x0"], self.config["ego_y0"]],
+                               heading=np.pi/2, #2*np.pi*self.np_random.rand(),
                                velocity=0,
                                route_lane_index=None,
                                config=self.config
