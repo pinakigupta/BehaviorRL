@@ -130,7 +130,27 @@ class LG_Sim_Env(ParkingEnv):
 
     def step(self, action): 
         obs, reward, done, info = super(LG_Sim_Env, self).step(action)
-        print("stepping")
+        velocity = np.sqrt(self.ego.state.velocity.x**2 + self.ego.state.velocity.z**2)
+        allow_switch_gear = np.abs(velocity) < VELOCITY_EPSILON
+        reverse = False
+
+        throttle_brake = -action[0].item()
+        if throttle_brake < 0.0: # Only Braking
+            self.control.throttle = 0.0
+            self.control.breaking = np.abs(throttle_brake)
+            if allow_switch_gear:
+                reverse = True
+        else: # Only Throttle
+            self.control.throttle = throttle_brake
+            self.control.breaking = 0.0
+            if allow_switch_gear:
+                reverse = True          
+
+        self.control.steering = -action[1].item()       
+        self.control.reverse  = reverse
+        self.ego.apply_control(self.control, True)
+        self.sim.run(time_limit = self.ACTIONS_HOLD_TIME)
+
         return obs, reward, done, info
 
     def step1(self, action):                                
@@ -211,7 +231,7 @@ class LG_Sim_Env(ParkingEnv):
 
         for v in self.road.vehicles:
             if v.is_ego_vehicle:
-                self._setup_agent(v, "jaguar2015xe",  lgsvl.AgentType.EGO)
+                self.ego = self._setup_agent(v, "jaguar2015xe",  lgsvl.AgentType.EGO)
             elif v in self.road.virtual_vehicles:
                 self._setup_agent(v, "BoxTruck",  lgsvl.AgentType.NPC)
             else:
@@ -226,7 +246,7 @@ class LG_Sim_Env(ParkingEnv):
         state.transform.position = lgsvl.Vector(v.position[0], 0, v.position[1])
         state.transform.rotation.y = v.heading
         #state.velocity = v.velocity
-        self.sim.add_agent(agent_name, agent_type, state)
+        return self.sim.add_agent(agent_name, agent_type, state)
 
     def on_collision(self, agent1, agent2, contact):
         self.crashed = True
