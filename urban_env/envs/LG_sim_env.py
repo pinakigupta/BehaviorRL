@@ -11,6 +11,7 @@ import os
 import time
 import copy
 import gym
+from math import sin, cos
 
 from gym import GoalEnv, logger
 from gym.spaces import Discrete, Box, Tuple
@@ -245,7 +246,7 @@ class LG_Sim_Env(ParkingEnv):
         state = lgsvl.AgentState()
         state.transform.position = lgsvl.Vector(v.position[0], 0, v.position[1])
         state.transform.rotation.y = v.heading
-        #state.velocity = v.velocity
+        state.velocity = lgsvl.Vector(v.velocity*cos(v.heading),0, v.velocity*sin(v.heading))
         return self.sim.add_agent(agent_name, agent_type, state)
 
     def on_collision(self, agent1, agent2, contact):
