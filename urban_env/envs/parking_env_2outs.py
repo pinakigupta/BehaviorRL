@@ -123,18 +123,18 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         # steering: [-1 to 1],
         # reverse : [-1 to 1] => from -1 to 0 Reverse and from 0 to 1 Forward.
         #self.action_space = Box(low=np.array([-1, -1]), high=np.array([1, 1]), dtype=np.float32)
-
+        
         super(ParkingEnv_2outs, self).__init__(config)
         if is_predict_only():
             self.set_curriculam(20)
             self.config["SUCCESS_THRESHOLD"] *= 2.0
-        self.reset()
         #self.REWARD_WEIGHTS = np.array(self.config["REWARD_WEIGHTS"])
         self.config["REWARD_SCALE"] = np.absolute(self.config["GOAL_REWARD"])
         #self.config["closest_lane_dist_thresh"] = self.config["PARKING_LOT_WIDTH]
         EnvViewer.SCREEN_HEIGHT = self.config['screen_height']
         EnvViewer.SCREEN_WIDTH = self.config['screen_width']
         self.scene_complexity = self.config['DIFFICULTY_LEVELS']
+        self.reset()
 
     def step(self, action):
         self.steps += 1

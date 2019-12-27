@@ -81,7 +81,7 @@ class LG_Sim_Env(ParkingEnv):
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
             "DIFFICULTY_LEVELS": 4,
             "OBS_STACK_SIZE": 1,
-            "vehicles_count": 'all',
+            "vehicles_count": 1,
             "goals_count": 'all',
             "pedestrian_count": 0,
             "SIMULATION_FREQUENCY": 5,  # The frequency at which the system dynamics are simulated [Hz]
@@ -128,14 +128,7 @@ class LG_Sim_Env(ParkingEnv):
         self.agents = {}     
         self._populate_scene()
 
-        # Spaces        
-        #self.define_spaces()        
-                
 
-        #self.crashed = False
-        
-        # self.action_space = spaces.Box(-1., 1., shape=(2,), dtype=np.float32)
-        #self.REWARD_WEIGHTS = np.array(self.REWARD_WEIGHTS)
         
 
     def step(self, action): 
@@ -163,76 +156,6 @@ class LG_Sim_Env(ParkingEnv):
 
         return obs, reward, done, info
 
-    def step1(self, action):                                
-        velocity = np.sqrt(self.ego.state.velocity.x**2 + self.ego.state.velocity.z**2)
-        ################################                
-        prev_in_reverse = self.previous_action[2].item()
-        cmd_reverse = action[2].item()
-
-        allow_switch_gear = np.abs(velocity) < VELOCITY_EPSILON
-        if ( (prev_in_reverse and bool(cmd_reverse < 0.0) ) or
-             (not prev_in_reverse and bool(cmd_reverse < 0.0) and allow_switch_gear)
-        ):
-            reverse = True
-        elif ((prev_in_reverse >= 0.0 and bool(cmd_reverse >= 0.0) ) or
-              (prev_in_reverse <  0.0 and bool(cmd_reverse >= 0.0)  and allow_switch_gear)
-        ):
-            reverse = False
-        else: # You are trying to make an illegal gear switch and you should stay on whatever your last gear is
-            reverse = bool(prev_in_reverse < 0.0)
-        
-        action[2] = reverse
-
-        throttle_brake = -action[0].item()
-        if throttle_brake < 0.0: # Only Braking
-            self.control.throttle = 0.0
-            self.control.breaking = np.abs(throttle_brake)
-        else: # Only Throttle
-            self.control.throttle = throttle_brake
-            self.control.breaking = 0.0
-                
-        self.control.steering = -action[1].item()
-        
-        self.control.reverse  = reverse
-
-        self.ego.apply_control(self.control, True)
-
-        self.sim.run(time_limit = self.ACTIONS_HOLD_TIME)
-        #self.sim.run()
-
-        print("curr_act, speed:", action, velocity)
-
-        self.previous_action = action
-
-        obs = self.observe()
-        info = {
-            "is_success": self._is_success(obs['achieved_goal'], obs['desired_goal']),
-            "is_collision": int(self.crashed),
-            "is_reverse": int(self.control.reverse)
-        }
-
-        reward = self.compute_reward(obs['achieved_goal'], obs['desired_goal'], info)
-        terminal = self._is_terminal()
-        return obs, reward, terminal, info
-
-    '''def observe(self):                
-        
-        d = {            
-            'x': self.ego.state.transform.position.x,
-            'z': self.ego.state.transform.position.z,
-            'vx': self.ego.state.velocity.x,
-            'vz': self.ego.state.velocity.z,
-            'cos_h': np.cos(np.deg2rad(-self.ego.state.transform.rotation.y)),
-            'sin_h': np.sin(np.deg2rad(-self.ego.state.transform.rotation.y))
-        }
-        obs = np.ravel(pandas.DataFrame.from_records([d])[self.features])
-        goal = np.ravel(pandas.DataFrame.from_records([self.road.goals])[self.features])
-        obs = {
-            "observation": obs / self.OBS_SCALE,
-            "achieved_goal": obs / self.OBS_SCALE,
-            "desired_goal": goal / self.OBS_SCALE
-        }
-        return obs'''
 
     def _populate_scene(self):
         """
@@ -265,8 +188,9 @@ class LG_Sim_Env(ParkingEnv):
         self.crashed = True
 
     def reset(self):
+        if self.sim is not None:
+            self.sim.reset()
         return super(LG_Sim_Env, self).reset()
-        self.sim.reset()
         
 
     def close(self):

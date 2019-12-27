@@ -144,7 +144,7 @@ def main(mainkwargs):
             retrieved_agent_policy = retrieved_agent.get_policy()
             update_policy(retrieved_agent_policy)
             print("entering ray play")
-            ray_play(config=config)
+            ray_play(env_id=play_env_id, config=config)
         else:
             from baselines.common import tf_util, mpi_util
             from baselines.common.vec_env import VecEnv
