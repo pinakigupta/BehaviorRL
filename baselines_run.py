@@ -133,12 +133,7 @@ def main(mainkwargs):
             config = {
                         "LOAD_MODEL_FOLDER": "20191203-232528",
                         "RESTORE_COND": "RESTORE", 
-                        "MODEL":             {
-                                            #    "use_lstm": True,
-                                                "fcnet_hiddens": [256, 128, 128],
-                                            #     "fcnet_activation": "relu",
-                                            }, 
-                    }
+                     }
             #config=play_env.config
             retrieved_agent = ray_retrieve_agent(env_id=play_env_id, config=config)
             retrieved_agent_policy = retrieved_agent.get_policy()

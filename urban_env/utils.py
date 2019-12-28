@@ -7,7 +7,7 @@
 from __future__ import division, print_function
 
 import importlib
-
+from itertools import combinations
 import numpy as np
 
 EPSILON = 0.01
@@ -30,6 +30,27 @@ def wrap_to_pi(x):
     return ((x+np.pi) % (2*np.pi)) - np.pi
 
 
+def triangle_area(p1, p2, p3):
+    return abs(p1[0]*(p2[1]-p3[1]) + p2[0]*(p3[1]-p1[1]) + p3[0]*(p1[1]-p2[1]))/2
+
+
+def point_within_rectangle(point, rect2):
+    """
+        Check if a point is inside an rectangle
+    :param point: a point
+    :param rect2: (center, length, width, angle)
+    """
+    (center, length, width, angle) = rect2
+    rect2_corner_points = corner_points(rect2)
+    triangle_area_sum = 0
+    corner_point_pairs = combinations(rect2_corner_points, 2)
+    triangle_areas = []
+    for corner_point_pair in corner_point_pairs:  # 2 for pairs, 3 for triplets, etc
+        triangle_areas.append(triangle_area(point, corner_point_pair[0], corner_point_pair[1]))
+    triangle_area_sum = sum(triangle_areas)
+    return triangle_area_sum <= (length*width)
+           
+
 def point_in_rectangle(point, rect_min, rect_max):
     """
         Check if a point is inside a rectangle
@@ -40,19 +61,19 @@ def point_in_rectangle(point, rect_min, rect_max):
     return rect_min[0] <= point[0] <= rect_max[0] and rect_min[1] <= point[1] <= rect_max[1]
 
 
-def point_in_rotated_rectangle(point, center, length, width, angle):
+def point_in_rotated_rectangle(point, rect2):
     """
         Check if a point is inside a rotated rectangle
     :param point: a point
-    :param center: rectangle center
-    :param length: rectangle length
-    :param width: rectangle width
-    :param angle: rectangle angle [rad]
+    :param rect2: (center, length, width, angle)
     """
+    point_is_inside_rotated_rectangle = False
+    (center, length, width, angle) = rect2
     c, s = np.cos(angle), np.sin(angle)
     r = np.array([[c, -s], [s, c]])
     ru = r.dot(point - center)
-    return point_in_rectangle(ru, [-length/2, -width/2], [length/2, width/2])
+    point_is_inside_rotated_rectangle = point_in_rectangle(ru, [-length/2, -width/2], [length/2, width/2])
+    return point_is_inside_rotated_rectangle
 
 
 def point_in_ellipse(point, center, angle, length, width):
@@ -85,18 +106,32 @@ def has_corner_inside(rect1, rect2):
     :param rect1: (center, length, width, angle)
     :param rect2: (center, length, width, angle)
     """
+    rect1_corner_points = corner_points(rect1)
+    any_corner_inside = False
+    for p in rect1_corner_points:
+        this_corner_inside = point_in_rotated_rectangle(p, rect2)
+        if this_corner_inside:
+            any_corner_inside = True
+            break
+    return any_corner_inside
+
+
+def corner_points(rect1):
     (c1, l1, w1, a1) = rect1
-    (c2, l2, w2, a2) = rect2
     c1 = np.array(c1)
     l1v = np.array([l1/2, 0])
     w1v = np.array([0, w1/2])
-    r1_points = np.array([[0, 0],
-                          - l1v, l1v, w1v, w1v,
+    r1_points = np.array([
+                           #[0, 0],
+                           #- l1v, l1v, w1v, w1v,
                           - l1v - w1v, - l1v + w1v, + l1v - w1v, + l1v + w1v])
     c, s = np.cos(a1), np.sin(a1)
     r = np.array([[c, -s], [s, c]])
     rotated_r1_points = r.dot(r1_points.transpose()).transpose()
-    return any([point_in_rotated_rectangle(c1+np.squeeze(p), c2, l2, w2, a2) for p in rotated_r1_points])
+    corner_pts = []
+    for corner_pt in rotated_r1_points:
+        corner_pts.append(corner_pt + c1)
+    return corner_pts
 
 
 def do_every(duration, timer):
