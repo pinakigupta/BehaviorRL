@@ -231,12 +231,12 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         # Defining parking spots 
         if self.config["parking_spots"] == 'random':
-            self.parking_spots = self.np_random.randint(2, 15)
+            self.parking_spots = self.np_random.randint(low=2, high=15)
         else:
             self.parking_spots = self.config["parking_spots"]
 
         if self.config["aisle_width"] == 'random':
-            self.aisle_width = self.np_random.randint(5, 20)
+            self.aisle_width = self.np_random.uniform(low=5, high=20)
         else:
             self.aisle_width = self.config["aisle_width"]
 
@@ -251,10 +251,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             self.park_length = self.config["length"]  
 
         # Let's start by randomly choosing the parking angle
-        parking_angles = np.deg2rad([90, 75, 60, 45, 0])
-        angle = 0  # np.pi/3
+        #parking_angles = np.deg2rad([90, 75, 60, 45, 0])
         if self.config["parking_angle"] == 'random':
-            self.park_angle = parking_angles[self.np_random.randint(len(parking_angles))]
+            #self.park_angle = parking_angles[self.np_random.randint(len(parking_angles))]
+            self.park_angle =  self.np_random.uniform(low=0, high=90)
         else:
             self.park_angle = np.deg2rad(self.config["parking_angle"])
 
