@@ -52,6 +52,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "CURRICULAM_REWARD_THRESHOLD": 0.9,
             "SUCCESS_THRESHOLD": 0.0015,
             "REWARD_WEIGHTS": np.array([15/100, 15/100, 1/100, 1/100, 2/100, 2/100]),
+            "ACTION_CHANGE_REWARD": -1,
         },
         **{
             "LOAD_MODEL_FOLDER": "20191216-141903",
@@ -511,8 +512,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         # REVERESE DRIVING REWARD
         reverse_reward = self.config["REVERSE_REWARD"] * np.squeeze(info["is_reverse"])
+        comfort_reward =  self.config["REVERSE_REWARD"] * abs(self.vehicle.jerk)
+        #print("jerk ", self.vehicle.jerk, " comfort_reward ", comfort_reward )
         velocity_reward = self.config["VELOCITY_REWARD"] * (self.vehicle.velocity - 0.5*self.PARKING_MAX_VELOCITY) / (self.PARKING_MAX_VELOCITY)
-        continuous_reward = (distance_to_goal_reward + reverse_reward  )  # + \
+        continuous_reward = (distance_to_goal_reward + reverse_reward + comfort_reward )  # + \
         # over_other_parking_spots_reward)
         # reverse_reward + \
         # against_traffic_reward + \

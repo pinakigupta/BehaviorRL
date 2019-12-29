@@ -73,6 +73,8 @@ class Vehicle(Loggable):
         self.position = np.array(position).astype('float')
         self.heading = heading
         self.velocity = velocity
+        self.acceleration = 0.0
+        self.jerk = 0.0
         self.color = color
         if lane_index is None:
             self.lane_index = self.road.network.get_closest_lane_index(self.position, self.heading) if self.road else np.nan
@@ -199,7 +201,10 @@ class Vehicle(Loggable):
         v = self.velocity * np.array([np.cos(self.heading), np.sin(self.heading)])
         self.position += v * dt
         self.heading += self.velocity * np.tan(self.action['steering']) / self.LENGTH * dt
-        self.velocity += self.action['acceleration'] * dt
+        self.velocity += self.acceleration * dt
+        self.jerk = (self.action['acceleration'] - self.acceleration)/dt
+        alpha = 0.1
+        self.acceleration = self.action['acceleration'] + alpha*(self.acceleration - self.action['acceleration'])
 
         if self.road:
             self.lane_index = self.road.network.get_closest_lane_index(self.position, self.heading)
@@ -238,7 +243,7 @@ class Vehicle(Loggable):
         """
         
         if self.config["_predict_only"]:
-            SCALE = 0.9
+            SCALE = 1.0
             
         if self.virtual and other.virtual:
             return 
@@ -422,6 +427,9 @@ class Obstacle(Vehicle):
                                        **kwargs)
         self.target_velocity = 0
         self.velocity = 0
+        if self.road:
+            self.lane_index = self.road.network.get_closest_lane_index(self.position, self.heading)
+            self.lane = self.road.network.get_lane(self.lane_index)
         #self.LENGTH = self.WIDTH
 
     def Id(self):
@@ -429,6 +437,10 @@ class Obstacle(Vehicle):
 
     def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q=None, pred_horizon=-1, **kwargs):
         return None
+
+    def step(self, dt):
+        pass
+
 
 
 class Pedestrian(Vehicle):
