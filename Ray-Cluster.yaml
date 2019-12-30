@@ -119,7 +119,7 @@ setup_commands:
     - echo 'export PATH="$HOME/anaconda3/envs/tensorflow_p36/bin:$PATH"' >> ~/.bashrc
     # - pip install -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.8.0.dev1-cp27-cp27mu-manylinux1_x86_64.whl
     # - pip install -U https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.8.0.dev1-cp35-cp35m-manylinux1_x86_64.whl
-    - pip install -U ray ray[debug] #https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.8.0.dev1-cp36-cp36m-manylinux1_x86_64.whl
+    - pip install -U ray==0.7.4 ray[debug] #https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-0.8.0.dev1-cp36-cp36m-manylinux1_x86_64.whl
     #- if cd BehaviorRL; then git pull; cd ..; else git clone https://github.com/pinakigupta/BehaviorRL.git; fi  
     #- cd BehaviorRL && git fetch && git checkout `cat /tmp/current_branch_sha`
     # Consider uncommenting these if you also want to run apt-get commands during setup

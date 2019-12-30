@@ -52,7 +52,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "CURRICULAM_REWARD_THRESHOLD": 0.9,
             "SUCCESS_THRESHOLD": 0.0015,
             "REWARD_WEIGHTS": np.array([15/100, 15/100, 1/100, 1/100, 2/100, 2/100]),
-            "ACTION_CHANGE_REWARD": -1,
+            "ACTION_CHANGE_REWARD": 0.0,
         },
         **{
             "LOAD_MODEL_FOLDER": "20191216-141903",
@@ -178,11 +178,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self._populate_parking()
         self.is_success = False
         self.vehicle.crashed = False
-        self.define_spaces()
-        self.episode_reward = 0
-        obs = self.observation.observe()
-        return obs
-        #return self._observation()
+        return super(ParkingEnv_2outs, self).reset()
+
 
     def define_spaces(self):
         super(ParkingEnv_2outs, self).define_spaces()

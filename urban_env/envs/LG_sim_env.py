@@ -81,7 +81,7 @@ class LG_Sim_Env(ParkingEnv):
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
             "DIFFICULTY_LEVELS": 4,
             "OBS_STACK_SIZE": 1,
-            "vehicles_count": 1,
+            "vehicles_count": 'random',
             "goals_count": 'all',
             "pedestrian_count": 0,
             "SIMULATION_FREQUENCY": 5,  # The frequency at which the system dynamics are simulated [Hz]
@@ -89,7 +89,7 @@ class LG_Sim_Env(ParkingEnv):
             "velocity_range": 1.5*ParkingEnv.PARKING_MAX_VELOCITY,
             "MAX_VELOCITY": ParkingEnv.PARKING_MAX_VELOCITY,
             "closest_lane_dist_thresh": 500,
-            "map": 'InterchangeDrive',
+            "map": 'WideFlatMap',
             },
         **{
             "PARKING_LOT_WIDTH": ParkingEnv.DEFAULT_PARKING_LOT_WIDTH,
@@ -117,16 +117,13 @@ class LG_Sim_Env(ParkingEnv):
 
         #self.sim = lgsvl.Simulator(address=os.environ.get("SIMULATOR_HOST", "127.0.0.1"), port=8080) 
         
-        self.sim = lgsvl.Simulator(address="127.0.0.1", port=8181) 
 
-        self.control = lgsvl.VehicleControl()
 
         '''if self.sim.current_scene == self.config["map"]:
             self.sim.reset()
         else:'''
-        self.sim.load(self.config["map"])  
-        self.agents = {}     
-        self._populate_scene()
+         
+
 
 
         
@@ -188,9 +185,16 @@ class LG_Sim_Env(ParkingEnv):
         self.crashed = True
 
     def reset(self):
+        obs = super(LG_Sim_Env, self).reset()
         if self.sim is not None:
             self.sim.reset()
-        return super(LG_Sim_Env, self).reset()
+        else:
+            self.sim = lgsvl.Simulator(address="127.0.0.1", port=8181) 
+            self.control = lgsvl.VehicleControl()
+            self.sim.load(self.config["map"]) 
+        self.agents = {}     
+        self._populate_scene()
+        return obs
         
 
     def close(self):
