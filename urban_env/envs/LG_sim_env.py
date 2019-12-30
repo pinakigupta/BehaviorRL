@@ -18,8 +18,8 @@ from gym.spaces import Discrete, Box, Tuple
 from gym.utils import colorize, seeding
 
 
-from PythonAPI import lgsvl
-from PythonAPI.lgsvl.utils import *
+import lgsvl
+from lgsvl.utils import *
 
 from gym import GoalEnv, spaces
 
