@@ -91,6 +91,7 @@ class Vehicle(Loggable):
         self.config = {**self.DEFAULT_CONFIG, **config}
         self.control_action = None
         self.hidden = False
+        self.LGAgent = None
     
     def is_ego(self):
         return self.is_ego_vehicle
@@ -188,23 +189,28 @@ class Vehicle(Loggable):
 
         :param dt: timestep of integration of the model [s]
         """
-        if self.crashed:
-            self.action['steering'] = 0
-            self.action['acceleration'] = -1.0*self.velocity
-        if self.velocity > self.config["MAX_VELOCITY"]:
-            self.action['acceleration'] = min(
-                self.action['acceleration'], 1.0*(self.config["MAX_VELOCITY"] - self.velocity))
-        elif self.velocity < -self.config["MAX_VELOCITY"]:
-            self.action['acceleration'] = max(
-                self.action['acceleration'], 1.0*(self.config["MAX_VELOCITY"] - self.velocity))
-        
-        v = self.velocity * np.array([np.cos(self.heading), np.sin(self.heading)])
-        self.position += v * dt
-        self.heading += self.velocity * np.tan(self.action['steering']) / self.LENGTH * dt
-        self.velocity += self.acceleration * dt
-        self.jerk = (self.action['acceleration'] - self.acceleration)/dt
-        alpha = 0.1
-        self.acceleration = self.action['acceleration'] + alpha*(self.acceleration - self.action['acceleration'])
+        if self.LGAgent is not None:
+            self.position = np.array([self.LGAgent.state.transform.position.x, self.LGAgent.state.transform.position.z]).astype('float')
+            self.velocity = np.sqrt(self.LGAgent.state.velocity.x**2 + self.LGAgent.state.velocity.z**2)
+            self.heading = np.deg2rad(self.LGAgent.state.transform.rotation.y)
+        else:
+            if self.crashed:
+                self.action['steering'] = 0
+                self.action['acceleration'] = -1.0*self.velocity
+            if self.velocity > self.config["MAX_VELOCITY"]:
+                self.action['acceleration'] = min(
+                    self.action['acceleration'], 1.0*(self.config["MAX_VELOCITY"] - self.velocity))
+            elif self.velocity < -self.config["MAX_VELOCITY"]:
+                self.action['acceleration'] = max(
+                    self.action['acceleration'], 1.0*(self.config["MAX_VELOCITY"] - self.velocity))
+            
+            v = self.velocity * np.array([np.cos(self.heading), np.sin(self.heading)])
+            self.position += v * dt
+            self.heading += self.velocity * np.tan(self.action['steering']) / self.LENGTH * dt
+            self.velocity += self.acceleration * dt
+            self.jerk = (self.action['acceleration'] - self.acceleration)/dt
+            alpha = 0.1
+            self.acceleration = self.action['acceleration'] + alpha*(self.acceleration - self.action['acceleration'])
 
         if self.road:
             self.lane_index = self.road.network.get_closest_lane_index(self.position, self.heading)
@@ -439,7 +445,12 @@ class Obstacle(Vehicle):
         return None
 
     def step(self, dt):
-        pass
+        if self.LGAgent is not None:
+            self.position = np.array([self.LGAgent.state.transform.position.z, self.LGAgent.state.transform.position.x]).astype('float')
+            self.velocity = np.sqrt(self.LGAgent.state.velocity.x**2 + self.LGAgent.state.velocity.z**2)
+            self.heading = np.deg2rad(self.LGAgent.state.transform.rotation.y)
+        else:        
+            pass
 
 
 

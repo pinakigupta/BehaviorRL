@@ -51,14 +51,12 @@ class ObstacleLG(Obstacle):
                                        color=color, 
                                        config=config, 
                                        **kwargs)
-        self.Agent = None
-        print(self.position)
+        self.LGAgent = None
 
     def step(self, dt):
         
-        if self.Agent is not None:
-            self.position = [self.Agent.state.position.x, self.Agent.state.position.z]
-            print(self.position)
+        if self.LGAgent is not None:
+            self.position = [self.LGAgent.state.transform.position.x, self.LGAgent.state.transform.position.z]
 
 
 
@@ -103,10 +101,10 @@ class LG_Sim_Env(ParkingEnv):
                 "goals_count": 10,
                 "constraints_count": 5,
                            },
-            "obstacle_type": "urban_env.envs.LG_sim_env.ObstacleLG",
+            #"obstacle_type": "urban_env.envs.LG_sim_env.ObstacleLG",
             "DIFFICULTY_LEVELS": 4,
             "OBS_STACK_SIZE": 1,
-            "vehicles_count": 1,
+            "vehicles_count": 3,
             "goals_count": 'all',
             "pedestrian_count": 0,
             "SIMULATION_FREQUENCY": 5,  # The frequency at which the system dynamics are simulated [Hz]
@@ -115,7 +113,7 @@ class LG_Sim_Env(ParkingEnv):
             "MAX_VELOCITY": ParkingEnv.PARKING_MAX_VELOCITY,
             "closest_lane_dist_thresh": 500,
             "map": 'WideFlatMap',
-            "map_offset": [0, 0, -90],
+            "map_offset": [0, 0, 0],
             },
         **{
             "PARKING_LOT_WIDTH": ParkingEnv.DEFAULT_PARKING_LOT_WIDTH,
@@ -155,6 +153,11 @@ class LG_Sim_Env(ParkingEnv):
         allow_switch_gear = np.abs(velocity) < VELOCITY_EPSILON
         reverse = False
 
+        ##############################################
+        acceleration = action[0].item() * self.vehicle.config['max_acceleration']
+        steering = action[1].item() * self.vehicle.config['max_steer_angle']
+        ###############################################
+        
         throttle_brake = -action[0].item()
         if throttle_brake < 0.0: # Only Braking
             self.control.throttle = 0.0
@@ -182,12 +185,13 @@ class LG_Sim_Env(ParkingEnv):
 
         for v in self.road.vehicles:
             if v.is_ego_vehicle:
-                self.ego = self._setup_agent(v, "jaguar2015xe",  lgsvl.AgentType.EGO)
+                v.LGAgent = self._setup_agent(v, "jaguar2015xe",  lgsvl.AgentType.EGO)
+                self.ego = v.LGAgent
             elif v in self.road.virtual_vehicles:
                 #self._setup_agent(v, "BoxTruck",  lgsvl.AgentType.NPC)
                 pass
             else:
-                v.Agent = self._setup_agent(v, "Sedan",  lgsvl.AgentType.NPC)
+                v.LGAgent = self._setup_agent(v, "Sedan",  lgsvl.AgentType.NPC)
 
         #self.ego.on_collision(self.on_collision)
 
@@ -199,9 +203,13 @@ class LG_Sim_Env(ParkingEnv):
         y = 0.0
         z = v.position[1] + self.config["map_offset"][1]
 
-        state.transform.position = lgsvl.Vector(x, y, z)
+        vx = v.velocity*cos(v.heading)
+        vy = 0.0
+        vz = v.velocity*sin(v.heading)
+
+        state.transform.position = lgsvl.Vector(z, y, x)
         state.transform.rotation = lgsvl.Vector(0.0, np.rad2deg(v.heading) + self.config["map_offset"][2], 0.0)
-        state.velocity = lgsvl.Vector(v.velocity*cos(v.heading), 0, v.velocity*sin(v.heading))
+        state.velocity = lgsvl.Vector(vz, vy, vx)
         state.angular_velocity = lgsvl.Vector(0.0, 0.0, 0.0)
         return self.sim.add_agent(agent_name, agent_type, state)
 
