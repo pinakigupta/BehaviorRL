@@ -24,6 +24,7 @@ from lgsvl.utils import *
 from gym import GoalEnv, spaces
 
 from urban_env.envs.parking_env_2outs import ParkingEnv_2outs as ParkingEnv
+from urban_env.vehicle.dynamics import Obstacle
 
 
 VELOCITY_EPSILON = 0.1
@@ -31,10 +32,34 @@ VELOCITY_EPSILON = 0.1
 HAVAL_PARKING_LOT = {
                         "parking_angle": 0,
                         "parking_spots": 10,
-                        "map_offset": [-40, -4],
+#                        "map_offset": [-40, -4],
                         "aisle_width": 6.5, 
                         "width": 3,
                     }
+
+
+class ObstacleLG(Obstacle):
+    """
+        A motionless obstacle at a given position.
+    """
+
+    def __init__(self, road, position, heading=0, config=None, color=None, **kwargs):
+        super(ObstacleLG, self).__init__(
+                                       road=road, 
+                                       position=position, 
+                                       heading=heading, 
+                                       color=color, 
+                                       config=config, 
+                                       **kwargs)
+        self.Agent = None
+        print(self.position)
+
+    def step(self, dt):
+        
+        if self.Agent is not None:
+            self.position = [self.Agent.state.position.x, self.Agent.state.position.z]
+            print(self.position)
+
 
 
 class LG_Sim_Env(ParkingEnv):
@@ -78,10 +103,10 @@ class LG_Sim_Env(ParkingEnv):
                 "goals_count": 10,
                 "constraints_count": 5,
                            },
-            "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
+            "obstacle_type": "urban_env.envs.LG_sim_env.ObstacleLG",
             "DIFFICULTY_LEVELS": 4,
             "OBS_STACK_SIZE": 1,
-            "vehicles_count": 'random',
+            "vehicles_count": 1,
             "goals_count": 'all',
             "pedestrian_count": 0,
             "SIMULATION_FREQUENCY": 5,  # The frequency at which the system dynamics are simulated [Hz]
@@ -90,6 +115,7 @@ class LG_Sim_Env(ParkingEnv):
             "MAX_VELOCITY": ParkingEnv.PARKING_MAX_VELOCITY,
             "closest_lane_dist_thresh": 500,
             "map": 'WideFlatMap',
+            "map_offset": [0, 0, -90],
             },
         **{
             "PARKING_LOT_WIDTH": ParkingEnv.DEFAULT_PARKING_LOT_WIDTH,
@@ -123,11 +149,6 @@ class LG_Sim_Env(ParkingEnv):
             self.sim.reset()
         else:'''
          
-
-
-
-        
-
     def step(self, action): 
         obs, reward, done, info = super(LG_Sim_Env, self).step(action)
         velocity = np.sqrt(self.ego.state.velocity.x**2 + self.ego.state.velocity.z**2)
@@ -166,7 +187,7 @@ class LG_Sim_Env(ParkingEnv):
                 #self._setup_agent(v, "BoxTruck",  lgsvl.AgentType.NPC)
                 pass
             else:
-                self._setup_agent(v, "Sedan",  lgsvl.AgentType.NPC)
+                v.Agent = self._setup_agent(v, "Sedan",  lgsvl.AgentType.NPC)
 
         #self.ego.on_collision(self.on_collision)
 
@@ -174,11 +195,14 @@ class LG_Sim_Env(ParkingEnv):
         
     def _setup_agent(self, v, agent_name="Jeep", agent_type=lgsvl.AgentType.NPC):
         state = lgsvl.AgentState()
-        state.transform.position = lgsvl.Vector(v.position[0]+self.config["map_offset"][0],
-                                                0, 
-                                                v.position[1]+self.config["map_offset"][1])
-        state.transform.rotation.y = v.heading
+        x = v.position[0] + self.config["map_offset"][0]
+        y = 0.0
+        z = v.position[1] + self.config["map_offset"][1]
+
+        state.transform.position = lgsvl.Vector(x, y, z)
+        state.transform.rotation = lgsvl.Vector(0.0, np.rad2deg(v.heading) + self.config["map_offset"][2], 0.0)
         state.velocity = lgsvl.Vector(v.velocity*cos(v.heading), 0, v.velocity*sin(v.heading))
+        state.angular_velocity = lgsvl.Vector(0.0, 0.0, 0.0)
         return self.sim.add_agent(agent_name, agent_type, state)
 
     def on_collision(self, agent1, agent2, contact):

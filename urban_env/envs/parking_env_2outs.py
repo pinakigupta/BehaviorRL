@@ -75,7 +75,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 "goals_count": 10,
                 "constraints_count": 5,
                            },
-            "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle",
+            "obstacle_type": "urban_env.vehicle.dynamics.Obstacle",
             "duration": 100,
             "_predict_only": is_predict_only(),
             "screen_width": 1600,
@@ -179,7 +179,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self.is_success = False
         self.vehicle.crashed = False
         return super(ParkingEnv_2outs, self).reset()
-
 
     def define_spaces(self):
         super(ParkingEnv_2outs, self).define_spaces()
@@ -409,6 +408,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         lane = self.np_random.choice(self.road.network.lanes_list()[:-self.border_lane_count])
 
         ##### ADDING OTHER VEHICLES #####
+        GenericObstacle = class_from_path(self.config["obstacle_type"])
         for _ in range(self.vehicles_count):
             while lane in parking_spots_used:  # this loop should never be infinite since we assert that there should be more parking spots/lanes than vehicles
                 # to-do: chceck for empty spots
@@ -417,14 +417,14 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
             # + self.np_random.randint(2) * np.pi
             self.road.vehicles.append(
-                                      Obstacle(
-                                               road=self.road,
-                                               position=lane.position(lane.length/2, 0),
-                                               heading=lane.heading,
-                                               velocity=0,
-                                               config=self.config,
-                                              )
-                                    )
+                                      GenericObstacle(
+                                                        road=self.road,
+                                                        position=lane.position(lane.length/2, 0),
+                                                        heading=lane.heading,
+                                                        velocity=0,
+                                                        config=self.config,
+                                                     )
+                                     )
 
         ##### ADDING OTHER GOALS #####
         for _ in range(self.goals_count):

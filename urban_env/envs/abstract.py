@@ -189,7 +189,7 @@ class AbstractEnv(gym.Env):
 
         if is_predict_only() and not self.config["_predict_only"]:
             self.config["_predict_only"] = True
-            self.reset()
+            #self.reset()
 
         self._simulate(action)
         
