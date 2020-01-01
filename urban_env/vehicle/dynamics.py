@@ -190,7 +190,7 @@ class Vehicle(Loggable):
         :param dt: timestep of integration of the model [s]
         """
         if self.LGAgent is not None:
-            self.position = np.array([self.LGAgent.state.transform.position.x, self.LGAgent.state.transform.position.z]).astype('float')
+            self.position = np.array([self.LGAgent.state.transform.position.z, self.LGAgent.state.transform.position.x]).astype('float')
             self.velocity = np.sqrt(self.LGAgent.state.velocity.x**2 + self.LGAgent.state.velocity.z**2)
             self.heading = np.deg2rad(self.LGAgent.state.transform.rotation.y)
         else:
