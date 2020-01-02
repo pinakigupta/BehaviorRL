@@ -82,6 +82,7 @@ class Vehicle(Loggable):
             self.lane_index = lane_index
         self.lane = self.road.network.get_lane(self.lane_index) if self.road else None
         self.action = {'steering': 0, 'acceleration': 0}
+        self.reverse = False
         self.action_validity = True
         self.crashed = False
         self.log = []
@@ -448,6 +449,8 @@ class Obstacle(Vehicle):
         if self.LGAgent is not None:
             self.position = np.array([self.LGAgent.state.transform.position.z, self.LGAgent.state.transform.position.x]).astype('float')
             self.velocity = np.sqrt(self.LGAgent.state.velocity.x**2 + self.LGAgent.state.velocity.z**2)
+            if self.reverse:
+                self.velocity *= -1.0
             self.heading = np.deg2rad(self.LGAgent.state.transform.rotation.y)
         else:        
             pass

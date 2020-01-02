@@ -107,8 +107,8 @@ class LG_Sim_Env(ParkingEnv):
             "vehicles_count": 'random',
             "goals_count": 'all',
             "pedestrian_count": 0,
-            "SIMULATION_FREQUENCY": 20,  # The frequency at which the system dynamics are simulated [Hz]
-            "POLICY_FREQUENCY": 20,  # The frequency at which the agent can take actions [Hz]
+            "SIMULATION_FREQUENCY": 10,  # The frequency at which the system dynamics are simulated [Hz]
+            "POLICY_FREQUENCY": 10,  # The frequency at which the agent can take actions [Hz]
             "velocity_range": 1.5*ParkingEnv.PARKING_MAX_VELOCITY,
             "MAX_VELOCITY": ParkingEnv.PARKING_MAX_VELOCITY,
             "closest_lane_dist_thresh": 500,
@@ -151,50 +151,59 @@ class LG_Sim_Env(ParkingEnv):
         obs, reward, done, info = super(LG_Sim_Env, self).step(action)
         velocity = np.sqrt(self.ego.state.velocity.x**2 + self.ego.state.velocity.z**2)
         allow_switch_gear = np.abs(velocity) < VELOCITY_EPSILON
-        reverse = False
+        #reverse = False
 
         ##############################################
         #acceleration = action[0].item() * self.vehicle.config['max_acceleration']
         #steering = action[1].item() * self.vehicle.config['max_steer_angle']
         ###############################################
-        
-        throttle_brake = -action[0].item()
+
+        throttle_brake = action[0].item()
+
+        if velocity > self.config["MAX_VELOCITY"]:
+            throttle_brake = min(throttle_brake, 1.0*(self.config["MAX_VELOCITY"] - velocity))
+        elif velocity < -self.config["MAX_VELOCITY"]:
+            throttle_brake = max(throttle_brake, 1.0*(self.config["MAX_VELOCITY"] - velocity))
+
         if throttle_brake < 0.0: # Fwd Braking or Reverse Throttle
             if velocity > VELOCITY_EPSILON:
                 self.control.throttle = 0.0
                 self.control.braking = np.abs(throttle_brake)
-                reverse = False
+                self.vehicle.reverse = False
             elif velocity < -VELOCITY_EPSILON or self.control.reverse:
                 self.control.throttle = np.abs(throttle_brake)
                 self.control.braking = 0.0
-                reverse = True
+                self.vehicle.reverse = True
             else: # self.control.reverse is False
                 self.control.throttle = 0.0
                 self.control.braking = 0.0
-                reverse = True
+                self.vehicle.reverse = True
 
         else: # Fwd Throttle or Reverse Braking
-            if velocity > VELOCITY_EPSILON or (not self.control.reverse):
+            if velocity > VELOCITY_EPSILON or (not self.control.reverse): # FWD throttle
                 self.control.braking = 0.0
                 self.control.throttle = np.abs(throttle_brake)
-                reverse = False
-            elif velocity < -VELOCITY_EPSILON:
+                self.vehicle.reverse = False
+            elif self.control.reverse: # reverse brake
                 self.control.braking = np.abs(throttle_brake)
                 self.control.throttle = 0.0
-                reverse = True
+                self.vehicle.reverse = True
             else:# self.control.reverse is True
                 self.control.throttle = 0.0
                 self.control.braking = 0.0
-                reverse = False
+                self.vehicle.reverse = False
 
-        self.control.steering = -action[1].item()       
-        self.control.reverse  = reverse
+        self.control.steering = action[1].item() * np.rad2deg(self.vehicle.config['max_steer_angle']) / 39.4
+        self.control.reverse = self.vehicle.reverse
         self.ego.apply_control(self.control, True)
-        self.sim.run(time_limit = self.ACTIONS_HOLD_TIME)
+        self.sim.run(time_limit=1/self.config["POLICY_FREQUENCY"])
 
-        print(" reverse ", reverse, " velocity ", velocity, 
-              " throttle ",self.control.throttle, " braking ", self.control.braking, 
-              " throttle_brake ", throttle_brake)
+        print(" reverse ", self.vehicle.reverse,
+              " velocity ", "{0:.2f}".format(velocity), 
+              " steer ", "{0:.2f}".format(self.control.steering), 
+              " throttle ", "{0:.2f}".format(self.control.throttle), 
+              " braking ",  "{0:.2f}".format(self.control.braking), 
+              " throttle_brake ", "{0:.2f}".format(throttle_brake))
 
         return obs, reward, done, info
 
