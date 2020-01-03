@@ -193,6 +193,8 @@ class Vehicle(Loggable):
         if self.LGAgent is not None:
             self.position = np.array([self.LGAgent.state.transform.position.z, self.LGAgent.state.transform.position.x]).astype('float')
             self.velocity = np.sqrt(self.LGAgent.state.velocity.x**2 + self.LGAgent.state.velocity.z**2)
+            if self.reverse:
+                self.velocity *= -abs(self.velocity)
             self.heading = np.deg2rad(self.LGAgent.state.transform.rotation.y)
         else:
             if self.crashed:
@@ -450,7 +452,7 @@ class Obstacle(Vehicle):
             self.position = np.array([self.LGAgent.state.transform.position.z, self.LGAgent.state.transform.position.x]).astype('float')
             self.velocity = np.sqrt(self.LGAgent.state.velocity.x**2 + self.LGAgent.state.velocity.z**2)
             if self.reverse:
-                self.velocity *= -1.0
+                self.velocity *= -abs(self.velocity)
             self.heading = np.deg2rad(self.LGAgent.state.transform.rotation.y)
         else:        
             pass
