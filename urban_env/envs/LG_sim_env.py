@@ -150,7 +150,7 @@ class LG_Sim_Env(ParkingEnv):
          
     def step(self, action): 
         obs, reward, done, info = super(LG_Sim_Env, self).step(action)
-        velocity = np.sqrt(self.ego.state.velocity.x**2 + self.ego.state.velocity.z**2)
+        velocity = self.vehicle.velocity
         allow_switch_gear = np.abs(velocity) < VELOCITY_EPSILON
         #reverse = False
 
@@ -196,7 +196,7 @@ class LG_Sim_Env(ParkingEnv):
 
         self.control.steering = action[1].item() * np.rad2deg(self.vehicle.config['max_steer_angle']) / 39.4
         self.control.reverse = self.vehicle.reverse
-        self.ego.apply_control(self.control, True)
+        self.vehicle.LGAgent.apply_control(self.control, True)
         self.sim.run(time_limit=1/self.config["POLICY_FREQUENCY"])
 
         print(" reverse ", self.vehicle.reverse,
@@ -217,7 +217,6 @@ class LG_Sim_Env(ParkingEnv):
         for v in self.road.vehicles:
             if v.is_ego_vehicle:
                 v.LGAgent = self._setup_agent(v, "jaguar2015xe",  lgsvl.AgentType.EGO)
-                self.ego = v.LGAgent
             elif isinstance(v, Pedestrian):
                 pedestrian = random.choice(["Bob", "Howard", "Johny", "Pamela", "Presley", "Red", "Robin", "Stephen", "Zoe"])
                 v.LGAgent = self._setup_agent(v, pedestrian,  lgsvl.AgentType.PEDESTRIAN)
