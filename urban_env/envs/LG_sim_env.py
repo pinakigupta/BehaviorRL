@@ -225,7 +225,8 @@ class LG_Sim_Env(ParkingEnv):
                 #self._setup_agent(v, "BoxTruck",  lgsvl.AgentType.NPC)
                 pass
             else:
-                v.LGAgent = self._setup_agent(v, "Sedan",  lgsvl.AgentType.NPC)
+                npcobject = random.choice(["Sedan", "SUV", "Jeep", "Hatchback"])
+                v.LGAgent = self._setup_agent(v, npcobject,  lgsvl.AgentType.NPC)
 
         #self.ego.on_collision(self.on_collision)
 
