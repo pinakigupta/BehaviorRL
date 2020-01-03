@@ -62,6 +62,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                      "fcnet_hiddens": [256, 128, 128],
                                 #     "fcnet_activation": "relu",
                                  }, 
+            "retrieved_agent_policy": 0,
         },
         **{
             "observation": {

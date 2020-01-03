@@ -27,7 +27,7 @@ register_env('roundabout-v0', lambda config: urban_env.envs.RoundaboutEnv(config
 register_env('two-way-v0', lambda config: urban_env.envs.TwoWayEnv(config))
 register_env('parking-v0', lambda config: urban_env.envs.ParkingEnv(config))
 register_env('parking_2outs-v0', lambda config: urban_env.envs.ParkingEnv_2outs(config))
-register_env('LG-SIM-ENV-v0', lambda config: urban_env.envs.LG_Sim_Env(config))
+#register_env('LG-SIM-ENV-v0', lambda config: urban_env.envs.LG_Sim_Env(config))
 register_env('multitask-v0', lambda config: MultiTaskEnv(config))
 
 def exit_handler():
@@ -74,13 +74,24 @@ def main(mainkwargs):
     policy = None
     play_env = None
     max_iteration = 1
+
+    config = {
+                "LOAD_MODEL_FOLDER": "20191231-140441",
+                "RESTORE_COND": "RESTORE", 
+                "MODEL":        {
+                                #    "use_lstm": True,
+                                     "fcnet_hiddens": [256, 128, 128],
+                                #     "fcnet_activation": "relu",
+                                 }, 
+                "num_workers": 12,                                 
+             }    
     if not predict_only:
         if RUN_WITH_RAY:
             from raylibs import ray_train, ray_init
             from ray_rollout import ray_retrieve_agent
             from settings import update_policy
-            available_cluster_cpus = ray_init(**mainkwargs)
-            play_env = gym.make(play_env_id)
+            available_cluster_cpus, available_cluster_gpus = ray_init(**mainkwargs)
+            #play_env = gym.make(play_env_id)
             '''retrieved_agent = ray_retrieve_agent(play_env_id)
             retrieved_agent_policy = retrieved_agent.get_policy()
             update_policy(retrieved_agent_policy)'''
@@ -89,9 +100,10 @@ def main(mainkwargs):
             mainkwargs = {**mainkwargs, 
                           **{"save_in_sub_folder": save_in_sub_folder, 
                              "available_cluster_cpus": available_cluster_cpus,
+                             "available_cluster_gpus": available_cluster_gpus,
                             }
                          }
-            ray_train(**mainkwargs)
+            ray_train(config=config, **mainkwargs)
         else:
             while mega_batch_itr <= max_iteration:
                 from baselines.common import tf_util, mpi_util
@@ -130,10 +142,6 @@ def main(mainkwargs):
             from settings import update_policy
             ray_init(**mainkwargs)
             #play_env = gym.make(play_env_id)
-            config = {
-                        "LOAD_MODEL_FOLDER": "20191203-232528",
-                        "RESTORE_COND": "RESTORE", 
-                     }
             #config=play_env.config
             retrieved_agent = ray_retrieve_agent(env_id=play_env_id, config=config)
             retrieved_agent_policy = retrieved_agent.get_policy()

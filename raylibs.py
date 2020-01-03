@@ -134,6 +134,7 @@ def ray_cluster_status_check(
 #LOCAL_MODE = False  #Use local mode for debug purposes
 def ray_init(LOCAL_MODE=False, **mainkwargs):
     available_cluster_cpus = 0
+    available_cluster_gpus = 0
 
     if is_predict_only(**mainkwargs):
         try:
@@ -142,13 +143,14 @@ def ray_init(LOCAL_MODE=False, **mainkwargs):
         except:
             print("ray process not running")
         LOCAL_MODE = True    
-        ray.init(num_gpus=0, local_mode=True)
-        return available_cluster_cpus
+        ray.init(local_mode=True)
+        return available_cluster_cpus, available_cluster_gpus
     else:
         try: # to init in the cluster
             ray.init(address=redis_add)
             ray_cluster_status_check(**mainkwargs)
             available_cluster_cpus = int(ray.cluster_resources().get("CPU"))
+            available_cluster_gpus = int(ray.cluster_resources().get("GPU"))
             LOCAL_MODE = False
         except: # try to init in your machine/isolated compute instance
             # Kill the redis-server. This seems the surest way to kill it
@@ -159,12 +161,13 @@ def ray_init(LOCAL_MODE=False, **mainkwargs):
             except:
                 print("ray shutdown failed. Perhaps ray was not initialized ?")
 
-            ray.init(num_gpus=0, local_mode=LOCAL_MODE)
+            ray.init(local_mode=LOCAL_MODE)
         if not LOCAL_MODE:
             available_cluster_cpus = int(ray.available_resources().get("CPU"))
+            available_cluster_gpus = int(ray.available_resources().get("GPU"))
             print("cluster_resources ", ray.cluster_resources(), "\n")
             print("available_resources ", ray.available_resources())
-        return available_cluster_cpus
+        return available_cluster_cpus, available_cluster_gpus
             
 
 def explore(config):
@@ -212,9 +215,8 @@ def on_train_result(info):
         lambda ev: ev.foreach_env(
             lambda env: env.set_curriculam(curriculam)))
 
-def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, LOCAL_MODE=None, **mainkwargs):
-    #print("mainkwargs ", mainkwargs," save_in_sub_folder ", save_in_sub_folder, "available_cluster_cpus ", available_cluster_cpus)
-    config = gym.make(train_env_id).config
+def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, available_cluster_gpus=None, LOCAL_MODE=None, config=None, **mainkwargs):
+    #config = gym.make(train_env_id).config
 
     subprocess.run(["chmod", "-R", "a+rwx", save_in_sub_folder + "/"])
     # Postprocess the perturbed config to ensure it's still valid
@@ -230,8 +232,10 @@ def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, LOCAL_MODE=N
 
     if is_predict_only() or LOCAL_MODE:
         delegated_cpus = 1
+        delegated_gpus = 0
     else:
         delegated_cpus = available_cluster_cpus-2
+        delegated_gpus = available_cluster_gpus
 
     impala_config = impala.DEFAULT_CONFIG.copy()
     impala_config["num_gpus"] = 0
@@ -280,7 +284,7 @@ def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, LOCAL_MODE=N
     retrieved_agent_policy = settings.retrieved_agent_policy
 
     model = config["MODEL"] 
-    print("delegated_cpus ", delegated_cpus)
+    print("delegated_cpus ", delegated_cpus, " delegated_gpus ", delegated_gpus)
 
     
     ray_trials = ray.tune.run(
@@ -304,17 +308,17 @@ def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, LOCAL_MODE=N
                 "config": {
                     "num_gpus_per_worker": 0,
                     #"num_cpus_per_worker": 1,
-                    # "gpus": 0,
+                    "num_gpus": delegated_gpus,
                     "gamma": 0.85,
                     "num_workers": delegated_cpus,
-                    "num_envs_per_worker": 2,
+                    "num_envs_per_worker": 1,
                     "env": train_env_id,
                     "remote_worker_envs": False,
                     "model": model,
                     "ignore_worker_failures": True,
-                    "env_config": {
-                                    "retrieved_agent_policy": 1,
-                                  },               
+                    #"env_config": {
+                    #                "retrieved_agent_policy": 1,
+                    #              },               
                     #"callbacks": {
                                 #  "on_episode_start": ray.tune.function(on_episode_start),
                     #             },
@@ -334,13 +338,10 @@ def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, LOCAL_MODE=N
 
 
 def ray_play(env_id=None, config=None):
-    #subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
-    agent=ray_retrieve_agent(config=config)
-    
+    agent=ray_retrieve_agent(config=config)        
     rollout(agent=agent,
             env_name=env_id,
             num_steps=10000,
             no_render=False,
             out=None,
             predict=False)
-    #subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])

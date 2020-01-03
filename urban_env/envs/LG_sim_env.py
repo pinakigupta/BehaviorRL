@@ -12,6 +12,7 @@ import time
 import copy
 import gym
 from math import sin, cos
+import random
 
 from gym import GoalEnv, logger
 from gym.spaces import Discrete, Box, Tuple
@@ -24,7 +25,7 @@ from lgsvl.utils import *
 from gym import GoalEnv, spaces
 
 from urban_env.envs.parking_env_2outs import ParkingEnv_2outs as ParkingEnv
-from urban_env.vehicle.dynamics import Obstacle
+from urban_env.vehicle.dynamics import Obstacle, Pedestrian
 
 
 VELOCITY_EPSILON = 0.1
@@ -82,7 +83,7 @@ class LG_Sim_Env(ParkingEnv):
         },
         **{
             "LOAD_MODEL_FOLDER": "20191203-232528",
-            "RESTORE_COND": "RESTORE", 
+            "RESTORE_COND": None,
             "MODEL":             {
                                 #    "use_lstm": True,
                                      "fcnet_hiddens": [256, 128, 128],
@@ -106,7 +107,7 @@ class LG_Sim_Env(ParkingEnv):
             "OBS_STACK_SIZE": 1,
             "vehicles_count": 'random',
             "goals_count": 'all',
-            "pedestrian_count": 0,
+            "pedestrian_count": 'random',
             "SIMULATION_FREQUENCY": 10,  # The frequency at which the system dynamics are simulated [Hz]
             "POLICY_FREQUENCY": 10,  # The frequency at which the agent can take actions [Hz]
             "velocity_range": 1.5*ParkingEnv.PARKING_MAX_VELOCITY,
@@ -217,6 +218,9 @@ class LG_Sim_Env(ParkingEnv):
             if v.is_ego_vehicle:
                 v.LGAgent = self._setup_agent(v, "jaguar2015xe",  lgsvl.AgentType.EGO)
                 self.ego = v.LGAgent
+            elif isinstance(v, Pedestrian):
+                pedestrian = random.choice(["Bob", "Howard", "Johny", "Pamela", "Presley", "Red", "Robin", "Stephen", "Zoe"])
+                v.LGAgent = self._setup_agent(v, pedestrian,  lgsvl.AgentType.PEDESTRIAN)
             elif v in self.road.virtual_vehicles:
                 #self._setup_agent(v, "BoxTruck",  lgsvl.AgentType.NPC)
                 pass
@@ -253,11 +257,14 @@ class LG_Sim_Env(ParkingEnv):
         else:
             self.sim = lgsvl.Simulator(address="127.0.0.1", port=8181) 
             self.control = lgsvl.VehicleControl()
-            self.sim.load(self.config["map"]) 
-        self.agents = {}     
+            print("self.sim.current_scene ", self.sim.current_scene)
+            if self.sim.current_scene == self.config["map"]:
+                self.sim.reset()
+            else:
+                self.sim.load(self.config["map"]) 
         self._populate_scene()
         return obs
-        
+
 
     def close(self):
         """
