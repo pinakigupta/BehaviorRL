@@ -294,6 +294,13 @@ class Vehicle(Loggable):
     def distance_to(self, vehicle):
         return ((self.position[0]-vehicle.position[0])**2+(self.position[1]-vehicle.position[1])**2)**(1/2)
 
+    def _on_collision(self, agent1, agent2, contact):
+        name1 = "STATIC OBSTACLE" if agent1 is None else agent1.name
+        name2 = "STATIC OBSTACLE" if agent2 is None else agent2.name
+        print("{} collided with {} at {}".format(name1, name2, contact))
+        self.crashed = True
+
+
     def check_collision(self, other, SCALE=1.1):
         """
             Check for collision with another vehicle.
@@ -317,6 +324,12 @@ class Vehicle(Loggable):
         # Fast spherical pre-check
         if np.linalg.norm(other.position - self.position) > self.LENGTH:
             return
+
+        if self.LGAgent is not None and other.LGAgent is not None:
+            if self.is_ego:
+                self.LGAgent.on_collision(self._on_collision)
+            elif other.is_ego:
+                other.LGAgent.on_collision(other._on_collision)  
 
         # Accurate rectangular check
         if utils.rotated_rectangles_intersect((self.position, self.LENGTH, self.WIDTH, self.heading),

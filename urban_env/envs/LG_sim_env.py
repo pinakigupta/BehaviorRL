@@ -83,7 +83,7 @@ class LG_Sim_Env(ParkingEnv):
         },
         **{
             "LOAD_MODEL_FOLDER": "20191203-232528",
-            "RESTORE_COND": None,
+            "RESTORE_COND": "RESTORE",
             "MODEL":             {
                                 #    "use_lstm": True,
                                      "fcnet_hiddens": [256, 128, 128],
@@ -124,7 +124,7 @@ class LG_Sim_Env(ParkingEnv):
             "x_position_range": ParkingEnv.DEFAULT_PARKING_LOT_WIDTH,
             "y_position_range": ParkingEnv.DEFAULT_PARKING_LOT_LENGTH,                      
           },
-          #**HAVAL_PARKING_LOT
+          **HAVAL_PARKING_LOT
     }
 
 
@@ -160,7 +160,7 @@ class LG_Sim_Env(ParkingEnv):
 
         throttle_brake = action[0].item()
         
-
+        #self.vehicle.LGAgent.on_collision(self.on_collision)
         self.control.braking = self.vehicle.braking
         self.control.throttle = self.vehicle.throttle
         self.control.steering = action[1].item() * np.rad2deg(self.vehicle.config['max_steer_angle']) / 39.4
@@ -168,12 +168,12 @@ class LG_Sim_Env(ParkingEnv):
         self.vehicle.LGAgent.apply_control(self.control, True)
         self.sim.run(time_limit=5/self.config["POLICY_FREQUENCY"])
 
-        print(" reverse ", self.vehicle.reverse,
+        '''print(" reverse ", self.vehicle.reverse,
               " velocity ", "{0:.2f}".format(velocity), 
               " steer ", "{0:.2f}".format(self.control.steering), 
               " throttle ", "{0:.2f}".format(self.control.throttle), 
               " braking ",  "{0:.2f}".format(self.control.braking), 
-              " throttle_brake ", "{0:.2f}".format(throttle_brake))
+              " throttle_brake ", "{0:.2f}".format(throttle_brake))'''
 
         return obs, reward, done, info
 
@@ -216,8 +216,7 @@ class LG_Sim_Env(ParkingEnv):
         state.angular_velocity = lgsvl.Vector(0.0, 0.0, 0.0)
         return self.sim.add_agent(agent_name, agent_type, state)
 
-    def on_collision(self, agent1, agent2, contact):
-        self.crashed = True
+
 
     def reset(self):
         obs = super(LG_Sim_Env, self).reset()
