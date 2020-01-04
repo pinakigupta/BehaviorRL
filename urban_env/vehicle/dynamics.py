@@ -179,6 +179,55 @@ class Vehicle(Loggable):
             self.action = action
         elif self.control_action is not None:
             self.action = self.control_action
+        
+        throttle_brake = self.action["acceleration"]
+
+        if self.velocity > self.config["MAX_VELOCITY"]:
+            throttle_brake = min(throttle_brake, 1.0*(self.config["MAX_VELOCITY"] - self.velocity))
+        elif self.velocity < -self.config["MAX_VELOCITY"]:
+            throttle_brake = max(throttle_brake, 1.0*(self.config["MAX_VELOCITY"] - self.velocity))
+
+        if self.reverse: # Reverse 
+            if self.velocity < -self.config["max_abs_speed_when_stopped"]:
+                if throttle_brake > 0:
+                    self.braking = throttle_brake
+                    self.throttle = 0.0
+                    self.reverse = True
+                else:
+                    self.braking = 0.0
+                    self.throttle = abs(throttle_brake)
+                    self.reverse = True
+            else:
+                if throttle_brake > 0.05: # Gear change
+                    self.braking = throttle_brake
+                    self.throttle = 0.0
+                    self.reverse = False
+                else:
+                    self.braking = 0.0
+                    self.throttle = abs(throttle_brake)
+                    self.reverse = True 
+        else: # Forward
+            if self.velocity > self.config["max_abs_speed_when_stopped"]:
+                if throttle_brake > 0:
+                    self.braking = 0.0
+                    self.throttle = throttle_brake
+                    self.reverse = False
+                else:
+                    self.braking = abs(throttle_brake)
+                    self.throttle = 0.0
+                    self.reverse = False
+            else: 
+                if throttle_brake > -0.05: 
+                    self.braking = 0.0
+                    self.throttle = throttle_brake
+                    self.reverse = False
+                else: # Gear change
+                    self.braking = abs(throttle_brake)
+                    self.throttle = 0.0
+                    self.reverse = True 
+
+        self.action["acceleration"] = self.throttle - self.braking
+
 
     def step(self, dt):
         """
@@ -206,6 +255,7 @@ class Vehicle(Loggable):
             elif self.velocity < -self.config["MAX_VELOCITY"]:
                 self.action['acceleration'] = max(
                     self.action['acceleration'], 1.0*(self.config["MAX_VELOCITY"] - self.velocity))
+
             
             v = self.velocity * np.array([np.cos(self.heading), np.sin(self.heading)])
             self.position += v * dt
