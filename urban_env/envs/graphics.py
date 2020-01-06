@@ -185,13 +185,20 @@ class EnvViewer(object):
 
         caption = "Urban-AD ( "
         #caption += "action = " + str(ACTIONS_DICT[self.env.previous_action])
+        caption += " v = {:.2f}".format(self.env.vehicle.velocity)
+        if self.env.vehicle.PRNDL:
+            caption += " PRNDL = "+self.env.vehicle.PRNDL
+        if self.env.vehicle.braking is not None:
+            caption += " brake = {:.2f}".format(self.env.vehicle.braking)
+        if self.env.vehicle.throttle is not None:
+            caption += " throttle = {:.2f}".format(self.env.vehicle.throttle)        
         if self.env.vehicle.control_action:
             caption += " accel = {:.2f}".format(self.env.vehicle.control_action['acceleration'])
             caption += " steering = {:.2f}".format(self.env.vehicle.control_action['steering'])
         caption += " steps = " + str(self.env.steps)
         if hasattr( self.env, 'episode_travel'): 
             caption += ', ep travel  = {:.2f}'.format(self.env.episode_travel)
-        caption += ', reward  = {:.2f}'.format(self.env.reward)  
+        #caption += ', reward  = {:.2f}'.format(self.env.reward)  
         caption += ', ep reward  = {:.2f}'.format(self.env.episode_reward)
         caption += " )"
         pygame.display.set_caption(caption)
