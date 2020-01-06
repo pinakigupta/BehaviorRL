@@ -182,11 +182,6 @@ class KinematicObservation(ObservationType):
             goal = (target_position - lane_coords[0]) / self.env.config["PERCEPTION_DISTANCE"] # Normalize
             goal = min(1.0, max(-1.0, goal)) # Clip
             obs[0] = goal # Just a temporary implementation wo explicitly mentioning the goal
-
-        '''obs_idx = 1
-        for virtual_v in self.env.road.virtual_vehicles:
-            obs[obs_idx] = virtual_v.position[1]/self.y_position_range
-            obs_idx += 1'''
         
         if(self.env.config["OBS_STACK_SIZE"] == 1):
             return obs
@@ -252,9 +247,11 @@ class KinematicsGoalObservation(KinematicObservation):
         constraint = np.ravel(self.normalize(constraint))
         obs_dict = {
                         "observation": super(KinematicsGoalObservation, self).observe(),
+                        #"pedestrians": 
                         "achieved_goal": obs ,
                         "constraint": constraint,
-                        "desired_goal": goal 
+                        "desired_goal": goal ,
+                        #"impatience": min(1.0, max(0.0, self.steps/self.config["duration"]))
                     }
         return obs_dict
     
