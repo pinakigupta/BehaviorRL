@@ -83,7 +83,7 @@ def main(mainkwargs):
                                      "fcnet_hiddens": [256, 128, 128],
                                 #     "fcnet_activation": "relu",
                                  }, 
-                "num_workers": 12,                                 
+                #"num_workers": 12,                                 
              }    
     if not predict_only:
         if RUN_WITH_RAY:

@@ -25,18 +25,12 @@ from lgsvl.utils import *
 from gym import GoalEnv, spaces
 
 from urban_env.envs.parking_env_2outs import ParkingEnv_2outs as ParkingEnv
+from urban_env.envs.parking_env_2outs import HAVAL_PARKING_LOT
 from urban_env.vehicle.dynamics import Obstacle, Pedestrian
 
 
 VELOCITY_EPSILON = 0.1
 
-HAVAL_PARKING_LOT = {
-                        "parking_angle": 0,
-                        "parking_spots": 10,
-#                        "map_offset": [-40, -4],
-                        "aisle_width": 6.5, 
-                        "width": 3,
-                    }
 
 
 class ObstacleLG(Obstacle):

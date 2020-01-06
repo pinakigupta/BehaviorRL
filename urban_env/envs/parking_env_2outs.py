@@ -24,9 +24,17 @@ from urban_env.vehicle.control import MDPVehicle
 from urban_env.vehicle.behavior import IDMVehicle
 from urban_env.utils import *
 from handle_model_files import is_predict_only
-from urban_env.envdict import WHITE, RED, BLACK
+from urban_env.envdict import WHITE, RED, BLACK, GREY
 
 import pprint
+
+HAVAL_PARKING_LOT = {
+                        "parking_angle": 0,
+                        "parking_spots": 10,
+#                        "map_offset": [-40, -4],
+                        "aisle_width": 6.5, 
+                        "width": 3,
+                    }
 
 
 class ParkingEnv_2outs(AbstractEnv, GoalEnv):
@@ -74,6 +82,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 "obs_count": 10,
                 "goals_size": 10,
                 "goals_count": 10,
+                "pedestrians_size": 10,
+                "pedestrians_count": 10,
                 "constraints_count": 5,
                            },
             "obstacle_type": "urban_env.vehicle.dynamics.Obstacle",
@@ -109,7 +119,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "aisle_width": 'random',
             "width": 'random',
             "length": 'random',
-          }
+          },
+          #**HAVAL_PARKING_LOT
     }
 
     def __init__(self, config=None):
@@ -229,7 +240,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         # Defining parking spots 
         if self.config["parking_spots"] == 'random':
-            self.parking_spots = self.np_random.randint(low=2, high=15)
+            self.parking_spots = self.np_random.randint(low=2, high=10)
         else:
             self.parking_spots = self.config["parking_spots"]
 
@@ -351,19 +362,21 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self._build_parking()
         self.border_lane_count = 4
         parking_spots_used = []
-        '''
-        lane = self.np_random.choice(self.road.network.lanes_list()[:-4])
-        parking_spots_used.append(lane)
-        obstacle =  Obstacle(
+
+        x0 = (-5 - self.parking_spots // 2) * self.park_width  
+        y0 = self.aisle_width
+        x0, y0 = self.rot((x0, y0), self.park_angle)        
+        
+        self.summon =  Obstacle(
                                 road=self.road,
-                                position=lane.position(lane.length/2, 0), 
-                                heading=lane.heading,
+                                position=[x0, y0], 
+                                heading=self.park_angle,
                                 config={**self.config, **{"COLLISIONS_ENABLED": False}},
-                                #color=WHITE
-                            )
-        self.road.goals.append(obstacle)
-        self.road.vehicles.insert(0, obstacle)
-        self.road.add_virtual_vehicle(obstacle)'''
+                                color=RED
+                               )
+        #self.road.goals.append(obstacle)
+        #self.road.vehicles.insert(0, self.summon)
+        #self.road.add_virtual_vehicle(self.summon)
 
         ###### ADDING PEDESTRIANS ###########
         for _ in range(self.pedestrian_count):

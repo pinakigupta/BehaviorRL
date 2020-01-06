@@ -9,11 +9,13 @@ import abc
 import numpy as np
 import pandas as pd
 import copy
+from time import time
 
 import gym
 
 from urban_env import utils
 from urban_env.logger import Loggable
+
 
 class Vehicle(Loggable):
     """
@@ -49,7 +51,7 @@ class Vehicle(Loggable):
                             'steer_ratio': 16.00,
                             'wheel_base': 2.95,
                             'wheel_rolling_radius': 0.335,
-                            'max_abs_speed_when_stopped': 0.2
+                            'max_abs_speed_when_stopped': 0.1
                         }
                     }
 
@@ -83,6 +85,9 @@ class Vehicle(Loggable):
         self.lane = self.road.network.get_lane(self.lane_index) if self.road else None
         self.action = {'steering': 0, 'acceleration': 0}
         self.reverse = False
+        self.PRNDL = "D"
+        self.braking = None
+        self.throttle = None
         self.action_validity = True
         self.crashed = False
         self.log = []
@@ -187,7 +192,7 @@ class Vehicle(Loggable):
         elif self.velocity < -self.config["MAX_VELOCITY"]:
             throttle_brake = max(throttle_brake, 1.0*(self.config["MAX_VELOCITY"] - self.velocity))
 
-        if self.reverse: # Reverse 
+        if self.PRNDL is "R": # Reverse 
             if self.velocity < -self.config["max_abs_speed_when_stopped"]:
                 if throttle_brake > 0:
                     self.braking = throttle_brake
@@ -198,15 +203,15 @@ class Vehicle(Loggable):
                     self.throttle = abs(throttle_brake)
                     self.reverse = True
             else:
-                if throttle_brake > 0.05: # Gear change
-                    self.braking = throttle_brake
+                if throttle_brake > 0.1: # Gear change
+                    self.braking =  abs(throttle_brake)
                     self.throttle = 0.0
                     self.reverse = False
                 else:
                     self.braking = 0.0
                     self.throttle = abs(throttle_brake)
-                    self.reverse = True 
-        else: # Forward
+                    self.reverse = True
+        elif self.PRNDL is "D": # Forward
             if self.velocity > self.config["max_abs_speed_when_stopped"]:
                 if throttle_brake > 0:
                     self.braking = 0.0
@@ -217,16 +222,19 @@ class Vehicle(Loggable):
                     self.throttle = 0.0
                     self.reverse = False
             else: 
-                if throttle_brake > -0.05: 
+                if throttle_brake > -0.1: 
                     self.braking = 0.0
                     self.throttle = throttle_brake
                     self.reverse = False
                 else: # Gear change
                     self.braking = abs(throttle_brake)
                     self.throttle = 0.0
-                    self.reverse = True 
+                    self.reverse = True
+        elif self.PRNDL is "N":
+            self.braking = abs(throttle_brake)
+            self.throttle = 0.0
 
-        self.action["acceleration"] = self.throttle - self.braking
+        #self.action["acceleration"] = self.throttle - self.braking
 
 
     def step(self, dt):
@@ -268,6 +276,25 @@ class Vehicle(Loggable):
         if self.road:
             self.lane_index = self.road.network.get_closest_lane_index(self.position, self.heading)
             self.lane = self.road.network.get_lane(self.lane_index)
+        
+        if self.PRNDL is "D" and self.reverse:
+            self.PRNDL = "N"
+            self.shift_start_time = time()
+        elif self.PRNDL is "R" and not self.reverse:
+            self.PRNDL = "N"
+            self.shift_start_time = time()
+        elif self.PRNDL is "N":
+            if time() - self.shift_start_time > 1.0:
+                self.PRNDL = "R" if self.reverse else "D"
+        elif self.PRNDL is "R" and self.reverse:
+            self.PRNDL = "R"
+            self.shift_start_time = 0.0
+        elif self.PRNDL is "D" and not self.reverse:
+            self.PRNDL = "D"
+            self.shift_start_time = 0.0
+
+
+
 
     def lane_distance_to(self, vehicle):
         """
@@ -514,8 +541,6 @@ class Obstacle(Vehicle):
         if self.LGAgent is not None:
             self.position = np.array([self.LGAgent.state.transform.position.z, self.LGAgent.state.transform.position.x]).astype('float')
             self.velocity = np.sqrt(self.LGAgent.state.velocity.x**2 + self.LGAgent.state.velocity.z**2)
-            if self.reverse:
-                self.velocity *= -abs(self.velocity)
             self.heading = np.deg2rad(self.LGAgent.state.transform.rotation.y)
         else:        
             pass
