@@ -76,7 +76,7 @@ def main(mainkwargs):
     max_iteration = 1
 
     config = {
-                "LOAD_MODEL_FOLDER": "20191231-140441",
+                "LOAD_MODEL_FOLDER": "20200106-202754",
                 "RESTORE_COND": "RESTORE", 
                 "MODEL":        {
                                 #    "use_lstm": True,

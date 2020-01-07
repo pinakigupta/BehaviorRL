@@ -99,7 +99,7 @@ class LG_Sim_Env(ParkingEnv):
             #"obstacle_type": "urban_env.envs.LG_sim_env.ObstacleLG",
             "DIFFICULTY_LEVELS": 4,
             "OBS_STACK_SIZE": 1,
-            "vehicles_count": 'random',
+            "vehicles_count": 3,
             "goals_count": 'all',
             "pedestrian_count": 0,
             "SIMULATION_FREQUENCY": 20,  # The frequency at which the system dynamics are simulated [Hz]
@@ -199,7 +199,6 @@ class LG_Sim_Env(ParkingEnv):
         x = v.position[0] + self.config["map_offset"][0]
         y = 0.0
         z = v.position[1] + self.config["map_offset"][1]
-
         vx = v.velocity*cos(v.heading)
         vy = 0.0
         vz = v.velocity*sin(v.heading)

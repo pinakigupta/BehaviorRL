@@ -29,11 +29,12 @@ from urban_env.envdict import WHITE, RED, BLACK, GREY
 import pprint
 
 HAVAL_PARKING_LOT = {
-                        "parking_angle": 0,
+                        "parking_angle": 90,
                         "parking_spots": 10,
-#                        "map_offset": [-40, -4],
+                        "map_offset": [-4, -40 , 0],
                         "aisle_width": 6.5, 
                         "width": 3,
+                        "map": "ParkingLot",
                     }
 
 
@@ -89,8 +90,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "obstacle_type": "urban_env.vehicle.dynamics.Obstacle",
             "duration": 100,
             "_predict_only": is_predict_only(),
-            "screen_width": 1600,
-            "screen_height": 900,
+            "screen_width": 800,
+            "screen_height": 800,
             "DIFFICULTY_LEVELS": 10,
             "OBS_STACK_SIZE": 1,
             "vehicles_count": 'random',
@@ -245,7 +246,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             self.parking_spots = self.config["parking_spots"]
 
         if self.config["aisle_width"] == 'random':
-            self.aisle_width = self.np_random.uniform(low=5, high=20)
+            self.aisle_width = self.np_random.uniform(low=3, high=4)
         else:
             self.aisle_width = self.config["aisle_width"]
 
@@ -265,7 +266,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             #self.park_angle = parking_angles[self.np_random.randint(len(parking_angles))]
             self.park_angle =  self.np_random.uniform(low=0, high=90)
         else:
-            self.park_angle = np.deg2rad(self.config["parking_angle"])
+            self.park_angle = np.deg2rad(self.config["parking_angle"]) 
 
 
         # Defining pedestrian count
@@ -313,7 +314,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         aisle_width = self.aisle_width
         length = self.park_length
         width = self.park_width
-        angle = self.park_angle
+        angle = self.park_angle 
 
         # Let's now build the parking lot
         for k in range(self.parking_spots):

@@ -248,11 +248,14 @@ class Vehicle(Loggable):
         :param dt: timestep of integration of the model [s]
         """
         if self.LGAgent is not None:
-            self.position = np.array([self.LGAgent.state.transform.position.z, self.LGAgent.state.transform.position.x]).astype('float')
+            self.position = np.array([
+                                      self.LGAgent.state.transform.position.z - self.config["map_offset"][0],
+                                      self.LGAgent.state.transform.position.x - self.config["map_offset"][1], 
+                                    ]).astype('float')
             self.velocity = np.sqrt(self.LGAgent.state.velocity.x**2 + self.LGAgent.state.velocity.z**2)
             if self.reverse:
                 self.velocity *= -abs(self.velocity)
-            self.heading = np.deg2rad(self.LGAgent.state.transform.rotation.y)
+            self.heading = np.deg2rad(self.LGAgent.state.transform.rotation.y - self.config["map_offset"][2])
         else:
             if self.crashed:
                 self.action['steering'] = 0
@@ -539,9 +542,10 @@ class Obstacle(Vehicle):
 
     def step(self, dt):
         if self.LGAgent is not None:
-            self.position = np.array([self.LGAgent.state.transform.position.z, self.LGAgent.state.transform.position.x]).astype('float')
+            self.position = np.array([self.LGAgent.state.transform.position.z - self.config["map_offset"][0], 
+                                      self.LGAgent.state.transform.position.x - self.config["map_offset"][1]]).astype('float')
             self.velocity = np.sqrt(self.LGAgent.state.velocity.x**2 + self.LGAgent.state.velocity.z**2)
-            self.heading = np.deg2rad(self.LGAgent.state.transform.rotation.y)
+            self.heading = np.deg2rad(self.LGAgent.state.transform.rotation.y  - self.config["map_offset"][2])
         else:        
             pass
 
