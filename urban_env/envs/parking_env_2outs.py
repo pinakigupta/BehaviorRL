@@ -32,6 +32,7 @@ HAVAL_PARKING_LOT = {
                         "parking_angle": 90,
                         "parking_spots": 10,
                         "map_offset": [-4, -40 , 0],
+                        "ego_offset": 'random',
                         "aisle_width": 6.5, 
                         "width": 3,
                         "map": "ParkingLot",
@@ -114,12 +115,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "PARKING_LOT_LENGTH": DEFAULT_PARKING_LOT_LENGTH,
             "parking_spots": 'random',  # Parking Spots per side            
             "parking_angle": 'random',  # Parking angle in deg
-            "ego_x0": 0,
-            "ego_y0": 0, 
-            "ego_phi0": 0,
             "aisle_width": 'random',
             "width": 'random',
             "length": 'random',
+            "ego_offset": 'random',
           },
           #**HAVAL_PARKING_LOT
     }
@@ -260,6 +259,16 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         else:
             self.park_length = self.config["length"]  
 
+        if self.config["ego_offset"] == 'random':
+            self.ego_offset = []
+            self.ego_offset.append(self.np_random.uniform(low=-1, high=1))
+            self.ego_offset.append(self.np_random.uniform(low=-0.2, high=0.2))
+            self.ego_offset.append(np.deg2rad(self.np_random.uniform(low=-90, high=90)))
+        else:
+            self.ego_offset = self.config["ego_offset"]
+            self.ego_offset[2] = np.deg2rad(self.ego_offset[2])
+
+        
         # Let's start by randomly choosing the parking angle
         #parking_angles = np.deg2rad([90, 75, 60, 45, 0])
         if self.config["parking_angle"] == 'random':
@@ -399,8 +408,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         ##### ADDING EGO #####
         self.vehicle =  Vehicle(
                                road=self.road, 
-                               position=[self.config["ego_x0"], self.config["ego_y0"]],
-                               heading=self.config["ego_phi0"], #2*np.pi*self.np_random.rand(),
+                               position=[self.ego_offset[0], self.ego_offset[1]],
+                               heading=self.ego_offset[2], #2*np.pi*self.np_random.rand(),
                                velocity=0,
                                route_lane_index=None,
                                config=self.config

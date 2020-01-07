@@ -99,7 +99,7 @@ class LG_Sim_Env(ParkingEnv):
             #"obstacle_type": "urban_env.envs.LG_sim_env.ObstacleLG",
             "DIFFICULTY_LEVELS": 4,
             "OBS_STACK_SIZE": 1,
-            "vehicles_count": 3,
+            "vehicles_count": 'random',
             "goals_count": 'all',
             "pedestrian_count": 0,
             "SIMULATION_FREQUENCY": 20,  # The frequency at which the system dynamics are simulated [Hz]
@@ -108,7 +108,7 @@ class LG_Sim_Env(ParkingEnv):
             "MAX_VELOCITY": ParkingEnv.PARKING_MAX_VELOCITY,
             "closest_lane_dist_thresh": 500,
             "map": 'WideFlatMap',
-            "map_offset": [0, 0, 0],
+            #"map_offset": [0, 0, 0],
             },
         **{
             "PARKING_LOT_WIDTH": ParkingEnv.DEFAULT_PARKING_LOT_WIDTH,
@@ -116,7 +116,8 @@ class LG_Sim_Env(ParkingEnv):
             "parking_spots": 'random',  # Parking Spots per side            
             "parking_angle": 'random',  # Parking angle in deg 
             "x_position_range": ParkingEnv.DEFAULT_PARKING_LOT_WIDTH,
-            "y_position_range": ParkingEnv.DEFAULT_PARKING_LOT_LENGTH,                      
+            "y_position_range": ParkingEnv.DEFAULT_PARKING_LOT_LENGTH,    
+            "ego_offset": 'random',                  
           },
           **HAVAL_PARKING_LOT
     }
