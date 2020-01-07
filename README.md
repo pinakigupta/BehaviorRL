@@ -34,9 +34,10 @@ The parking lot env is a goal oriented env, with virtual vehicles constraining t
 
 ![](img/ParkingLotFull.gif)
 
-Actually I have a recent update where I have started playing with multiple goals. Look below (still a working progress) .
+There is a recent update where I have started using LGSVL simulator (https://www.lgsvlsimulator.com/docs/autoware-instructions/) for  more realistic environment. Right now the simulator is just being used for playback, while the pygame env is used for both training and playback. 
+One more important point is the following environment is also using multiple goals. 
 
-![](img/ParkingLotMultiGoal.gif)
+![](img/LGSimParkigLot.gif)
 
 
 ## Getting Started (Docker)
