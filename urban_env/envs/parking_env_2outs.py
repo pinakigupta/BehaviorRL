@@ -33,10 +33,13 @@ HAVAL_PARKING_LOT = {
                         "parking_spots": 10,
                         "map_offset": [-4, -40 , 0],
                         "ego_initial_pose": 'random',
-                        "summon_pose": [4, 4, -90],
+                        "summon_pose": [4, 40, -90],
                         "aisle_width": 6.5, 
                         "width": 3,
                         "map": "ParkingLot",
+                        "PARKING_LOT_WIDTH": 25,
+                        "PARKING_LOT_LENGTH": 100,
+                        "screen_height": 1200,
                     }
 
 
@@ -99,6 +102,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "vehicles_count": 'random',
             "goals_count": 'all',
             "pedestrian_count": 0,
+            "constraints_count": 4,
             "x_position_range": DEFAULT_PARKING_LOT_WIDTH,
             "y_position_range": DEFAULT_PARKING_LOT_LENGTH,
             "velocity_range": 1.5*PARKING_MAX_VELOCITY,
@@ -120,7 +124,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "width": 'random',
             "length": 'random',
             "ego_initial_pose": 'random',
-            "summon_pose": [4, 40, -90],
+            "summon_pose": None,
           },
           #**HAVAL_PARKING_LOT
     }
@@ -230,7 +234,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             Create a road composed of straight adjacent lanes.
             We will have 4 parking configurations based on "parking angle":
             https://www.webpages.uidaho.edu/niatt_labmanual/chapters/parkinglotdesign/theoryandconcepts/parkingstalllayoutconsiderations.htm
-            parking angle = 90, 75, 60, 45
         """
         if self.config["PARKING_LOT_WIDTH"] == 'random':
             self.config["PARKING_LOT_WIDTH"] = self.np_random.randint(int(0.8*self.DEFAULT_PARKING_LOT_WIDTH), 
@@ -309,6 +312,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             self.vehicles_count = self.config["vehicles_count"]
 
         self.summon_pose = self.config["summon_pose"]
+        self.constraints_count = self.config["constraints_count"]
+        self.border_lane_count = self.constraints_count
 
         # Defining goals 
         if self.config["goals_count"] == 'all':
@@ -356,10 +361,11 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         w = self.config["PARKING_LOT_WIDTH"]/2
         l = self.config["PARKING_LOT_LENGTH"]/2
         hidden = [LineType.NONE, LineType.NONE]
-        net.add_lane("e", "f", StraightLane([w, -l], [w, l], width=0, line_types=hidden))
-        net.add_lane("e", "f", StraightLane([-w, -l], [-w, l], width=0, line_types=hidden))
-        net.add_lane("e", "f", StraightLane([-w, -l], [w, -l], width=0, line_types=hidden))
-        net.add_lane("e", "f", StraightLane([-w, l], [w, l], width=0, line_types=hidden))
+        borders = [([w, -l], [w, l]), ([-w, -l], [-w, l]), ([-w, -l], [w, -l]), ([-w, l], [w, l])]
+
+        for i in range(self.border_lane_count):
+            border = borders[i]
+            net.add_lane("e", "f", StraightLane(*border, width=0, line_types=hidden))
 
         #net.add_lane("g", "h", StraightLane([-w, l/2], [w, l/2]))
 
@@ -374,7 +380,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         """
 
         self._build_parking()
-        self.border_lane_count = 4
         parking_spots_used = []
   
         if self.summon_pose is not None:
@@ -416,16 +421,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self.road.vehicles.append(self.vehicle)
         ego_x0 = self.vehicle.position[0]
 
-        '''self.other_vehicle =  Vehicle(
-                               road=self.road, 
-                               position=[5.0, 5.0],
-                               heading=2*np.pi*self.np_random.rand(),
-                               velocity=0,
-                               route_lane_index=None,
-                               config=self.config,
-                               color=RED
-                               )
-        self.road.vehicles.append(self.other_vehicle)'''
 
         lane = self.np_random.choice(self.road.network.lanes_list()[:-self.border_lane_count])
 
@@ -437,7 +432,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 lane = self.np_random.choice(self.road.network.lanes_list()[:-self.border_lane_count])
             parking_spots_used.append(lane)
 
-            # + self.np_random.randint(2) * np.pi
             self.road.vehicles.append(
                                       GenericObstacle(
                                                         road=self.road,
@@ -594,6 +588,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             self.road.goals = [self.summon]
             self.road.vehicles.insert(0, self.summon)
             self.road.add_virtual_vehicle(self.summon)
+            self.steps = 0
             self.summon = None
             terminal = self.vehicle.crashed or \
                     (self.steps >= self.config["duration"])         
@@ -669,38 +664,4 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             self.road.add_vehicle(virtual_obstacle_)
             self.road.add_virtual_vehicle(virtual_obstacle_)
                 
-        '''
-        lane_ids = [["a", "b" ],  ["b", "c"]]
-        lane_set = []
-        for lane_id in lane_ids:
-            for goal in [self.road.goals[0]]:
-                if list(goal.lane_index[0:2]) != lane_id:
-                    lane_set.append(lane_id)
-        
-
-        print("lane_ids ",lane_ids, " lane_set ", lane_set )
-        spot_idxs = [[self.config["parking_spots"]//2]]
-        for lane_id in lane_set:
-            for spot_idx in spot_idxs:
-                lane_index = (*lane_id, *spot_idx)
-                lane = self.road.network.get_lane(lane_index)
-                x0 = lane.length/2
-                position = lane.position(x0, 0)
-                virtual_obstacle_ = Obstacle(
-                                                    road=self.road,
-                                                    position=position,
-                                                    heading=lane.heading_at(x0)+np.pi/2,
-                                                    velocity=0,
-                                                    lane_index=lane_index,
-                                                    target_lane_index=lane_index,                                            
-                                                    config=self.config
-                                            )
-                #virtual_obstacle_.is_projection = True
-                virtual_obstacle_.virtual = True                                       
-                virtual_obstacle_.LENGTH = int(lane.width*self.config["parking_spots"])
-                virtual_obstacle_.WIDTH = int(lane.length)
-                #virtual_obstacle_.hidden = True
-                self.road.add_vehicle(virtual_obstacle_)
-                self.road.add_virtual_vehicle(virtual_obstacle_)'''
-
 

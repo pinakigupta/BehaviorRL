@@ -102,13 +102,14 @@ class LG_Sim_Env(ParkingEnv):
             "vehicles_count": 2,
             "goals_count": 'all',
             "pedestrian_count": 0,
+            "constraints_count": 4,
             "SIMULATION_FREQUENCY": 20,  # The frequency at which the system dynamics are simulated [Hz]
             "POLICY_FREQUENCY": 20,  # The frequency at which the agent can take actions [Hz]
             "velocity_range": 1.5*ParkingEnv.PARKING_MAX_VELOCITY,
             "MAX_VELOCITY": ParkingEnv.PARKING_MAX_VELOCITY,
             "closest_lane_dist_thresh": 500,
             "map": 'WideFlatMap',
-            #"map_offset": [0, 0, 0],
+            "duration": 200,
             },
         **{
             "PARKING_LOT_WIDTH": ParkingEnv.DEFAULT_PARKING_LOT_WIDTH,
