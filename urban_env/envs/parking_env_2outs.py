@@ -32,7 +32,8 @@ HAVAL_PARKING_LOT = {
                         "parking_angle": 90,
                         "parking_spots": 10,
                         "map_offset": [-4, -40 , 0],
-                        "ego_offset": 'random',
+                        "ego_initial_pose": 'random',
+                        "summon_pose": [4, 40, -90],
                         "aisle_width": 6.5, 
                         "width": 3,
                         "map": "ParkingLot",
@@ -118,7 +119,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "aisle_width": 'random',
             "width": 'random',
             "length": 'random',
-            "ego_offset": 'random',
+            "ego_initial_pose": 'random',
+            "summon_pose": None,
           },
           #**HAVAL_PARKING_LOT
     }
@@ -259,14 +261,14 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         else:
             self.park_length = self.config["length"]  
 
-        if self.config["ego_offset"] == 'random':
-            self.ego_offset = []
-            self.ego_offset.append(self.np_random.uniform(low=-1, high=1))
-            self.ego_offset.append(self.np_random.uniform(low=-0.2, high=0.2))
-            self.ego_offset.append(np.deg2rad(self.np_random.uniform(low=-90, high=90)))
+        if self.config["ego_initial_pose"] == 'random':
+            self.ego_initial_pose = []
+            self.ego_initial_pose.append(self.np_random.uniform(low=-1, high=1))
+            self.ego_initial_pose.append(self.np_random.uniform(low=-0.2, high=0.2))
+            self.ego_initial_pose.append(np.deg2rad(self.np_random.uniform(low=-90, high=90)))
         else:
-            self.ego_offset = self.config["ego_offset"]
-            self.ego_offset[2] = np.deg2rad(self.ego_offset[2])
+            self.ego_initial_pose = self.config["ego_initial_pose"]
+            self.ego_initial_pose[2] = np.deg2rad(self.ego_initial_pose[2])
 
         
         # Let's start by randomly choosing the parking angle
@@ -305,6 +307,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         else:
             self.vehicles_count = self.config["vehicles_count"]
+
+        self.summon_pose = self.config["summon_pose"]
 
         # Defining goals 
         if self.config["goals_count"] == 'all':
@@ -377,16 +381,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         y0 = self.aisle_width
         x0, y0 = self.rot((x0, y0), self.park_angle)        
         
-        self.summon =  Obstacle(
-                                road=self.road,
-                                position=[x0, y0], 
-                                heading=self.park_angle,
-                                config={**self.config, **{"COLLISIONS_ENABLED": False}},
-                                color=RED
-                               )
-        #self.road.goals.append(obstacle)
-        #self.road.vehicles.insert(0, self.summon)
-        #self.road.add_virtual_vehicle(self.summon)
+
 
         ###### ADDING PEDESTRIANS ###########
         for _ in range(self.pedestrian_count):
@@ -408,8 +403,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         ##### ADDING EGO #####
         self.vehicle =  Vehicle(
                                road=self.road, 
-                               position=[self.ego_offset[0], self.ego_offset[1]],
-                               heading=self.ego_offset[2], #2*np.pi*self.np_random.rand(),
+                               position=[self.ego_initial_pose[0], self.ego_initial_pose[1]],
+                               heading=self.ego_initial_pose[2], #2*np.pi*self.np_random.rand(),
                                velocity=0,
                                route_lane_index=None,
                                config=self.config
@@ -591,10 +586,29 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             supposed to have FIXED length. For this reason, we will just RESET and
             keep going.
         """
-        terminal = self.vehicle.crashed or \
-                   self.is_success or \
-                  (self.steps >= self.config["duration"]) or\
-                   (self.vehicle.action_validity == False)
+        if self.summon_pose is not None and self.is_success:
+            self.summon =  Obstacle(
+                                    road=self.road,
+                                    position=self.summon_pose[0:1], 
+                                    heading=np.deg2rad(self.summon_pose[2]),
+                                    config={**self.config, **{"COLLISIONS_ENABLED": False}},
+                                    color=RED
+                                )
+            for goal in self.road.goals:
+                self.road.vehicles.remove(goal)
+                self.road.virtual_vehicles.remove(goal)
+            self.road.goals = [self.summon]
+            self.road.vehicles.insert(0, self.summon)
+            self.road.add_virtual_vehicle(self.summon)
+            self.summon_pose = None
+            terminal = self.vehicle.crashed or \
+                    (self.steps >= self.config["duration"]) or\
+                    (self.vehicle.action_validity == False)            
+        else:
+            terminal = self.vehicle.crashed or \
+                    self.is_success or \
+                    (self.steps >= self.config["duration"]) or\
+                    (self.vehicle.action_validity == False)
         # or self._is_success(obs['achieved_goal'], obs['desired_goal'])
         return terminal
 
