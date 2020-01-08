@@ -21,14 +21,14 @@ import atexit
 from color import color
 from ray.tune import register_env
 
-register_env('multilane-v0', lambda config: urban_env.envs.MultilaneEnv(config))
-register_env('merge-v0', lambda config: urban_env.envs.MergeEnv(config))
-register_env('roundabout-v0', lambda config: urban_env.envs.RoundaboutEnv(config))
-register_env('two-way-v0', lambda config: urban_env.envs.TwoWayEnv(config))
-register_env('parking-v0', lambda config: urban_env.envs.ParkingEnv(config))
-register_env('parking_2outs-v0', lambda config: urban_env.envs.ParkingEnv_2outs(config))
+#register_env('multilane-v0', lambda config: urban_env.envs.MultilaneEnv(config))
+#register_env('merge-v0', lambda config: urban_env.envs.MergeEnv(config))
+#register_env('roundabout-v0', lambda config: urban_env.envs.RoundaboutEnv(config))
+#register_env('two-way-v0', lambda config: urban_env.envs.TwoWayEnv(config))
+#register_env('parking-v0', lambda config: urban_env.envs.ParkingEnv(config))
+#register_env('parking_2outs-v0', lambda config: urban_env.envs.ParkingEnv_2outs(config))
 #register_env('LG-SIM-ENV-v0', lambda config: urban_env.envs.LG_Sim_Env(config))
-register_env('multitask-v0', lambda config: MultiTaskEnv(config))
+#register_env('multitask-v0', lambda config: MultiTaskEnv(config))
 
 def exit_handler():
     subprocess.run(["chmod", "-R", "a+rwx", "."])

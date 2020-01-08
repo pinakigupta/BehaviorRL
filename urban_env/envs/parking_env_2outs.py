@@ -33,7 +33,7 @@ HAVAL_PARKING_LOT = {
                         "parking_spots": 10,
                         "map_offset": [-4, -40 , 0],
                         "ego_initial_pose": 'random',
-                        "summon_pose": [4, 40, -90],
+                        "summon_pose": [4, 4, -90],
                         "aisle_width": 6.5, 
                         "width": 3,
                         "map": "ParkingLot",
@@ -120,7 +120,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "width": 'random',
             "length": 'random',
             "ego_initial_pose": 'random',
-            "summon_pose": None,
+            "summon_pose": [4, 40, -90],
           },
           #**HAVAL_PARKING_LOT
     }
@@ -376,12 +376,15 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self._build_parking()
         self.border_lane_count = 4
         parking_spots_used = []
-
-        x0 = (-5 - self.parking_spots // 2) * self.park_width  
-        y0 = self.aisle_width
-        x0, y0 = self.rot((x0, y0), self.park_angle)        
-        
-
+  
+        if self.summon_pose is not None:
+            self.summon =  Obstacle(
+                                        road=self.road,
+                                        position=[self.summon_pose[0], self.summon_pose[1]], 
+                                        heading=np.deg2rad(self.summon_pose[2]),
+                                        config={**self.config, **{"COLLISIONS_ENABLED": False}},
+                                        color=RED
+                                )
 
         ###### ADDING PEDESTRIANS ###########
         for _ in range(self.pedestrian_count):
@@ -544,8 +547,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             reward = collision_reward + min(0.0, continuous_reward)
         elif self.is_success:
             reward = goal_reward + continuous_reward
-        #elif(info["is_terminal"]):
-        #    reward = self.config["TERM_REWARD"]
         else:
             reward = continuous_reward
 
@@ -564,7 +565,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "is_collision": int(self.vehicle.crashed),
             "is_over_others_parking_spot": int(self.is_over_others_parking_spot(self.vehicle.position)),
             "is_reverse": int(self.vehicle.velocity < 0),
-            "is_terminal": self._is_terminal()
+            #"is_terminal": self._is_terminal()
         }
         return info
 
@@ -586,24 +587,16 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             supposed to have FIXED length. For this reason, we will just RESET and
             keep going.
         """
-        if self.summon_pose is not None and self.is_success:
-            self.summon =  Obstacle(
-                                    road=self.road,
-                                    position=self.summon_pose[0:1], 
-                                    heading=np.deg2rad(self.summon_pose[2]),
-                                    config={**self.config, **{"COLLISIONS_ENABLED": False}},
-                                    color=RED
-                                )
+        if self.summon is not None and self.is_success:
             for goal in self.road.goals:
                 self.road.vehicles.remove(goal)
                 self.road.virtual_vehicles.remove(goal)
             self.road.goals = [self.summon]
             self.road.vehicles.insert(0, self.summon)
             self.road.add_virtual_vehicle(self.summon)
-            self.summon_pose = None
+            self.summon = None
             terminal = self.vehicle.crashed or \
-                    (self.steps >= self.config["duration"]) or\
-                    (self.vehicle.action_validity == False)            
+                    (self.steps >= self.config["duration"])         
         else:
             terminal = self.vehicle.crashed or \
                     self.is_success or \

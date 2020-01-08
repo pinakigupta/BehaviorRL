@@ -175,6 +175,7 @@ class AbstractEnv(gym.Env):
         #print("resetting env", "current_curriculam = ", self.get_curriculam())
         return obs
 
+
     def step(self, action):
         """
             Perform an action and step the environment dynamics.
@@ -241,10 +242,7 @@ class AbstractEnv(gym.Env):
             # Automatically render intermediate simulation steps if a viewer has been launched
             self._automatic_rendering()
 
-            # Stop at terminal states
-            #if self.done or self._is_terminal():
-                #print("self.done", self.done, " _is_terminal ", self._is_terminal())
-                #break
+
         self.enable_auto_render = False
 
         

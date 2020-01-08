@@ -99,7 +99,7 @@ class LG_Sim_Env(ParkingEnv):
             #"obstacle_type": "urban_env.envs.LG_sim_env.ObstacleLG",
             "DIFFICULTY_LEVELS": 4,
             "OBS_STACK_SIZE": 1,
-            "vehicles_count": 'random',
+            "vehicles_count": 2,
             "goals_count": 'all',
             "pedestrian_count": 0,
             "SIMULATION_FREQUENCY": 20,  # The frequency at which the system dynamics are simulated [Hz]
@@ -133,7 +133,7 @@ class LG_Sim_Env(ParkingEnv):
         else:
             config = {**self.DEFAULT_CONFIG, **config}
 
-        super(LG_Sim_Env, self).__init__(config)
+        super(LG_Sim_Env, self).__init__(config=config)
 
         #self.sim = lgsvl.Simulator(address=os.environ.get("SIMULATOR_HOST", "127.0.0.1"), port=8080) 
         
