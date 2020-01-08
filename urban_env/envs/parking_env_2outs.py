@@ -192,7 +192,9 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         return obs, reward, done, info
 
     def reset(self):
+        self.summon = None
         self.steps = 0
+        self.summon = None
         self._populate_parking()
         self.is_success = False
         self.vehicle.crashed = False
