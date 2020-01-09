@@ -402,7 +402,7 @@ class Vehicle(Loggable):
             'cos_h': cos_h,
             'sin_h': sin_h,
             'length': self.LENGTH,
-            'width_': self.WIDTH,
+            'width': self.WIDTH,
             'psi': psi,
             'lane_psi': self.lane.heading_at(self.position[0]),
         }

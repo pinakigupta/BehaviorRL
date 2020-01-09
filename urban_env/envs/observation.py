@@ -70,7 +70,16 @@ class KinematicObservation(ObservationType):
     FEATURES = [ 'x', 'y', 'vx', 'vy', 'psi', 'lane_psi', 'length']
     #STACK_SIZE = 2
 
-    def __init__(self, env, ref_vehicle, features=FEATURES, relative_features=FEATURES, obs_count=9, obs_size=10, **kwargs):
+    def __init__(self, 
+                 env, 
+                 ref_vehicle, 
+                 features=FEATURES, 
+                 relative_features=FEATURES, 
+                 constraint_features=FEATURES, 
+                 obs_count=9, 
+                 obs_size=10, 
+                 **kwargs
+                 ):
         """
         :param env: The environment to observe
         :param features: Names of features used in the observation
@@ -79,6 +88,7 @@ class KinematicObservation(ObservationType):
         self.env = env
         self.features = features
         self.relative_features = relative_features
+        self.constraint_features = constraint_features
         self.obs_count = obs_count
         self.obs_size = obs_size
         self.virtual_obs_count = 1
@@ -106,10 +116,15 @@ class KinematicObservation(ObservationType):
         self.x_position_range = self.env.config["x_position_range"]
         self.y_position_range = self.env.config["y_position_range"]
         self.velocity_range = self.env.config["velocity_range"]
-        df['x'] = utils.remap(df['x'], [- self.x_position_range, self.x_position_range], [-1, 1])
-        df['y'] = utils.remap(df['y'], [-self.y_position_range, self.y_position_range], [-1, 1])
-        df['vx'] = utils.remap(df['vx'], [-self.velocity_range, self.velocity_range], [-1, 1])
-        df['vy'] = utils.remap(df['vy'], [-self.velocity_range, self.velocity_range], [-1, 1])
+
+        if 'x' in df:
+            df['x'] = utils.remap(df['x'], [- self.x_position_range, self.x_position_range], [-1, 1])
+        if 'y' in df:
+            df['y'] = utils.remap(df['y'], [-self.y_position_range, self.y_position_range], [-1, 1])
+        if 'vx' in df:
+            df['vx'] = utils.remap(df['vx'], [-self.velocity_range, self.velocity_range], [-1, 1])
+        if 'vy' in df:
+            df['vy'] = utils.remap(df['vy'], [-self.velocity_range, self.velocity_range], [-1, 1])
 
         if 'psi' in df:
             if hasattr(self.vehicle, 'route_lane_index'):
@@ -123,7 +138,9 @@ class KinematicObservation(ObservationType):
         if 'lane_psi' in df:
             df['lane_psi'] = df['lane_psi']/(2*np.pi)
         if 'length' in df:
-            df['length'] = df['length']/400
+            df['length'] = df['length']/100
+        if 'width' in df:
+            df['length'] = df['length']/10            
         return df
 
 
@@ -240,10 +257,10 @@ class KinematicsGoalObservation(KinematicObservation):
         constraint = pandas.DataFrame.from_records(
                     [v.to_dict(self.relative_features, self.vehicle) 
                                 for v in self.env.road.virtual_vehicles
-                                    if v not in self.env.road.goals])[self.features]
+                                    if v not in self.env.road.goals])[self.constraint_features]
         if constraint.shape[0] < self.constraints_count:
-            rows = -np.ones((self.constraints_count - constraint.shape[0], len(self.features)))
-            constraint = constraint.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True) 
+            rows = -np.ones((self.constraints_count - constraint.shape[0], len(self.constraint_features)))
+            constraint = constraint.append(pandas.DataFrame(data=rows, columns=self.constraint_features), ignore_index=True) 
         constraint = np.ravel(self.normalize(constraint))
         obs_dict = {
                         "observation": super(KinematicsGoalObservation, self).observe(),

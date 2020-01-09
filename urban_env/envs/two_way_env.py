@@ -39,7 +39,7 @@ class TwoWayEnv(AbstractEnv):
         **{
             "observation": {
                 "type": "Kinematics",
-                "features": ['x', 'y', 'vx', 'vy', 'psi'],
+                "features": {"vehicles": ['x', 'y', 'vx', 'vy', 'psi']},
                 "relative_features": ['x'],
                 "obs_count": 6,
                 "obs_size": 6

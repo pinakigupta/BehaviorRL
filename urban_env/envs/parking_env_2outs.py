@@ -82,7 +82,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         **{
             "observation": {
                 "type": "KinematicsGoal",
-                "features": ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h'],
+                "features":  ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h'],
+                "constraint_features":  ['x', 'y', 'length', 'width', 'cos_h', 'sin_h'],
                 "relative_features": ['x', 'y'],
                 "scale": 100,
                 "obs_size": 10,
@@ -100,7 +101,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "screen_height": 800,
             "DIFFICULTY_LEVELS": 10,
             "OBS_STACK_SIZE": 1,
-            "vehicles_count": 'all',
+            "vehicles_count": 'random',
             "goals_count": 'all',
             "pedestrian_count": 0,
             "constraints_count": 4,
@@ -421,7 +422,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         all_lanes = self.road.network.lanes_list()
         for lane in all_lanes:
            if lane.distance(self.ego_initial_pose[0:1])<2.5:
-                self.ego_initial_pose = [0.0, 0.0, 0.0]
+                self.ego_initial_pose[0] = 0.0
+                self.ego_initial_pose[0] = 0.0
 
 
         self.vehicle =  Vehicle(
@@ -580,7 +582,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             supposed to have FIXED length. For this reason, we will just RESET and
             keep going.
         """
-        if self.summon is not None and self.is_success:
+        if self.summon is not None and self.is_success and False:
             for goal in self.road.goals:
                 self.road.vehicles.remove(goal)
                 self.road.virtual_vehicles.remove(goal)
