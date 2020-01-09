@@ -100,7 +100,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "screen_height": 800,
             "DIFFICULTY_LEVELS": 10,
             "OBS_STACK_SIZE": 1,
-            "vehicles_count": 'random',
+            "vehicles_count": 'all',
             "goals_count": 'all',
             "pedestrian_count": 0,
             "constraints_count": 4,
@@ -398,7 +398,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                         heading=np.deg2rad(self.summon_pose[2]),
                                         config={**self.config, **{"COLLISIONS_ENABLED": False}},
                                         color=RED
-                                )
+                                   )
 
         ###### ADDING PEDESTRIANS ###########
         for _ in range(self.pedestrian_count):
@@ -418,14 +418,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         
 
         ##### ADDING EGO #####
-        for lane in self.road.network.lanes_list()[:-self.border_lane_count]:
-            if la.norm((lane.position(0,0)-self.ego_initial_pose[0:1]), 2)<1.5:
-                parking_spots_used.append(lane)
-
-        if len(parking_spots_used)+self.vehicles_count >= self.parking_spots-self.border_lane_count:
-            self.ego_initial_pose[0] = 0.0
-            self.ego_initial_pose[1] = 0.0
-            parking_spots_used = []
+        all_lanes = self.road.network.lanes_list()
+        for lane in all_lanes:
+           if lane.distance(self.ego_initial_pose[0:1])<2.5:
+                self.ego_initial_pose = [0.0, 0.0, 0.0]
 
 
         self.vehicle =  Vehicle(

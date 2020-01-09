@@ -164,7 +164,8 @@ def ray_init(LOCAL_MODE=False, **mainkwargs):
             ray.init(local_mode=LOCAL_MODE)
         if not LOCAL_MODE:
             available_cluster_cpus = int(ray.available_resources().get("CPU"))
-            available_cluster_gpus = int(ray.available_resources().get("GPU"))
+            if ray.available_resources().get("GPU") is not None:
+                available_cluster_gpus = int(ray.available_resources().get("GPU"))
             print("cluster_resources ", ray.cluster_resources(), "\n")
             print("available_resources ", ray.available_resources())
         return available_cluster_cpus, available_cluster_gpus
@@ -311,7 +312,7 @@ def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, available_cl
                     "num_gpus": delegated_gpus,
                     "gamma": 0.85,
                     "num_workers": delegated_cpus,
-                    "num_envs_per_worker": 1,
+                    "num_envs_per_worker": 2,
                     "env": train_env_id,
                     "remote_worker_envs": False,
                     "model": model,
