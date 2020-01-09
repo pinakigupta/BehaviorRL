@@ -118,8 +118,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "TRAJECTORY_HORIZON": 10,
           },
         **{
-            "PARKING_LOT_WIDTH": DEFAULT_PARKING_LOT_WIDTH,
-            "PARKING_LOT_LENGTH": DEFAULT_PARKING_LOT_LENGTH,
+            "PARKING_LOT_WIDTH": 'random',
+            "PARKING_LOT_LENGTH": 'random',
             "parking_spots": 'random',  # Parking Spots per side            
             "parking_angle": 'random',  # Parking angle in deg
             "aisle_width": 'random',
@@ -240,14 +240,14 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             https://www.webpages.uidaho.edu/niatt_labmanual/chapters/parkinglotdesign/theoryandconcepts/parkingstalllayoutconsiderations.htm
         """
         if self.config["PARKING_LOT_WIDTH"] == 'random':
-            self.PARKING_LOT_WIDTH = self.np_random.randint(int(0.8*self.DEFAULT_PARKING_LOT_WIDTH), 
-                                                                int(1.2*self.DEFAULT_PARKING_LOT_WIDTH))
+            self.PARKING_LOT_WIDTH =  self.np_random.uniform(low=0.7*self.DEFAULT_PARKING_LOT_WIDTH, 
+                                                             high=1.2*self.DEFAULT_PARKING_LOT_WIDTH)
         else:
             self.PARKING_LOT_WIDTH = self.config["PARKING_LOT_WIDTH"]
 
         if self.config["PARKING_LOT_LENGTH"] == 'random':
-            self.PARKING_LOT_LENGTH = self.np_random.randint(int(0.8*self.DEFAULT_PARKING_LOT_LENGTH), 
-                                                                 int(1.2*self.DEFAULT_PARKING_LOT_LENGTH))
+            self.PARKING_LOT_LENGTH = self.np_random.uniform(low=0.7*self.DEFAULT_PARKING_LOT_LENGTH, 
+                                                             high=1.2*self.DEFAULT_PARKING_LOT_LENGTH)
         else:
             self.PARKING_LOT_LENGTH = self.config["PARKING_LOT_LENGTH"]                                                
 
