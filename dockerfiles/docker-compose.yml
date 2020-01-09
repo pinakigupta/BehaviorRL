@@ -1,8 +1,37 @@
-version: '2.1'
+version: '3.1'
 
 services:
   rl_baselines_ad:
-    image: rl_baselines_ad
-    build: .
+    image: pinakigupta/rl_baselines
+    build: 
+      context: .
+      dockerfile: dockerfiles/Dockerfile
+    volumes: 
+      - ../../rl_baselines_ad:/rl_baselines_ad
+      - ~/.aws:/tmp/.aws 
+      - ~/.ssh:/tmp/.ssh
+      -  /tmp/.X11-unix:/tmp/.X11-unix
     ports:
-      - :
+      - 8881:8881
+    stdin_open: true
+    tty: true
+    environment:
+      - DISPLAY=unix$DISPLAY
+    container_name: ray_docker_compose
+
+
+  lgsvlsimulator:
+    image: lgsvlsimulator
+    build: 
+      context: .
+      dockerfile: dockerfiles/lg-docker/Dockerfile
+    volumes: 
+      - ../lg-sim:/lg-sim
+      -  /var/lib/docker/volumes/lgsvlsimulator:/root/.config/unity3d 
+      - ${XAUTHORITY}:/tmp/.Xauthority
+      -  /tmp/.X11-unix:/tmp/.X11-unix
+    environment: 
+      - DISPLAY
+      - XAUTHORITY=/tmp/.Xauthority
+    network_mode: "host"
+#    runtime: nvidia
