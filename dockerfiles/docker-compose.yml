@@ -11,10 +11,11 @@ services:
       - ~/.aws:/tmp/.aws 
       - ~/.ssh:/tmp/.ssh
       -  /tmp/.X11-unix:/tmp/.X11-unix
-    ports:
-      - 8881:8881
+#    expose:
+#      - "8181"
     stdin_open: true
     tty: true
+    network_mode: "host"
     environment:
       - DISPLAY=unix$DISPLAY
     container_name: ray_docker_compose
@@ -34,4 +35,8 @@ services:
       - DISPLAY
       - XAUTHORITY=/tmp/.Xauthority
     network_mode: "host"
-#    runtime: nvidia
+#    ports:
+#      - "127.0.0.1:8080:8080"
+#      - "127.0.0.1:8181:8181"
+    container_name: lgsvl_docker_compose
+

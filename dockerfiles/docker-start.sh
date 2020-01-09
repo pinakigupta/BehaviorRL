@@ -25,7 +25,7 @@ AWS_SECRET_ACCESS_KEY=$(aws --profile default configure get aws_secret_access_ke
 docker_name=ray_docker_local
 echo "We are ready to run the main docker container"
 xhost +
-docker-compose -f dockerfiles/docker-compose.yml up -d
+docker-compose -f dockerfiles/docker-compose.yml up -d 
 docker exec -it ray_docker_compose /bin/bash 
 
 
