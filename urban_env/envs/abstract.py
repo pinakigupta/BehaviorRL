@@ -38,7 +38,7 @@ class AbstractEnv(gym.Env):
     ACTIONS = ACTIONS_DICT
     
     """ Which Actions are Allowed for the current Agent """
-    ACTION_MASKS = [True,True,True,True,True,True,True] 
+    ACTION_MASKS = [True, True, True, True, True, True, True] 
 
     """
         A mapping of action indexes to action labels

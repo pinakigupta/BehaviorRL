@@ -13,6 +13,7 @@ from gym.spaces import Dict, Discrete, Box, Tuple
 import copy
 import sys
 from random import choice
+from numpy import linalg as la
 
 from urban_env.envs.abstract import AbstractEnv
 from urban_env.road.lane import StraightLane, LineType, AbstractLane
@@ -33,7 +34,7 @@ HAVAL_PARKING_LOT = {
                         "parking_spots": 10,
                         "map_offset": [-4, -40 , 0],
                         "ego_initial_pose": 'random',
-                        "summon_pose": [4, 40, -90],
+                        "summon_pose": None, #[4, 40, -90], # where to summon 
                         "aisle_width": 6.5, 
                         "width": 3,
                         "map": "ParkingLot",
@@ -238,12 +239,16 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             https://www.webpages.uidaho.edu/niatt_labmanual/chapters/parkinglotdesign/theoryandconcepts/parkingstalllayoutconsiderations.htm
         """
         if self.config["PARKING_LOT_WIDTH"] == 'random':
-            self.config["PARKING_LOT_WIDTH"] = self.np_random.randint(int(0.8*self.DEFAULT_PARKING_LOT_WIDTH), 
-                                                                      int(1.2*self.DEFAULT_PARKING_LOT_WIDTH))
+            self.PARKING_LOT_WIDTH = self.np_random.randint(int(0.8*self.DEFAULT_PARKING_LOT_WIDTH), 
+                                                                int(1.2*self.DEFAULT_PARKING_LOT_WIDTH))
+        else:
+            self.PARKING_LOT_WIDTH = self.config["PARKING_LOT_WIDTH"]
 
         if self.config["PARKING_LOT_LENGTH"] == 'random':
-            self.config["PARKING_LOT_LENGTH"] = self.np_random.randint(int(0.8*self.DEFAULT_PARKING_LOT_LENGTH), 
-                                                                       int(1.2*self.DEFAULT_PARKING_LOT_LENGTH))
+            self.PARKING_LOT_LENGTH = self.np_random.randint(int(0.8*self.DEFAULT_PARKING_LOT_LENGTH), 
+                                                                 int(1.2*self.DEFAULT_PARKING_LOT_LENGTH))
+        else:
+            self.PARKING_LOT_LENGTH = self.config["PARKING_LOT_LENGTH"]                                                
 
         # Defining parking spots 
         if self.config["parking_spots"] == 'random':
@@ -268,8 +273,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         if self.config["ego_initial_pose"] == 'random':
             self.ego_initial_pose = []
-            self.ego_initial_pose.append(self.np_random.uniform(low=-1, high=1))
-            self.ego_initial_pose.append(self.np_random.uniform(low=-0.2, high=0.2))
+            self.ego_initial_pose.append(self.np_random.uniform(low=-0.4*self.PARKING_LOT_WIDTH , 
+                                                                high=0.4*self.PARKING_LOT_WIDTH ))
+            self.ego_initial_pose.append(self.np_random.uniform(low=-0.4*self.PARKING_LOT_LENGTH, 
+                                                                high=0.4*self.PARKING_LOT_LENGTH))
             self.ego_initial_pose.append(np.deg2rad(self.np_random.uniform(low=-90, high=90)))
         else:
             self.ego_initial_pose = self.config["ego_initial_pose"]
@@ -360,8 +367,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             net.add_lane("b", "c", StraightLane(
                 [x3, y3], [x4, y4], width=width, line_types=lt))
 
-        w = self.config["PARKING_LOT_WIDTH"]/2
-        l = self.config["PARKING_LOT_LENGTH"]/2
+        w = self.PARKING_LOT_WIDTH/2
+        l = self.PARKING_LOT_LENGTH/2
         hidden = [LineType.NONE, LineType.NONE]
         borders = [([w, -l], [w, l]), ([-w, -l], [-w, l]), ([-w, -l], [w, -l]), ([-w, l], [w, l])]
 
@@ -395,8 +402,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         ###### ADDING PEDESTRIANS ###########
         for _ in range(self.pedestrian_count):
-            rand_x = self.np_random.randint(low = 10, high = self.config["PARKING_LOT_WIDTH"]//3)
-            rand_y = self.np_random.randint(low = 10, high = self.config["PARKING_LOT_LENGTH"]//3)
+            rand_x = self.np_random.randint(low=10, high=self.PARKING_LOT_WIDTH//3)
+            rand_y = self.np_random.randint(low=10, high=self.PARKING_LOT_LENGTH//3)
             self.Ped =  Pedestrian(
                                 road=self.road, 
                                 position=[self.np_random.choice([-rand_x, rand_x]), 
@@ -411,6 +418,16 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         
 
         ##### ADDING EGO #####
+        for lane in self.road.network.lanes_list()[:-self.border_lane_count]:
+            if la.norm((lane.position(0,0)-self.ego_initial_pose[0:1]), 2)<1.5:
+                parking_spots_used.append(lane)
+
+        if len(parking_spots_used)+self.vehicles_count >= self.parking_spots-self.border_lane_count:
+            self.ego_initial_pose[0] = 0.0
+            self.ego_initial_pose[1] = 0.0
+            parking_spots_used = []
+
+
         self.vehicle =  Vehicle(
                                road=self.road, 
                                position=[self.ego_initial_pose[0], self.ego_initial_pose[1]],
@@ -421,7 +438,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                )
         self.vehicle.is_ego_vehicle = True
         self.road.vehicles.append(self.vehicle)
-        ego_x0 = self.vehicle.position[0]
+
 
 
         lane = self.np_random.choice(self.road.network.lanes_list()[:-self.border_lane_count])
@@ -461,22 +478,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             self.road.vehicles.insert(0, obstacle)
             self.road.add_virtual_vehicle(obstacle)
                                            
-        dyn_veh_count = 0 #np.random.randint(low=0, high=2*scene_complexity)
-        lane_index = ("g", "h", 0)
-        for i in range(dyn_veh_count):
-            x0 = ego_x0+20+40*i + 10*self.np_random.randn()
-            v =     IDMVehicle(self.road,
-                               position=self.road.network.get_lane(lane_index)
-                               .position(x0, 0),
-                               heading=self.road.network.get_lane(lane_index).heading_at(x0),
-                               velocity=max(0,10 + 2*self.np_random.randn()),
-                               target_velocity=self.config["MAX_VELOCITY"]/2,
-                               #target_lane_index=lane_index, 
-                               #lane_index=lane_index,                             
-                               enable_lane_change=False,
-                               config=self.config
-                               )
-            self.road.add_vehicle(v)
                 
         self._add_constraint_vehicles()
 
@@ -599,7 +600,6 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                     self.is_success or \
                     (self.steps >= self.config["duration"]) or\
                     (self.vehicle.action_validity == False)
-        # or self._is_success(obs['achieved_goal'], obs['desired_goal'])
         return terminal
 
 

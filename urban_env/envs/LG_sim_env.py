@@ -87,7 +87,7 @@ class LG_Sim_Env(ParkingEnv):
         **{
             "observation": {
                 "type": "KinematicsGoal",
-                "features": ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h'],
+                "features": {"observation": ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h']},
                 "relative_features": ['x', 'y'],
                 "scale": 100,
                 "obs_size": 10,
