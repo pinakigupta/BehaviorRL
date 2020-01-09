@@ -257,7 +257,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             self.parking_spots = self.config["parking_spots"]
 
         if self.config["aisle_width"] == 'random':
-            self.aisle_width = self.np_random.uniform(low=3, high=4)
+            self.aisle_width = self.np_random.uniform(low=3, high=7)
         else:
             self.aisle_width = self.config["aisle_width"]
 
