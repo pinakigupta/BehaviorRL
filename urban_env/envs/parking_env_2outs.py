@@ -83,15 +83,15 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "observation": {
                 "type": "KinematicsGoal",
                 "features":  ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h'],
-                "constraint_features":  ['x', 'y', 'length', 'width', 'cos_h', 'sin_h'],
+                "constraint_features":  ['x', 'y', 'vx', 'length', 'cos_h', 'sin_h'],
                 "relative_features": ['x', 'y'],
                 "scale": 100,
                 "obs_size": 10,
                 "obs_count": 10,
                 "goals_size": 10,
                 "goals_count": 10,
-                "pedestrians_size": 10,
-                "pedestrians_count": 10,
+                "pedestrians_size": 2,
+                "pedestrians_count": 2,
                 "constraints_count": 5,
                            },
             "obstacle_type": "urban_env.vehicle.dynamics.Obstacle",
@@ -406,6 +406,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                 color=BLACK
                                 )
             self.road.vehicles.append(self.Ped)
+            self.road.pedestrians.append(self.Ped)
 
 
     def _spawn_EGO(self):
@@ -475,7 +476,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             if v is self.vehicle:
                 continue
             v.check_collision(self.vehicle)
-            self.vehicle.crashed = v.crashed = False
+            if not self.vehicle.crashed:
+                continue
             if v in self.road.goals:
                 pass
             elif v in self.road.virtual_vehicles: # reset ego to gurantee there is no collision
@@ -483,6 +485,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 self.vehicle.position[1] = 0.0
             else: # remove the object
                 self.road.vehicles.remove(v)
+            self.vehicle.crashed = v.crashed = False                
 
 
 
