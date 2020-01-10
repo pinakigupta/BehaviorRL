@@ -76,6 +76,7 @@ class KinematicObservation(ObservationType):
                  features=FEATURES, 
                  relative_features=FEATURES, 
                  constraint_features=FEATURES, 
+                 pedestrian_features=FEATURES,
                  obs_count=9, 
                  obs_size=10, 
                  **kwargs
@@ -89,6 +90,7 @@ class KinematicObservation(ObservationType):
         self.features = features
         self.relative_features = relative_features
         self.constraint_features = constraint_features
+        self.pedestrian_features = pedestrian_features
         self.obs_count = obs_count
         self.obs_size = obs_size
         self.virtual_obs_count = 1
@@ -302,16 +304,17 @@ class KinematicsGoalObservation(KinematicObservation):
     def observe_pedestrians(self):
         closest_obs_count = 0
         if self.closest_pedestrians:
-            raw_peds = pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) for v in self.closest_pedestrains])[self.features]
+            raw_peds = pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) for v in self.closest_pedestrains])\
+                                                    [self.pedestrian_features]
             peds = self.normalize(raw_peds)
             closest_obs_count = peds.shape[0]
         # Fill missing rows
         if closest_obs_count == 0:
-            rows = -np.ones((self.pedestrians_size, len(self.features)))
-            peds = pandas.DataFrame(data=rows, columns=self.features)
+            rows = -np.ones((self.pedestrians_size, len(self.pedestrian_features)))
+            peds = pandas.DataFrame(data=rows, columns=self.pedestrian_features)
         elif closest_obs_count < self.pedestrians_size:
-            rows = -np.ones((self.pedestrians_size - closest_obs_count, len(self.features)))
-            peds = peds.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
+            rows = -np.ones((self.pedestrians_size - closest_obs_count, len(self.pedestrian_features)))
+            peds = peds.append(pandas.DataFrame(data=rows, columns=self.pedestrian_features), ignore_index=True)
         pedestrians = np.ravel(peds) #flatten
         return pedestrians
 
