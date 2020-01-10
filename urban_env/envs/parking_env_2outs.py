@@ -308,16 +308,12 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             else:
                 self.vehicles_count = self.np_random.randint(low=low, high=high) 
             self.vehicles_count = min(self.vehicles_count, (self.parking_spots*2) - 1)
-
         elif self.config["vehicles_count"] == 'all':
             self.vehicles_count = (self.parking_spots*2) - 1
-
         elif self.config["vehicles_count"] == 'none':
             self.vehicles_count = 0
-
         elif self.config["vehicles_count"] == None:
             self.vehicles_count = 0
-
         else:
             self.vehicles_count = self.config["vehicles_count"]
 
@@ -384,14 +380,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                          np_random=self.np_random,
                          config=self.config)
 
-    def _populate_parking(self):
-        """
-            Create some new random vehicles of a given type, and add them on the road.
-        """
-
-        self._build_parking()
-        parking_spots_used = []
-  
+    def _spawn_summon_pose(self):
         if self.summon_pose is not None:
             self.summon =  Obstacle(
                                         road=self.road,
@@ -401,6 +390,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                         color=RED
                                    )
 
+    def _spawn_pedestrians(self):
         ###### ADDING PEDESTRIANS ###########
         for _ in range(self.pedestrian_count):
             rand_x = self.np_random.randint(low=10, high=self.PARKING_LOT_WIDTH//3)
@@ -416,8 +406,9 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                 color=BLACK
                                 )
             self.road.vehicles.append(self.Ped)
-        
 
+
+    def _spawn_EGO(self):
         ##### ADDING EGO #####
         all_lanes = self.road.network.lanes_list()
         for lane in all_lanes:
@@ -437,17 +428,16 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self.vehicle.is_ego_vehicle = True
         self.road.vehicles.append(self.vehicle)
 
-
-
+    def _spawn_vehicles(self):
         lane = self.np_random.choice(self.road.network.lanes_list()[:-self.border_lane_count])
 
         ##### ADDING OTHER VEHICLES #####
         GenericObstacle = class_from_path(self.config["obstacle_type"])
         for _ in range(self.vehicles_count):
-            while lane in parking_spots_used:  # this loop should never be infinite since we assert that there should be more parking spots/lanes than vehicles
+            while lane in self.parking_spots_used:  # this loop should never be infinite since we assert that there should be more parking spots/lanes than vehicles
                 # to-do: chceck for empty spots
                 lane = self.np_random.choice(self.road.network.lanes_list()[:-self.border_lane_count])
-            parking_spots_used.append(lane)
+            self.parking_spots_used.append(lane)
 
             self.road.vehicles.append(
                                       GenericObstacle(
@@ -459,11 +449,15 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                                      )
                                      )
 
+
+
+    def _add_goals(self):
         ##### ADDING OTHER GOALS #####
+        lane = self.np_random.choice(self.road.network.lanes_list()[:-self.border_lane_count])
         for _ in range(self.goals_count):
-            while lane in parking_spots_used:   
+            while lane in self.parking_spots_used:   
                 lane = self.np_random.choice(self.road.network.lanes_list()[:-self.border_lane_count])
-            parking_spots_used.append(lane)
+            self.parking_spots_used.append(lane)
 
             obstacle =  Obstacle(
                                 road=self.road,
@@ -475,9 +469,20 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             self.road.goals.append(obstacle)
             self.road.vehicles.insert(0, obstacle)
             self.road.add_virtual_vehicle(obstacle)
-                                           
-                
+
+    def _populate_parking(self):
+        """
+            Create some new random vehicles of a given type, and add them on the road.
+        """
+
+        self._build_parking()
+        self.parking_spots_used = []
+        self._spawn_summon_pose()
+        self._spawn_pedestrians()
+        self._spawn_EGO()
+        self._spawn_vehicles()
         self._add_constraint_vehicles()
+        self._add_goals()
 
     def distance_2_goal_reward(self, achieved_goal, desired_goal, p=2):
         goal_err = achieved_goal - desired_goal
