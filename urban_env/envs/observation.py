@@ -291,12 +291,17 @@ class KinematicsGoalObservation(KinematicObservation):
                                                                    )        
 
     def observe_goals(self):
+        closest_obs_count = 0
         if self.closest_goals:
             raw_goals = pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) for v in self.closest_goals])[self.features]
-        goal = self.normalize(raw_goals)
+            goal = self.normalize(raw_goals)
+            closest_obs_count = goal.shape[0]
+        if closest_obs_count == 0:
+            rows = -np.ones((self.goals_size, len(self.features)))
+            goal = pandas.DataFrame(data=rows, columns=self.features)            
         # Fill missing rows
-        if goal.shape[0] < self.goals_size:
-            rows = -np.ones((self.goals_size - goal.shape[0], len(self.features)))
+        elif closest_obs_count < self.goals_size:
+            rows = -np.ones((self.goals_size -closest_obs_count, len(self.features)))
             goal = goal.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
         goals = np.ravel(goal) #flatten
         return goals
