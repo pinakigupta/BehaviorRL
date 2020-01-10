@@ -411,10 +411,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
     def _spawn_EGO(self):
         ##### ADDING EGO #####
         all_lanes = self.road.network.lanes_list()
-        for lane in all_lanes:
+        '''for lane in all_lanes:
            if lane.distance(self.ego_initial_pose[0:1])<2.5:
                 self.ego_initial_pose[0] = 0.0
-                self.ego_initial_pose[0] = 0.0
+                self.ego_initial_pose[0] = 0.0'''
 
 
         self.vehicle =  Vehicle(
@@ -470,6 +470,22 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             self.road.vehicles.insert(0, obstacle)
             self.road.add_virtual_vehicle(obstacle)
 
+    def _spawn_cleanup(self):
+        for v in self.road.vehicles:
+            if v is self.vehicle:
+                continue
+            v.check_collision(self.vehicle)
+            self.vehicle.crashed = v.crashed = False
+            if v in self.road.goals:
+                pass
+            elif v in self.road.virtual_vehicles: # reset ego to gurantee there is no collision
+                self.vehicle.position[0] = 0.0
+                self.vehicle.position[1] = 0.0
+            else: # remove the object
+                self.road.vehicles.remove(v)
+
+
+
     def _populate_parking(self):
         """
             Create some new random vehicles of a given type, and add them on the road.
@@ -482,6 +498,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self._spawn_EGO()
         self._spawn_vehicles()
         self._add_constraint_vehicles()
+        self._spawn_cleanup()
         self._add_goals()
 
     def distance_2_goal_reward(self, achieved_goal, desired_goal, p=2):
