@@ -236,38 +236,12 @@ class KinematicsGoalObservation(KinematicObservation):
     def observe(self):
         obs = np.ravel(self.normalize(pandas.DataFrame.from_records([self.vehicle.to_dict(self.relative_features, self.vehicle)])[self.features]))
         self._set_closest_goals()
-        if self.vehicle.is_ego():
-            for v in self.env.road.goals:
-                if v in self.close_goals:
-                    v.color = WHITE
-                    v.hidden = False
-                else:
-                    v.hidden = True
-
-        raw_goals = pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) for v in self.close_goals])[self.features]
-        #raw_goals = raw_goals.append(pandas.DataFrame.from_records(\
-        #    [v.to_dict(self.relative_features, self.vehicle) for v in self.close_goals[1:]])[self.features], ignore_index=True)
-        goal = self.normalize(raw_goals)
-        # Fill missing rows
-        if goal.shape[0] < self.goals_size:
-            rows = -np.ones((self.goals_size - goal.shape[0], len(self.features)))
-            goal = goal.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
-        goal = np.ravel(goal) #flatten
-        
-        constraint = pandas.DataFrame.from_records(
-                    [v.to_dict(self.relative_features, self.vehicle) 
-                                for v in self.env.road.virtual_vehicles
-                                    if v not in self.env.road.goals])[self.constraint_features]
-        if constraint.shape[0] < self.constraints_count:
-            rows = -np.ones((self.constraints_count - constraint.shape[0], len(self.constraint_features)))
-            constraint = constraint.append(pandas.DataFrame(data=rows, columns=self.constraint_features), ignore_index=True) 
-        constraint = np.ravel(self.normalize(constraint))
         obs_dict = {
                         "observation": super(KinematicsGoalObservation, self).observe(),
                         #"pedestrians": 
                         "achieved_goal": obs ,
-                        "constraint": constraint,
-                        "desired_goal": goal ,
+                        "constraint": self.observe_constraints(),
+                        "desired_goal": self.observe_goals() ,
                         #"impatience": min(1.0, max(0.0, self.steps/self.config["duration"]))
                     }
         return obs_dict
@@ -282,6 +256,34 @@ class KinematicsGoalObservation(KinematicObservation):
                                                           self.goals_count,
                                                           self.env.config["PERCEPTION_DISTANCE"],
                                                           )
+        if self.vehicle.is_ego():
+            for v in self.env.road.goals:
+                if v in self.close_goals:
+                    v.color = WHITE
+                    v.hidden = False
+                else:
+                    v.hidden = True      
+
+    def observe_goals(self):
+        raw_goals = pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) for v in self.close_goals])[self.features]
+        goal = self.normalize(raw_goals)
+        # Fill missing rows
+        if goal.shape[0] < self.goals_size:
+            rows = -np.ones((self.goals_size - goal.shape[0], len(self.features)))
+            goal = goal.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
+        goals = np.ravel(goal) #flatten
+        return goals
+
+    def observe_constraints(self):
+        constraint = pandas.DataFrame.from_records(
+                    [v.to_dict(self.relative_features, self.vehicle) 
+                                for v in self.env.road.virtual_vehicles
+                                    if v not in self.env.road.goals])[self.constraint_features]
+        if constraint.shape[0] < self.constraints_count:
+            rows = -np.ones((self.constraints_count - constraint.shape[0], len(self.constraint_features)))
+            constraint = constraint.append(pandas.DataFrame(data=rows, columns=self.constraint_features), ignore_index=True) 
+        constraints = np.ravel(self.normalize(constraint))
+        return constraints
 
     def closest_vehicles(self):
         closest_to_ref = [self.vehicle]
