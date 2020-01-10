@@ -480,8 +480,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             if not self.vehicle.crashed:
                 continue
             if v in self.road.goals:
-                pass
-            elif v in self.road.virtual_vehicles: # reset ego to gurantee there is no collision
+                continue
+            elif v in self.road.virtual_vehicles: # reset ego position to gurantee there is no collision
                 self.vehicle.position[0] = 0.0
                 self.vehicle.position[1] = 0.0
             else: # remove the object
