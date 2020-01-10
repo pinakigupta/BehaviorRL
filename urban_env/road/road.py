@@ -284,7 +284,13 @@ class Road(Loggable):
         return sorted_v[:count]
 
 
-    def closest_goals_to(self, vehicle, count, perception_distance=math.inf, eval_func = None):
+    def closest_objects_to(self, 
+                           vehicle,
+                           count,
+                           objects,
+                           perception_distance=math.inf,
+                           eval_func=None
+                          ):
         def dist_func(v, vehicle=vehicle, eval_func=eval_func):
             if eval_func is not None:
                 return eval_func(v)
@@ -293,7 +299,7 @@ class Road(Loggable):
             else:
                 return abs(vehicle.lane_distance_to(v))
 
-        sorted_v = sorted([v for v in self.goals
+        sorted_v = sorted([v for v in objects
                            if v is not vehicle
                            and dist_func(v) < perception_distance],
                            key =lambda v: dist_func(v))

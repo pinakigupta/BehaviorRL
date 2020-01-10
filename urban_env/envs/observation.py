@@ -212,14 +212,26 @@ class KinematicObservation(ObservationType):
 
 
 class KinematicsGoalObservation(KinematicObservation):
-    def __init__(self, env, ref_vehicle, scale, goals_count=1, goals_size=1, constraints_count=0, **kwargs):
+    def __init__(self,
+                 env,
+                 ref_vehicle,
+                 scale,
+                 goals_count=1,
+                 goals_size=1,
+                 pedestrians_count=0,
+                 pedestrians_size=0,
+                 constraints_count=0,
+                 **kwargs):
         self.scale = scale
         self.vehicle = ref_vehicle
         self.goals_count = goals_count
         self.goals_size = goals_size
+        self.pedestrians_count = pedestrians_count
+        self.pedestrians_size = pedestrians_size
         self.constraints_count = constraints_count
         super(KinematicsGoalObservation, self).__init__(env, ref_vehicle, **kwargs)
         self._set_closest_goals()
+        self._set_closest_pedestrians()
 
     def space(self):
         try:
@@ -229,6 +241,7 @@ class KinematicsGoalObservation(KinematicObservation):
                 achieved_goal=spaces.Box(-np.inf, np.inf, shape=obs["achieved_goal"].shape, dtype=np.float32),
                 constraint=spaces.Box(-np.inf, np.inf, shape=obs["constraint"].shape, dtype=np.float32),
                 observation=spaces.Box(-np.inf, np.inf, shape=obs["observation"].shape, dtype=np.float32),
+                #pedestrians=spaces.Box(-np.inf, np.inf, shape=obs["pedestrians"].shape, dtype=np.float32),
             ))
         except AttributeError:
             return None
@@ -236,9 +249,10 @@ class KinematicsGoalObservation(KinematicObservation):
     def observe(self):
         obs = np.ravel(self.normalize(pandas.DataFrame.from_records([self.vehicle.to_dict(self.relative_features, self.vehicle)])[self.features]))
         self._set_closest_goals()
+        self._set_closest_pedestrians()
         obs_dict = {
                         "observation": super(KinematicsGoalObservation, self).observe(),
-                        #"pedestrians": 
+                        #"pedestrians": self.observe_pedestrians(),
                         "achieved_goal": obs ,
                         "constraint": self.observe_constraints(),
                         "desired_goal": self.observe_goals() ,
@@ -252,20 +266,30 @@ class KinematicsGoalObservation(KinematicObservation):
         return self.env.distance_2_goal_reward(obs, goal)
 
     def _set_closest_goals(self):            
-        self.close_goals = self.env.road.closest_goals_to(self.vehicle,
-                                                          self.goals_count,
-                                                          self.env.config["PERCEPTION_DISTANCE"],
-                                                          )
+        self.closest_goals = self.env.road.closest_objects_to(
+                                                                vehicle=self.vehicle,
+                                                                count=self.goals_count,
+                                                                perception_distance=self.env.config["PERCEPTION_DISTANCE"],
+                                                                objects=self.env.road.goals
+                                                            ) 
         if self.vehicle.is_ego():
             for v in self.env.road.goals:
-                if v in self.close_goals:
+                if v in self.closest_goals:
                     v.color = WHITE
                     v.hidden = False
                 else:
                     v.hidden = True      
 
+    def _set_closest_pedestrians(self):            
+        self.closest_pedestrians = self.env.road.closest_objects_to(
+                                                                    vehicle=self.vehicle,
+                                                                    count=self.pedestrians_count,
+                                                                    perception_distance=self.env.config["PERCEPTION_DISTANCE"],
+                                                                    objects=self.env.road.pedestrians
+                                                                   )        
+
     def observe_goals(self):
-        raw_goals = pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) for v in self.close_goals])[self.features]
+        raw_goals = pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) for v in self.closest_goals])[self.features]
         goal = self.normalize(raw_goals)
         # Fill missing rows
         if goal.shape[0] < self.goals_size:
@@ -273,6 +297,16 @@ class KinematicsGoalObservation(KinematicObservation):
             goal = goal.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
         goals = np.ravel(goal) #flatten
         return goals
+
+    def observe_pedestrians(self):
+        raw_peds = pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) for v in self.close_pedestrains])[self.features]
+        peds = self.normalize(raw_peds)
+        # Fill missing rows
+        if peds.shape[0] < self.pedestrians_size:
+            rows = -np.ones((self.pedestrians_size - peds.shape[0], len(self.features)))
+            peds = peds.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
+        pedestrians = np.ravel(peds) #flatten
+        return pedestrians
 
     def observe_constraints(self):
         constraint = pandas.DataFrame.from_records(
@@ -293,7 +327,8 @@ class KinematicsGoalObservation(KinematicObservation):
                                 "observation": closest_to_ref,
                                 "achieved_goal": [self.vehicle],
                                 "constraint": [v for v in self.env.road.virtual_vehicles if v not in self.env.road.goals],
-                                "desired_goal": self.close_goals                 
+                                "desired_goal": self.closest_goals,
+                                "pedestrians": self.closest_pedestrians,          
                               }
         return close_vehicles_dict
 
