@@ -345,4 +345,4 @@ def ray_play(env_id=None, config=None):
             num_steps=10000,
             no_render=False,
             out=None,
-            predict=False)
+            predict=True)

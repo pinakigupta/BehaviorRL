@@ -28,28 +28,30 @@ def filetonum(filename):
 
 def dirsearch(resultstr):
     for dirname, dirnames, filenames in os.walk("/"):
-      if '.git' in dirnames:
-        # don't go into any .git directories.
-         dirnames.remove('.git')
-      for subdirname in dirnames:
-         if resultstr in subdirname:
-            return(os.path.join(dirname, subdirname))
+        if '.git' in dirnames:
+            # don't go into any .git directories.
+            dirnames.remove('.git')
+        for subdirname in dirnames:
+            if resultstr in subdirname:
+                return(os.path.join(dirname, subdirname))
 
 
 def retrieve_ray_folder_info(target_folder, checkpt=None):
-    local_restore_path = dirsearch(target_folder)#pathname + "/" + ray_folder + "/" + target_folder #"20190805-132549"
+    local_restore_path = dirsearch(target_folder)
     restore_folder = local_restore_path + "/pygame-ray/"
     subdir = next(os.walk(restore_folder))[1][0]
-    restore_folder = restore_folder + subdir + "/" 
+    restore_folder = restore_folder + subdir + "/"
     all_checkpt_folders = glob.glob(restore_folder+'/*')
     last_checkpt_folder = max(all_checkpt_folders, key=filetonum)
-    if checkpt is None:    
+    if checkpt is None:
         checkpt = filetonum(last_checkpt_folder)
-    restore_folder = restore_folder + "checkpoint_" + str(checkpt) + "/checkpoint-" + str(checkpt)
+    restore_folder = restore_folder + "checkpoint_" + \
+        str(checkpt) + "/checkpoint-" + str(checkpt)
     assert(os.path.exists(restore_folder))
     if 'algo' not in locals():
         algo = subdir.split('_')[0]
     return restore_folder, local_restore_path, algo
+
 
 def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False):
     policy_agent_mapping = default_policy_agent_mapping
@@ -60,7 +62,8 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
         use_lstm = {DEFAULT_POLICY_ID: False}'''
 
     if hasattr(agent, "workers"):
-        env = gym.make(env_name) if env_name is not None else agent.workers.local_worker().env
+        env = gym.make(
+            env_name) if env_name is not None else agent.workers.local_worker().env
         multiagent = isinstance(env, MultiAgentEnv)
         if agent.workers.local_worker().multiagent:
             policy_agent_mapping = agent.config["multiagent"][
@@ -75,7 +78,6 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
         }
     else:
         raise ValueError('Env name/id is None and agent has no workers')
-
 
     if out is not None:
         rollouts = []
@@ -118,9 +120,6 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
                     prev_actions[agent_id] = a_action
             action = action_dict
 
-
-
-
             action = action if multiagent else action[_DUMMY_AGENT_ID]
             next_obs, reward, done, _ = env.step(action)
             if multiagent:
@@ -130,29 +129,14 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
                 prev_rewards[_DUMMY_AGENT_ID] = reward
 
             if predict:
-                if "predict_env" in locals():
-                    del(predict_env)
-                predict_env = copy.deepcopy(env)
-                predict_env.DEFAULT_CONFIG["_predict_only"] = True
-                pred_actions = []
-                pred_steps = 0
-                pred_obs = multi_obs[_DUMMY_AGENT_ID]
-                pred_done = False
-                pred_action = action
-                pred_reward = reward
-                policy_id = mapping_cache.setdefault(
-                            _DUMMY_AGENT_ID, policy_agent_mapping(_DUMMY_AGENT_ID))
-                while not pred_done and \
-                    pred_steps < int(predict_env.config["TRAJECTORY_HORIZON"]*predict_env.config["TRAJECTORY_FREQUENCY"]):
-                    pred_action = agent.compute_action(
-                                pred_obs,
-                                prev_action=pred_action,
-                                prev_reward=pred_reward,
-                                policy_id=policy_id)
-                    pred_obs, pred_reward, pred_done, _ = predict_env.step(pred_action)
-                    pred_actions.append(pred_action)
-                    pred_steps += 1
-                env.set_actions(pred_actions)
+                predict_one_step_of_rollout(
+                                                env,
+                                                agent,
+                                                multi_obs,
+                                                action,
+                                                reward,
+                                                mapping_cache
+                                            )
 
             if multiagent:
                 done = done["__all__"]
@@ -173,14 +157,42 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
         pickle.dump(rollouts, open(out, "wb"))
 
 
+def predict_one_step_of_rollout(env, agent, obs, action, reward, mapping_cache):
+                # if "predict_env" in locals():
+                #    del(predict_env)
+    policy_agent_mapping = default_policy_agent_mapping
+    predict_env = copy.deepcopy(env)
+    predict_env.DEFAULT_CONFIG["_predict_only"] = True
+    pred_actions = []
+    pred_steps = 0
+    pred_obs = obs[_DUMMY_AGENT_ID]
+    pred_done = False
+    pred_action = action
+    pred_reward = reward
+    policy_id = mapping_cache.setdefault(
+        _DUMMY_AGENT_ID, policy_agent_mapping(_DUMMY_AGENT_ID))
+    max_pred_steps = int(
+        predict_env.config["TRAJECTORY_HORIZON"]*predict_env.config["POLICY_FREQUENCY"])
+    while not pred_done and pred_steps < max_pred_steps:
+        pred_action = agent.compute_action(
+            pred_obs,
+            prev_action=pred_action,
+            prev_reward=pred_reward,
+            policy_id=policy_id)
+        pred_obs, pred_reward, pred_done, _ = predict_env.step(pred_action)
+        pred_actions.append(pred_action)
+        pred_steps += 1
+    env.set_actions(pred_actions)
+
+
 def ray_retrieve_agent(env_id=play_env_id, config=None):
-    #if config is None:
+    # if config is None:
     #    config = gym.make(env_id).config
     LOAD_MODEL_FOLDER = config["LOAD_MODEL_FOLDER"]
-    results_folder, _ , algo = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
-    print("results_folder = ", results_folder) 
+    results_folder, _, algo = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
+    print("results_folder = ", results_folder)
     print("algo = ", algo)
-    
+
     config_path = os.path.join(results_folder, "params.pkl")
     if not os.path.exists(config_path):
         two_up = os.path.abspath(os.path.join(results_folder, "../.."))
@@ -191,12 +203,7 @@ def ray_retrieve_agent(env_id=play_env_id, config=None):
         config["num_workers"] = min(2, config["num_workers"])
 
     cls = get_agent_class(algo)
-    agent = cls(env=None, config=config) 
+    agent = cls(env=None, config=config)
     agent.restore(results_folder)
     policy = agent.get_policy()
     return agent
-
-
-
-
-
