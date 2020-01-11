@@ -102,7 +102,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "_predict_only": is_predict_only(),
             "screen_width": 800,
             "screen_height": 800,
-            "DIFFICULTY_LEVELS": 10,
+            "DIFFICULTY_LEVELS": 3,
             "OBS_STACK_SIZE": 1,
             "vehicles_count": 'random',
             "goals_count": 'all',
