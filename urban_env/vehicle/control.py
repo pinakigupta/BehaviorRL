@@ -379,7 +379,7 @@ class MDPVehicle(ControlledVehicle):
         """
         states = []
         v = copy.deepcopy(self)
-        v.is_projection = True
+        v.set_as_projection_only()
         #v.virtual = True
         t = 0
         action = actions[0]

@@ -471,6 +471,11 @@ class Vehicle(Loggable):
     def Id(self):
         return str(id(self))[-3:]
 
+    def set_as_projection_only(self):
+        self.is_projection = True
+        #self.LENGTH *= 0.5
+        #self.WIDTH *= 0.5
+
     def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q=None, pred_horizon=-1, **kwargs):
         """
             Predict the future trajectory of the vehicle given a sequence of actions.
@@ -483,7 +488,7 @@ class Vehicle(Loggable):
         """
         states = []
         v = copy.deepcopy(self)
-        v.is_projection = True
+        v.set_as_projection_only()
         #v.virtual = True
         t = 0
         for action in actions:  # only used to iterate (MDP # of actions)
