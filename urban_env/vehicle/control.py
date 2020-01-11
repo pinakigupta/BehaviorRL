@@ -471,6 +471,6 @@ class IDMDPVehicle(MDPVehicle):
         self.sim_steps += 1
 
     def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q, pred_horizon=-1, **kwargs):
-        return 
+        return None
 
 

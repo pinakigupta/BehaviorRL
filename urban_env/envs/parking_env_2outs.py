@@ -14,6 +14,8 @@ import copy
 import sys
 from random import choice
 from numpy import linalg as la
+import os
+import time
 
 from urban_env.envs.abstract import AbstractEnv
 from urban_env.road.lane import StraightLane, LineType, AbstractLane
@@ -87,12 +89,12 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 "pedestrian_features": ['x', 'y', 'vx', 'vy'],
                 "relative_features": ['x', 'y'],
                 "scale": 100,
-                "obs_size": 8,
-                "obs_count": 8,
-                "goals_size": 8,
-                "goals_count": 8,
-                "pedestrians_size": 6,
-                "pedestrians_count": 6,
+                "obs_size": 10,
+                "obs_count": 10,
+                "goals_size": 10,
+                "goals_count": 10,
+                "pedestrians_size": 0,
+                "pedestrians_count": 0,
                 "constraints_count": 5,
                            },
             "obstacle_type": "urban_env.vehicle.dynamics.Obstacle",
@@ -148,7 +150,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         
         super(ParkingEnv_2outs, self).__init__(config)
         if is_predict_only():
-            self.set_curriculam(20)
+            self.set_curriculam(3)
             self.config["SUCCESS_THRESHOLD"] *= 2.0
         #self.REWARD_WEIGHTS = np.array(self.config["REWARD_WEIGHTS"])
         self.config["REWARD_SCALE"] = np.absolute(self.config["GOAL_REWARD"])
@@ -157,8 +159,13 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         EnvViewer.SCREEN_WIDTH = self.config['screen_width']
         self.scene_complexity = self.config['DIFFICULTY_LEVELS']
         self.reset()
+        self.prev_time = None
 
     def step(self, action):
+        current_wall_time = time.time()
+        #if self.prev_time is not None:
+        #    print("time elapsed (in ms)", round((current_wall_time - self.prev_time)*1e3, 2) , " step ", self.steps)  # in bytes 
+        self.prev_time = current_wall_time
         self.steps += 1
         ##############################################
         acceleration = action[0].item() * self.vehicle.config['max_acceleration']
@@ -195,12 +202,9 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         return obs, reward, done, info
 
     def reset(self):
-        self.summon = None
         self.steps = 0
-        self.summon = None
-        self._populate_parking()
         self.is_success = False
-        self.vehicle.crashed = False
+        self._populate_parking()
         return super(ParkingEnv_2outs, self).reset()
 
     def define_spaces(self):
@@ -243,12 +247,16 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         if self.config["PARKING_LOT_WIDTH"] == 'random':
             self.PARKING_LOT_WIDTH =  self.np_random.uniform(low=0.7*self.DEFAULT_PARKING_LOT_WIDTH, 
                                                              high=1.2*self.DEFAULT_PARKING_LOT_WIDTH)
+        elif self.config["PARKING_LOT_WIDTH"] == 'default':
+            self.PARKING_LOT_WIDTH =  self.DEFAULT_PARKING_LOT_WIDTH                                               
         else:
             self.PARKING_LOT_WIDTH = self.config["PARKING_LOT_WIDTH"]
 
         if self.config["PARKING_LOT_LENGTH"] == 'random':
             self.PARKING_LOT_LENGTH = self.np_random.uniform(low=0.7*self.DEFAULT_PARKING_LOT_LENGTH, 
                                                              high=1.2*self.DEFAULT_PARKING_LOT_LENGTH)
+        elif self.config["PARKING_LOT_LENGTH"] == 'default':
+            self.PARKING_LOT_LENGTH =  self.DEFAULT_PARKING_LOT_LENGTH                                                       
         else:
             self.PARKING_LOT_LENGTH = self.config["PARKING_LOT_LENGTH"]                                                
 
@@ -382,6 +390,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                          config=self.config)
 
     def _spawn_summon_pose(self):
+        self.summon = None
         if self.summon_pose is not None:
             self.summon =  Obstacle(
                                         road=self.road,
@@ -676,7 +685,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             lane = self.road.network.get_lane(lane_index)
             x0 = lane.length/2
             position = lane.position(x0, 0)
-            virtual_obstacle_ = Obstacle(
+            virtual_obstacle_ =     Obstacle(
                                             road=self.road,
                                             position=position,
                                             heading=lane.heading_at(x0),

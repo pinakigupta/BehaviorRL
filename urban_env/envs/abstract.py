@@ -175,6 +175,8 @@ class AbstractEnv(gym.Env):
         #print("resetting env", "current_curriculam = ", self.get_curriculam())
         return obs
 
+    def clear():
+        raise NotImplementedError()
 
     def step(self, action):
         """
@@ -213,7 +215,6 @@ class AbstractEnv(gym.Env):
         constraint = self._constraint(action)
         info = {'constraint': constraint, "c_": constraint}
         info = {**info, **self._info() }
-        #print("self.steps ", self.steps, " obs ", obs)
 
         return obs, reward, terminal, info
 

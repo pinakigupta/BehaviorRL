@@ -255,7 +255,7 @@ class VehicleGraphics(object):
         transparent=2
         for vehicle in states:
             cls.display(vehicle, surface, transparent=transparent, virtual=True)
-            transparent*=0.2
+            transparent*=0.5
 
     @classmethod
     def get_color(cls, vehicle, transparent=False):

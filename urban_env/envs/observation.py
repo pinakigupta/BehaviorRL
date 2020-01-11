@@ -239,11 +239,13 @@ class KinematicsGoalObservation(KinematicObservation):
         try:
             obs = self.observe()
             return spaces.Dict(dict(
-                desired_goal=spaces.Box(-np.inf, np.inf, shape=obs["desired_goal"].shape, dtype=np.float32),
-                achieved_goal=spaces.Box(-np.inf, np.inf, shape=obs["achieved_goal"].shape, dtype=np.float32),
-                constraint=spaces.Box(-np.inf, np.inf, shape=obs["constraint"].shape, dtype=np.float32),
                 observation=spaces.Box(-np.inf, np.inf, shape=obs["observation"].shape, dtype=np.float32),
                 pedestrians=spaces.Box(-np.inf, np.inf, shape=obs["pedestrians"].shape, dtype=np.float32),
+                achieved_goal=spaces.Box(-np.inf, np.inf, shape=obs["achieved_goal"].shape, dtype=np.float32),
+                constraint=spaces.Box(-np.inf, np.inf, shape=obs["constraint"].shape, dtype=np.float32),
+                desired_goal=spaces.Box(-np.inf, np.inf, shape=obs["desired_goal"].shape, dtype=np.float32),
+                impatience=spaces.Box(-np.inf, np.inf, shape=obs["impatience"].shape, dtype=np.float32),
+                placeholder=spaces.Box(-np.inf, np.inf, shape=obs["placeholder"].shape, dtype=np.float32),
             ))
         except AttributeError:
             return None
@@ -257,8 +259,9 @@ class KinematicsGoalObservation(KinematicObservation):
                         "pedestrians": self.observe_pedestrians(),
                         "achieved_goal": obs ,
                         "constraint": self.observe_constraints(),
-                        "desired_goal": self.observe_goals() ,
-                        #"impatience": min(1.0, max(0.0, self.steps/self.config["duration"]))
+                        "desired_goal": self.observe_goals(),
+                        "impatience": np.array([]), #min(1.0, max(0.0, self.steps/self.config["duration"]))
+                        "placeholder":np.array([]),
                     }
         return obs_dict
     
