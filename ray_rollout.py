@@ -6,6 +6,7 @@ import subprocess
 import glob
 import ray
 import gym
+import multiprocessing
 
 from ray.rllib.rollout import default_policy_agent_mapping, DefaultMapping
 from ray.rllib.agents.registry import get_agent_class
@@ -60,6 +61,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
         env = gym.make(env_name)
         multiagent = False
         use_lstm = {DEFAULT_POLICY_ID: False}'''
+    
 
     if hasattr(agent, "workers"):
         env = gym.make(
@@ -129,14 +131,17 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
                 prev_rewards[_DUMMY_AGENT_ID] = reward
 
             if predict:
-                predict_one_step_of_rollout(
-                                                env,
-                                                agent,
-                                                multi_obs,
-                                                action,
-                                                reward,
-                                                mapping_cache
-                                            )
+                
+                predict_env = predict_one_step_of_rollout(
+                                                            env,
+                                                            agent,
+                                                            multi_obs,
+                                                            action,
+                                                            reward,
+                                                            mapping_cache,
+                                                            False
+                                                         )
+                no_render = True
 
             if multiagent:
                 done = done["__all__"]
@@ -156,12 +161,14 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
     if out is not None:
         pickle.dump(rollouts, open(out, "wb"))
 
-
-def predict_one_step_of_rollout(env, agent, obs, action, reward, mapping_cache):
+def predict_one_step_of_rollout(env, agent, obs, action, reward, mapping_cache, no_render=True):
                 # if "predict_env" in locals():
                 #    del(predict_env)
     policy_agent_mapping = default_policy_agent_mapping
     predict_env = copy.deepcopy(env)
+    for v in predict_env.road.vehicles:
+        v.is_projection = True
+    predict_env.intent_pred = True
     predict_env.DEFAULT_CONFIG["_predict_only"] = True
     pred_actions = []
     pred_steps = 0
@@ -180,9 +187,13 @@ def predict_one_step_of_rollout(env, agent, obs, action, reward, mapping_cache):
             prev_reward=pred_reward,
             policy_id=policy_id)
         pred_obs, pred_reward, pred_done, _ = predict_env.step(pred_action)
-        pred_actions.append(pred_action)
+        #pred_actions.append(pred_action)
         pred_steps += 1
-    env.set_actions(pred_actions)
+        #print("pred_steps = ", pred_steps)
+    if not no_render:
+        predict_env.render()
+    #env.set_actions(pred_actions)
+    #return predict_env
 
 
 def ray_retrieve_agent(env_id=play_env_id, config=None):
@@ -203,7 +214,7 @@ def ray_retrieve_agent(env_id=play_env_id, config=None):
         config["num_workers"] = min(2, config["num_workers"])
 
     cls = get_agent_class(algo)
-    agent = cls(env=None, config=config)
+    agent = cls(env=play_env_id, config=config)
     agent.restore(results_folder)
     policy = agent.get_policy()
     return agent

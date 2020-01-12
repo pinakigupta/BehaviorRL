@@ -106,6 +106,7 @@ class AbstractEnv(gym.Env):
         self.episode_reward = 0
         self.episode_count = 0
         self.episode_reward_buffer = deque(maxlen=self.BUFFER_LENGTH)
+        self.intent_pred = False
 
         if 'DIFFICULTY_LEVELS' in self.config:
             self.scene_complexity = self.config['DIFFICULTY_LEVELS']

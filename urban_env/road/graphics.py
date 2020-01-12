@@ -136,7 +136,7 @@ class RoadGraphics(object):
                     LaneGraphics.display(l, surface)
 
     @classmethod
-    def display_traffic(cls, road, surface):
+    def display_traffic(cls, road, surface, display_ego=True):
         """
             Display the road vehicles on a surface.
 
@@ -148,7 +148,10 @@ class RoadGraphics(object):
                 mdp_vehicle = v
                 break
         for v in road.vehicles:
-            VehicleGraphics.display(v, surface, mdp_vehicle)
+            if v.is_ego() and (not display_ego):
+                pass
+            else:
+                VehicleGraphics.display(v, surface, mdp_vehicle)
 
 
 class WorldSurface(pygame.Surface):

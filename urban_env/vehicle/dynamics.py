@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import copy
 from time import time
+from collections import deque
 
 import gym
 
@@ -69,6 +70,7 @@ class Vehicle(Loggable):
                  config=DEFAULT_CONFIG, 
                  **kwargs
                  ):
+        self.config = {**self.DEFAULT_CONFIG, **config}
         self.LENGTH = length
         self.WIDTH = width
         self.road = road
@@ -94,10 +96,12 @@ class Vehicle(Loggable):
         self.virtual = virtual
         self.is_projection = False
         self.is_ego_vehicle = False
-        self.config = {**self.DEFAULT_CONFIG, **config}
         self.control_action = None
         self.hidden = False
         self.LGAgent = None
+        self.projection = []
+        self.steps = 0
+
     
     def is_ego(self):
         return self.is_ego_vehicle
@@ -296,6 +300,9 @@ class Vehicle(Loggable):
             self.PRNDL = "D"
             self.shift_start_time = 0.0
 
+        self.intent_prediction()
+        self.steps += 1
+
 
 
 
@@ -473,8 +480,16 @@ class Vehicle(Loggable):
 
     def set_as_projection_only(self):
         self.is_projection = True
-        #self.LENGTH *= 0.5
-        #self.WIDTH *= 0.5
+    
+    def intent_prediction(self):
+        if self.is_projection:
+            dprojection_step = self.config["SIMULATION_FREQUENCY"]//self.config["TRAJECTORY_FREQUENCY"]
+            if (self.steps % dprojection_step)==0:
+                self.projection.append(copy.deepcopy(self))
+
+
+    def predict_intent(self):
+        return self.projection
 
     def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q=None, pred_horizon=-1, **kwargs):
         """
@@ -486,6 +501,7 @@ class Vehicle(Loggable):
         :param dt: the timestep of the simulation
         :return: the sequence of future states
         """
+        return self.projection
         states = []
         v = copy.deepcopy(self)
         v.set_as_projection_only()
@@ -543,7 +559,7 @@ class Obstacle(Vehicle):
         return super(Obstacle, self).Id()
 
     def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q=None, pred_horizon=-1, **kwargs):
-        return None
+        pass
 
     def step(self, dt):
         if self.LGAgent is not None:
@@ -551,10 +567,10 @@ class Obstacle(Vehicle):
                                       self.LGAgent.state.transform.position.x - self.config["map_offset"][1]]).astype('float')
             self.velocity = np.sqrt(self.LGAgent.state.velocity.x**2 + self.LGAgent.state.velocity.z**2)
             self.heading = np.deg2rad(self.LGAgent.state.transform.rotation.y  - self.config["map_offset"][2])
-        else:        
-            pass
 
-
+    def intent_prediction(self):
+        if not self.projection:
+            self.projection.append(copy.deepcopy(self))
 
 class Pedestrian(Vehicle):
     """
@@ -589,3 +605,4 @@ class Pedestrian(Vehicle):
     def step(self, dt):
         self.delta_position = self.velocity * np.array([np.cos(self.heading), np.sin(self.heading)]) * dt
         self.position += self.delta_position
+

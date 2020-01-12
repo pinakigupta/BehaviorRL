@@ -157,6 +157,9 @@ class EnvViewer(object):
         if self.env.actions is not None:
             if self.env.actions:
                 self.set_agent_action_sequence(self.env.actions)
+        elif self.env.intent_pred:
+            self.set_agent_action_sequence([])
+
 
         self.sim_surface.move_display_window_to(self.window_position())
         RoadGraphics.display(self.env.road, self.sim_surface)
@@ -166,7 +169,7 @@ class EnvViewer(object):
                     VehicleGraphics.display_trajectory(
                         vehicle_trajectory,
                         self.sim_surface)
-        RoadGraphics.display_traffic(self.env.road, self.sim_surface)
+        RoadGraphics.display_traffic(self.env.road, self.sim_surface, not self.env.intent_pred)
 
         if self.agent_display:
             self.agent_display(self.agent_surface, self.sim_surface)

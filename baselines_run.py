@@ -68,7 +68,7 @@ def main(mainkwargs):
     max_iteration = 1
 
     config = {
-                "LOAD_MODEL_FOLDER": "20200110-024901",
+                "LOAD_MODEL_FOLDER": "20200111-051102",
                 "RESTORE_COND": "RESTORE", 
                 "MODEL":        {
                                 #    "use_lstm": True,
@@ -148,7 +148,7 @@ def main(mainkwargs):
             retrieved_agent_policy = retrieved_agent.get_policy()
             update_policy(retrieved_agent_policy)
             print("entering ray play")
-            ray_play(env_id=play_env_id, config=config)
+            ray_play(env_id=play_env_id, config=config, agent=retrieved_agent)
         else:
             from baselines.common import tf_util, mpi_util
             from baselines.common.vec_env import VecEnv

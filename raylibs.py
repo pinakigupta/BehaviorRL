@@ -338,8 +338,9 @@ def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, available_cl
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
 
 
-def ray_play(env_id=None, config=None):
-    agent=ray_retrieve_agent(config=config)        
+def ray_play(env_id=None, config=None, agent=None):
+    if agent is None:
+        agent=ray_retrieve_agent(config=config)        
     rollout(agent=agent,
             env_name=env_id,
             num_steps=10000,

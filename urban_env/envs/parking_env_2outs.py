@@ -150,7 +150,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         
         super(ParkingEnv_2outs, self).__init__(config)
         if is_predict_only():
-            self.set_curriculam(3)
+            self.set_curriculam(15)
             self.config["SUCCESS_THRESHOLD"] *= 2.0
         #self.REWARD_WEIGHTS = np.array(self.config["REWARD_WEIGHTS"])
         self.config["REWARD_SCALE"] = np.absolute(self.config["GOAL_REWARD"])
