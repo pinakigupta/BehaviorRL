@@ -170,7 +170,6 @@ def predict_one_step_of_rollout(env, agent, obs, action, reward, mapping_cache, 
         v.is_projection = True
     predict_env.intent_pred = True
     predict_env.DEFAULT_CONFIG["_predict_only"] = True
-    pred_actions = []
     pred_steps = 0
     pred_obs = obs[_DUMMY_AGENT_ID]
     pred_done = False
@@ -187,13 +186,9 @@ def predict_one_step_of_rollout(env, agent, obs, action, reward, mapping_cache, 
             prev_reward=pred_reward,
             policy_id=policy_id)
         pred_obs, pred_reward, pred_done, _ = predict_env.step(pred_action)
-        #pred_actions.append(pred_action)
         pred_steps += 1
-        #print("pred_steps = ", pred_steps)
     if not no_render:
         predict_env.render()
-    #env.set_actions(pred_actions)
-    #return predict_env
 
 
 def ray_retrieve_agent(env_id=play_env_id, config=None):

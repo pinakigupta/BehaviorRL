@@ -28,10 +28,7 @@ from ray.rllib.optimizers import AsyncGradientsOptimizer
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, RUN_WITH_RAY, InceptcurrentDT, is_predict_only
 from handle_model_files import pathname, copy_terminal_output_file, terminal_output_file_name
 import handle_model_files
-from urban_env.envs.two_way_env import TwoWayEnv
-from urban_env.envs.multilane_env import MultilaneEnv
-from urban_env.envs.multitask_env import MultiTaskEnv
-from urban_env.envs.abstract import AbstractEnv
+
 
 from ray_rollout import retrieve_ray_folder_info, ray_retrieve_agent, filetonum, rollout
 
@@ -346,4 +343,4 @@ def ray_play(env_id=None, config=None, agent=None):
             num_steps=10000,
             no_render=False,
             out=None,
-            predict=True)
+            predict=False)

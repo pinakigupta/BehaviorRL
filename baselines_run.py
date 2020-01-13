@@ -1,9 +1,6 @@
 import gym
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, homepath, RUN_WITH_RAY, InceptcurrentDT
 from handle_model_files import create_dirs, req_dirs, models_folder, makedirpath, is_master, is_predict_only, default_args
-import urban_env
-from urban_env.envs.two_way_env import TwoWayEnv
-from urban_env.envs.abstract import AbstractEnv
 from mpi4py import MPI
 import subprocess
 import warnings
@@ -79,6 +76,9 @@ def main(mainkwargs):
              }    
     if not predict_only:
         if RUN_WITH_RAY:
+            import urban_env
+            from urban_env.envs.two_way_env import TwoWayEnv
+            from urban_env.envs.abstract import AbstractEnv            
             register_env('multilane-v0', lambda config: urban_env.envs.MultilaneEnv(config))
             register_env('merge-v0', lambda config: urban_env.envs.MergeEnv(config))
             register_env('roundabout-v0', lambda config: urban_env.envs.RoundaboutEnv(config))
@@ -138,10 +138,14 @@ def main(mainkwargs):
 
     else:
         if RUN_WITH_RAY:
-            from raylibs import ray_play, ray_init
-            from ray_rollout import ray_retrieve_agent
-            from settings import update_policy
+            from raylibs import ray_init
             ray_init(**mainkwargs)
+            from ray_rollout import ray_retrieve_agent
+            from settings import update_policy  
+            from raylibs import ray_play          
+            import urban_env
+            from urban_env.envs.two_way_env import TwoWayEnv
+            from urban_env.envs.abstract import AbstractEnv            
             #play_env = gym.make(play_env_id)
             #config=play_env.config
             retrieved_agent = ray_retrieve_agent(env_id=play_env_id, config=config)

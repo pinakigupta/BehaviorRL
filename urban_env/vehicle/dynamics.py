@@ -11,6 +11,7 @@ import pandas as pd
 import copy
 from time import time
 from collections import deque
+import ray
 
 import gym
 
@@ -18,8 +19,8 @@ from urban_env import utils
 from urban_env.logger import Loggable
 
 
-def unwrap_step(arg, **kwarg):
-    return Vehicle.step(*arg, **kwarg)
+def unwrap_vehicle_step(v, dt):
+    return v.step(dt)
 
 
 class Vehicle(Loggable):
@@ -306,6 +307,7 @@ class Vehicle(Loggable):
 
         self.intent_prediction()
         self.steps += 1
+        #print("For vehicle ", self.Id(), " self.steps ", self.steps)
 
 
 

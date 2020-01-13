@@ -10,12 +10,13 @@ import pandas as pd
 from gym import logger
 import math
 import sys
-from itertools import combinations
+from itertools import combinations, repeat
+from multiprocessing import Pool, Process, cpu_count
 
 from urban_env.logger import Loggable
 from urban_env.road.lane import LineType, StraightLane
 from urban_env.vehicle.control import ControlledVehicle
-from urban_env.vehicle.dynamics import Obstacle
+from urban_env.vehicle.dynamics import Obstacle, unwrap_vehicle_step
 
 
 class RoadNetwork(object):
@@ -339,8 +340,27 @@ class Road(Loggable):
 
         :param dt: timestep [s]
         """
+        
         for v in self.vehicles:
             v.step(dt)
+            #print("For vehicle ", v.Id(), " v.steps ", v.steps)
+
+        '''pool = Pool(processes=cpu_count()-1)
+        pool.starmap(unwrap_vehicle_step, zip(self.vehicles, repeat(dt)))
+        pool.close()
+        pool.join()'''
+
+        '''p = [Process(target=v.step,
+                      args=(dt,) 
+                    )for v in self.vehicles]
+        
+        if p:
+            for process in p:
+                process.start()
+
+            for process in p:
+                process.join()'''
+
 
         for v, other in combinations(self.vehicles, 2):
             if (v.is_ego()) or (other.is_ego()):
