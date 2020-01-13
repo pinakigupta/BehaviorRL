@@ -118,7 +118,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "SIMULATION_FREQUENCY": 10,  # The frequency at which the system dynamics are simulated [Hz]
             "POLICY_FREQUENCY": 2,  # The frequency at which the agent can take actions [Hz]
             "TRAJECTORY_FREQUENCY": 0.5, # The frequency at which the agent trajectory is generated, mainly for visualization
-            "TRAJECTORY_HORIZON": 10,
+            "TRAJECTORY_HORIZON": 6,
           },
         **{
             "PARKING_LOT_WIDTH": 'random',
@@ -163,8 +163,9 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
     def step(self, action):
         current_wall_time = time.time()
-        #if self.prev_time is not None:
-        #    print("time elapsed (in ms)", round((current_wall_time - self.prev_time)*1e3, 2) , " step ", self.steps)  # in bytes 
+        if self.prev_time is not None:
+            if not self.intent_pred:
+                print("time elapsed (in ms)", round((current_wall_time - self.prev_time)*1e3, 2) , " step ", self.steps)  # in bytes 
         self.prev_time = current_wall_time
         self.steps += 1
         ##############################################

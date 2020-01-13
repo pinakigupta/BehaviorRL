@@ -145,7 +145,8 @@ def main(mainkwargs):
             from raylibs import ray_play          
             import urban_env
             from urban_env.envs.two_way_env import TwoWayEnv
-            from urban_env.envs.abstract import AbstractEnv            
+            from urban_env.envs.abstract import AbstractEnv
+            register_env('parking_2outs-v0', lambda config: urban_env.envs.ParkingEnv_2outs(config))
             #play_env = gym.make(play_env_id)
             #config=play_env.config
             retrieved_agent = ray_retrieve_agent(env_id=play_env_id, config=config)

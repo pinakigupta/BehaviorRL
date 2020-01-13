@@ -11,6 +11,7 @@ import redis
 import ray
 import gym
 import settings
+from multiprocessing import cpu_count
 
 from ray.tune import Experiment, Trainable, run_experiments, register_env, sample_from
 from ray.tune.schedulers import PopulationBasedTraining, AsyncHyperBandScheduler
@@ -127,7 +128,7 @@ def ray_cluster_status_check(
                 pass
 
 
-
+DEBUG_MODE = False
 #LOCAL_MODE = False  #Use local mode for debug purposes
 def ray_init(LOCAL_MODE=False, **mainkwargs):
     available_cluster_cpus = 0
@@ -139,8 +140,12 @@ def ray_init(LOCAL_MODE=False, **mainkwargs):
             subprocess.run(["sudo", "pkill", "ray_RolloutWork"])
         except:
             print("ray process not running")
-        LOCAL_MODE = True    
-        ray.init(local_mode=True)
+        LOCAL_MODE = DEBUG_MODE    
+        ray.init(
+                 local_mode=LOCAL_MODE,
+                 num_cpus=max(1, cpu_count()-1),
+                 logging_level="ERROR"
+                 )
         return available_cluster_cpus, available_cluster_gpus
     else:
         try: # to init in the cluster
@@ -213,7 +218,13 @@ def on_train_result(info):
         lambda ev: ev.foreach_env(
             lambda env: env.set_curriculam(curriculam)))
 
-def ray_train(save_in_sub_folder=None, available_cluster_cpus=None, available_cluster_gpus=None, LOCAL_MODE=None, config=None, **mainkwargs):
+def ray_train(save_in_sub_folder=None,
+              available_cluster_cpus=None,
+              available_cluster_gpus=None,
+              LOCAL_MODE=None,
+              config=None,
+              **mainkwargs
+              ):
     #config = gym.make(train_env_id).config
 
     subprocess.run(["chmod", "-R", "a+rwx", save_in_sub_folder + "/"])
@@ -343,4 +354,4 @@ def ray_play(env_id=None, config=None, agent=None):
             num_steps=10000,
             no_render=False,
             out=None,
-            predict=False)
+            predict=True)

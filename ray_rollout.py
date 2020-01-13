@@ -6,7 +6,7 @@ import subprocess
 import glob
 import ray
 import gym
-import multiprocessing
+from multiprocessing import Process
 
 from ray.rllib.rollout import default_policy_agent_mapping, DefaultMapping
 from ray.rllib.agents.registry import get_agent_class
@@ -130,17 +130,34 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
             else:
                 prev_rewards[_DUMMY_AGENT_ID] = reward
 
+            policy_id = mapping_cache.setdefault(
+                        _DUMMY_AGENT_ID, policy_agent_mapping(_DUMMY_AGENT_ID))
+
             if predict:
                 
-                predict_env = predict_one_step_of_rollout(
+                predict_one_step_of_rollout(
+                                                            env,
+                                                            agent,
+                                                            multi_obs,
+                                                            action,
+                                                            reward,
+                                                            policy_id,
+                                                            False
+                                            )
+                '''p = Process( target=predict_one_step_of_rollout,
+                             args=(
                                                             env,
                                                             agent,
                                                             multi_obs,
                                                             action,
                                                             reward,
                                                             mapping_cache,
-                                                            False
-                                                         )
+                                                            False,
+                                  )
+
+                            )
+                p.start()
+                p.join()'''
                 no_render = True
 
             if multiagent:
@@ -161,10 +178,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
     if out is not None:
         pickle.dump(rollouts, open(out, "wb"))
 
-def predict_one_step_of_rollout(env, agent, obs, action, reward, mapping_cache, no_render=True):
-                # if "predict_env" in locals():
-                #    del(predict_env)
-    policy_agent_mapping = default_policy_agent_mapping
+def predict_one_step_of_rollout(env, agent, obs, action, reward, policy_id, no_render=True):
     predict_env = copy.deepcopy(env)
     for v in predict_env.road.vehicles:
         v.is_projection = True
@@ -175,8 +189,6 @@ def predict_one_step_of_rollout(env, agent, obs, action, reward, mapping_cache, 
     pred_done = False
     pred_action = action
     pred_reward = reward
-    policy_id = mapping_cache.setdefault(
-        _DUMMY_AGENT_ID, policy_agent_mapping(_DUMMY_AGENT_ID))
     max_pred_steps = int(
         predict_env.config["TRAJECTORY_HORIZON"]*predict_env.config["POLICY_FREQUENCY"])
     while not pred_done and pred_steps < max_pred_steps:
@@ -187,6 +199,7 @@ def predict_one_step_of_rollout(env, agent, obs, action, reward, mapping_cache, 
             policy_id=policy_id)
         pred_obs, pred_reward, pred_done, _ = predict_env.step(pred_action)
         pred_steps += 1
+        #print("pred_steps ", pred_steps)
     if not no_render:
         predict_env.render()
 

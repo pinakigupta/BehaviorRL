@@ -343,7 +343,6 @@ class Road(Loggable):
         
         for v in self.vehicles:
             v.step(dt)
-            #print("For vehicle ", v.Id(), " v.steps ", v.steps)
 
         '''pool = Pool(processes=cpu_count()-1)
         pool.starmap(unwrap_vehicle_step, zip(self.vehicles, repeat(dt)))
