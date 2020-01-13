@@ -18,6 +18,10 @@ from urban_env import utils
 from urban_env.logger import Loggable
 
 
+def unwrap_step(arg, **kwarg):
+    return Vehicle.step(*arg, **kwarg)
+
+
 class Vehicle(Loggable):
     """
         A moving vehicle on a road, and its dynamics.
@@ -344,6 +348,9 @@ class Vehicle(Loggable):
 
         :param other: the other vehicle
         """
+
+        if self is other:
+            return
         
         if self.config["_predict_only"]:
             SCALE = 1.0
@@ -488,9 +495,6 @@ class Vehicle(Loggable):
                 self.projection.append(copy.deepcopy(self))
 
 
-    def predict_intent(self):
-        return self.projection
-
     def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q=None, pred_horizon=-1, **kwargs):
         """
             Predict the future trajectory of the vehicle given a sequence of actions.
@@ -550,10 +554,12 @@ class Obstacle(Vehicle):
                                        **kwargs)
         self.target_velocity = 0
         self.velocity = 0
+        self.projection = []
         if self.road:
             self.lane_index = self.road.network.get_closest_lane_index(self.position, self.heading)
             self.lane = self.road.network.get_lane(self.lane_index)
         #self.LENGTH = self.WIDTH
+        
 
     def Id(self):
         return super(Obstacle, self).Id()
@@ -567,10 +573,14 @@ class Obstacle(Vehicle):
                                       self.LGAgent.state.transform.position.x - self.config["map_offset"][1]]).astype('float')
             self.velocity = np.sqrt(self.LGAgent.state.velocity.x**2 + self.LGAgent.state.velocity.z**2)
             self.heading = np.deg2rad(self.LGAgent.state.transform.rotation.y  - self.config["map_offset"][2])
+        
+        
 
     def intent_prediction(self):
-        if not self.projection:
-            self.projection.append(copy.deepcopy(self))
+        if self.is_projection:
+            if not self.projection:
+                self.projection.append(copy.deepcopy(self))
+
 
 class Pedestrian(Vehicle):
     """

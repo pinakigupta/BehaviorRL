@@ -10,6 +10,7 @@ import pandas as pd
 from gym import logger
 import math
 import sys
+from itertools import combinations
 
 from urban_env.logger import Loggable
 from urban_env.road.lane import LineType, StraightLane
@@ -338,15 +339,14 @@ class Road(Loggable):
 
         :param dt: timestep [s]
         """
-        for vehicle in self.vehicles:
-            vehicle.step(dt)
+        for v in self.vehicles:
+            v.step(dt)
 
-        for vehicle in self.vehicles:
-            for other in self.vehicles:
-                if (vehicle.is_ego()) or (other.is_ego()):
-                    vehicle.check_collision(other, SCALE)
-                else:
-                    vehicle.check_collision(other)
+        for v, other in combinations(self.vehicles, 2):
+            if (v.is_ego()) or (other.is_ego()):
+                v.check_collision(other, SCALE)
+            else:
+                v.check_collision(other)
 
     def neighbour_vehicles(self, vehicle, lane_index=None):
         """
