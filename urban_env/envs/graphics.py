@@ -58,82 +58,6 @@ class EnvViewer(object):
             self.agent_surface = pygame.Surface((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
         self.agent_display = agent_display
 
-    def set_agent_action_sequence_multiprocess(self, actions):
-        """
-            Set the sequence of actions chosen by the agent, so that it can be displayed
-        :param actions: list of action, following the env's action space specification
-        """
-        from multiprocessing import Process, Pool, Manager
-        if hasattr(self.env.action_space, 'n'):
-            actions = [self.env.ACTIONS[a] for a in actions]
-        self.vehicle_trajectories.clear()
-        out_q =  Manager().list()
-
-        
-        p = [Process(target=v.predict_trajectory,
-                      args=(actions,
-                            1/v.config["POLICY_FREQUENCY"],
-                            1/1/v.config["POLICY_FREQUENCY"],
-                            1/v.config["SIMULATION_FREQUENCY"],
-                            out_q,
-                            2)
-                            ) for v in self.env.road.closest_vehicles_to(self.env.vehicle, 4) \
-                                if v not in self.env.road.virtual_vehicles or\
-                                    type(v) is not Obstacle]
-
-        p.append(Process(target=self.env.vehicle.predict_trajectory,
-                         args=(actions,
-                               1/self.env.vehicle.config["POLICY_FREQUENCY"],
-                               1/self.env.vehicle.config["TRAJECTORY_FREQUENCY"],
-                               1/self.env.vehicle.config["SIMULATION_FREQUENCY"],
-                               out_q
-                            )
-                        )
-                )
-
-        if p:
-            for process in p:
-                process.start()
-
-            #self.vehicle_trajectories = out_q.get()
-
-            for process in p:
-                process.join()
-        
-            for trajectory in out_q:
-                self.vehicle_trajectories.append(trajectory)
-
-            
-    def set_agent_action_sequence(self, actions):
-        """
-            Set the sequence of actions chosen by the agent, so that it can be displayed
-        :param actions: list of action, following the env's action space specification
-        """
-        if hasattr(self.env.action_space, 'n'):
-            if self.env.is_discrete_action():
-                actions = [self.env.ACTIONS[a] for a in actions]
-        #self.vehicle_trajectories.clear()
-        del self.vehicle_trajectories[:]
-
-        
-        self.vehicle_trajectories =[v.predict_trajectory(
-                                    actions=actions,
-                                    action_duration=1/v.config["POLICY_FREQUENCY"],
-                                    trajectory_timestep=1/5/v.config["POLICY_FREQUENCY"],
-                                    dt=1/v.config["SIMULATION_FREQUENCY"],
-                                    pred_horizon=2.0
-                                    ) for v in self.env.road.closest_vehicles_to(self.env.vehicle, 4) \
-                                        if v not in self.env.road.virtual_vehicles or\
-                                            type(v) is not Obstacle]
-
-        self.vehicle_trajectories.append(self.env.vehicle.predict_trajectory(
-                                                        actions=actions,
-                                                        action_duration=1/self.env.vehicle.config["POLICY_FREQUENCY"],
-                                                        trajectory_timestep=1/self.env.vehicle.config["TRAJECTORY_FREQUENCY"],
-                                                        dt=1/self.env.vehicle.config["SIMULATION_FREQUENCY"],
-                                                    )
-                                        )
-
 
 
     def handle_events(self):
@@ -154,10 +78,11 @@ class EnvViewer(object):
         if not self.enabled:
             return
 
-        if self.env.actions is not None:
+        '''if self.env.actions is not None:
             if self.env.actions:
                 self.set_agent_action_sequence(self.env.actions)
-        elif self.env.intent_pred:
+        el'''
+        if self.env.intent_pred:
             del self.vehicle_trajectories[:]
             self.vehicle_trajectories.append(self.env.vehicle.projection)
 
@@ -179,7 +104,8 @@ class EnvViewer(object):
                 self.screen.blit(self.agent_surface, (self.SCREEN_WIDTH, 0))
 
         self.screen.blit(self.sim_surface, (0, 0))
-        self.clock.tick(self.env.config["SIMULATION_FREQUENCY"])
+        if not self.env.intent_pred:
+            self.clock.tick(self.env.config["SIMULATION_FREQUENCY"])
         pygame.display.flip()
 
         if self.SAVE_IMAGES:

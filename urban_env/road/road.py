@@ -12,6 +12,8 @@ import math
 import sys
 from itertools import combinations, repeat
 from multiprocessing import Pool, Process, cpu_count
+from threading import Thread
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from urban_env.logger import Loggable
 from urban_env.road.lane import LineType, StraightLane
@@ -341,31 +343,39 @@ class Road(Loggable):
         :param dt: timestep [s]
         """
         
-        for v in self.vehicles:
-            v.step(dt)
+        #for v in self.vehicles:
+        #    v.step(dt)
 
         '''pool = Pool(processes=cpu_count()-1)
         pool.starmap(unwrap_vehicle_step, zip(self.vehicles, repeat(dt)))
         pool.close()
         pool.join()'''
 
-        '''p = [Process(target=v.step,
+        '''t = [Thread(target=v.step,
                       args=(dt,) 
                     )for v in self.vehicles]
         
-        if p:
-            for process in p:
-                process.start()
+        if t:
+            for thread in t:
+                thread.start()
 
-            for process in p:
-                process.join()'''
+            for thread in t:
+                thread.join()'''
 
+        with ThreadPoolExecutor(max_workers=max(1, cpu_count()-1)) as executor:
+            for v in self.vehicles:
+                executor.submit(v.step, dt)
+        
+        def _check_collision(v, other):
+            v.check_collision(other, SCALE) if (v.is_ego() or other.is_ego()) else v.check_collision(other)
 
-        for v, other in combinations(self.vehicles, 2):
-            if (v.is_ego()) or (other.is_ego()):
-                v.check_collision(other, SCALE)
-            else:
-                v.check_collision(other)
+        '''for v, other in combinations(self.vehicles, 2):
+            _check_collision(v, other)'''
+
+        with ThreadPoolExecutor(max_workers=max(1, cpu_count()-1)) as executor:
+            for v, other in combinations(self.vehicles, 2):
+                executor.submit(_check_collision, v, other)
+
 
     def neighbour_vehicles(self, vehicle, lane_index=None):
         """

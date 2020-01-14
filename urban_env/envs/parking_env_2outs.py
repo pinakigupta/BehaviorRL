@@ -59,7 +59,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
     DEFAULT_PARKING_LOT_LENGTH = 70
 
     DEFAULT_CONFIG = {**AbstractEnv.DEFAULT_CONFIG,
-        **{
+        **{ # Reward related
             "OVER_OTHER_PARKING_SPOT_REWARD": -10,
             "VELOCITY_REWARD": 2,
             "COLLISION_REWARD": -750,
@@ -71,7 +71,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "REWARD_WEIGHTS": np.array([15/100, 15/100, 1/100, 1/100, 2/100, 2/100]),
             "ACTION_CHANGE_REWARD": 0.0,
         },
-        **{
+        **{ # RL Policy model related
             "LOAD_MODEL_FOLDER": "20191216-141903",
             "RESTORE_COND": "RESTORE", 
             "MODEL":             {
@@ -81,7 +81,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                  }, 
             "retrieved_agent_policy": 0,
         },
-        **{
+        **{ # observation space related
             "observation": {
                 "type": "KinematicsGoal",
                 "features":  ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h'],
@@ -97,6 +97,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 "pedestrians_count": 0,
                 "constraints_count": 5,
                            },
+            # general config
             "obstacle_type": "urban_env.vehicle.dynamics.Obstacle",
             "duration": 100,
             "_predict_only": is_predict_only(),
@@ -114,13 +115,14 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "MAX_VELOCITY": PARKING_MAX_VELOCITY,
             "closest_lane_dist_thresh": 500,
             },
-        **{
-            "SIMULATION_FREQUENCY": 10,  # The frequency at which the system dynamics are simulated [Hz]
+        **{  # Frequency related
+            "SIMULATION_FREQUENCY": 10,  # The frequency at which the system dynamics are simulated [Hz],
+            "PREDICTION_FREQUENCY": 10,  # The frequency at which the system dynamics are predicted [Hz],
             "POLICY_FREQUENCY": 2,  # The frequency at which the agent can take actions [Hz]
             "TRAJECTORY_FREQUENCY": 0.5, # The frequency at which the agent trajectory is generated, mainly for visualization
-            "TRAJECTORY_HORIZON": 6,
+            "TRAJECTORY_HORIZON": 10,
           },
-        **{
+        **{ # Parking lot config related
             "PARKING_LOT_WIDTH": 'random',
             "PARKING_LOT_LENGTH": 'random',
             "parking_spots": 'random',  # Parking Spots per side            
