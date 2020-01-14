@@ -170,9 +170,11 @@ def main(mainkwargs):
 
 if __name__ == "__main__":
     argdict = dict(arg.split('=') for arg in sys.argv[1:])
-    argdict = {**argdict,
+    argdict = {
                **{
                    "LOCAL_MODE": False,
-                 }
+                   "DEBUG_MODE": False,
+                 },
+                 **argdict,
                }
     main(argdict)

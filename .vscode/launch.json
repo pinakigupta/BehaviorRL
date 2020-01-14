@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "args": [ "predict=True"],
+            "args": [ "predict=True", "DEBUG_MODE=True"],
             //"preLaunchTask": "xhostset"
         }
     ]

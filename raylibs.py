@@ -128,11 +128,12 @@ def ray_cluster_status_check(
                 pass
 
 
-DEBUG_MODE = False
+#DEBUG_MODE = False
 #LOCAL_MODE = False  #Use local mode for debug purposes
 def ray_init(LOCAL_MODE=False, **mainkwargs):
     available_cluster_cpus = 0
     available_cluster_gpus = 0
+    DEBUG_MODE=mainkwargs['DEBUG_MODE']
 
     if is_predict_only(**mainkwargs):
         try:
