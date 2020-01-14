@@ -54,8 +54,7 @@ class AbstractEnv(gym.Env):
         },
         "DIFFICULTY_LEVELS": 2,
         "SIMULATION_FREQUENCY": 15, # The frequency at which the system dynamics are simulated [Hz]
-        "PREDICTION_FREQUENCY": 4,  # The frequency at which the system dynamics are predicted [Hz],
-        "POLICY_FREQUENCY": 1 , #The frequency at which the agent can take actions [Hz]
+        "PREDICTION_SIMULATION_FREQUENCY": 10,  # The frequency at which the system dynamics are predicted [Hz],
         "PERCEPTION_DISTANCE": 7.0 * MDPVehicle.SPEED_MAX, # The maximum distance of any vehicle present in the observation [m]
         "CURRICULAM_REWARD_THRESHOLD": 0.5,
         "MODEL":                {
@@ -190,7 +189,8 @@ class AbstractEnv(gym.Env):
         :return: a tuple (observation, reward, terminal, info)
         """
         if self.intent_pred:
-            self.config["SIMULATION_FREQUENCY"] = self.config["PREDICTION_FREQUENCY"]
+            self.config["SIMULATION_FREQUENCY"] = self.config["PREDICTION_SIMULATION_FREQUENCY"]
+
         if self.road is None or self.vehicle is None:
             raise NotImplementedError("The road and vehicle must be initialized in the environment implementation")
 

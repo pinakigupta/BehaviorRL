@@ -144,6 +144,7 @@ def ray_init(LOCAL_MODE=False, **mainkwargs):
         ray.init(
                  local_mode=LOCAL_MODE,
                  num_cpus=max(1, cpu_count()-1),
+                 num_gpus=1,
                  logging_level="ERROR"
                  )
         return available_cluster_cpus, available_cluster_gpus

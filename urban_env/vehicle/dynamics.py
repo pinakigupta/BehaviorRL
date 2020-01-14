@@ -577,7 +577,6 @@ class Obstacle(Vehicle):
             self.heading = np.deg2rad(self.LGAgent.state.transform.rotation.y  - self.config["map_offset"][2])
         
         
-
     def intent_prediction(self):
         if self.is_projection:
             if not self.projection:

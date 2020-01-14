@@ -6,6 +6,8 @@
 
 from __future__ import division, print_function
 import numpy as np
+import os
+os.environ['SDL_AUDIODRIVER'] = 'dsp'
 import pygame
 
 from urban_env.vehicle.dynamics import Vehicle, Obstacle

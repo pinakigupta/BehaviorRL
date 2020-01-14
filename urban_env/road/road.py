@@ -14,6 +14,7 @@ from itertools import combinations, repeat
 from multiprocessing import Pool, Process, cpu_count
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathos.multiprocessing import ProcessingPool as Pool
 
 from urban_env.logger import Loggable
 from urban_env.road.lane import LineType, StraightLane
@@ -325,16 +326,16 @@ class Road(Loggable):
         """
 
         for vehicle in self.vehicles:
-            lane_index = self.network.get_closest_lane_index(position=vehicle.position,
-                                                                 heading=vehicle.heading,
-                                                                 )
-            lane_distance = self.network.get_lane(lane_index).distance(vehicle.position)
-            if lane_distance > self.config["closest_lane_dist_thresh"]:
-                print(vehicle.Id(), " lane_distance ", lane_distance,
-                          "from closest lane", lane_index, ".Removing vehicle")
-                self.vehicles.remove(vehicle)
-            else:
-                vehicle.act(observations=observations)
+                lane_index = self.network.get_closest_lane_index(position=vehicle.position,
+                                                                    heading=vehicle.heading,
+                                                                    )
+                lane_distance = self.network.get_lane(lane_index).distance(vehicle.position)
+                if lane_distance > self.config["closest_lane_dist_thresh"]:
+                    print(vehicle.Id(), " lane_distance ", lane_distance,
+                            "from closest lane", lane_index, ".Removing vehicle")
+                    self.vehicles.remove(vehicle)
+                else:
+                    vehicle.act(observations=observations)
 
     def step(self, dt, SCALE=1):
         """
@@ -343,8 +344,8 @@ class Road(Loggable):
         :param dt: timestep [s]
         """
         
-        #for v in self.vehicles:
-        #    v.step(dt)
+        for v in self.vehicles:
+            v.step(dt)
 
         '''pool = Pool(processes=cpu_count()-1)
         pool.starmap(unwrap_vehicle_step, zip(self.vehicles, repeat(dt)))
@@ -362,19 +363,19 @@ class Road(Loggable):
             for thread in t:
                 thread.join()'''
 
-        with ThreadPoolExecutor(max_workers=max(1, cpu_count()-1)) as executor:
+        '''with ThreadPoolExecutor(max_workers=max(1, cpu_count()-1)) as executor:
             for v in self.vehicles:
-                executor.submit(v.step, dt)
+                executor.submit(v.step, dt)'''
         
         def _check_collision(v, other):
             v.check_collision(other, SCALE) if (v.is_ego() or other.is_ego()) else v.check_collision(other)
 
-        '''for v, other in combinations(self.vehicles, 2):
-            _check_collision(v, other)'''
+        for v, other in combinations(self.vehicles, 2):
+            _check_collision(v, other)
 
-        with ThreadPoolExecutor(max_workers=max(1, cpu_count()-1)) as executor:
+        '''with ThreadPoolExecutor(max_workers=max(1, cpu_count()-1)) as executor:
             for v, other in combinations(self.vehicles, 2):
-                executor.submit(_check_collision, v, other)
+                executor.submit(_check_collision, v, other)'''
 
 
     def neighbour_vehicles(self, vehicle, lane_index=None):
