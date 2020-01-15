@@ -163,44 +163,37 @@ class KinematicObservation(ObservationType):
 
         
         # Add ego-vehicle
-        df = pandas.DataFrame.from_records([self.vehicle.to_dict(self.relative_features, self.vehicle)])[self.features]
-        '''for col in df.columns:
-            df[col].values[:] = 0
-
-        df = df.append(pandas.DataFrame.from_records([self.vehicle.to_dict(self.relative_features, self.vehicle)])[self.features])'''
-
+        ego_vehicle = [self.vehicle.to_dict(self.relative_features, self.vehicle)]
+        obs = self._from_records(ego_vehicle)
+        #df = pandas.DataFrame.from_records(ego_vehicle)[self.features]
 
                 
         # Add nearby traffic
         self.close_vehicles = self.env.road.closest_vehicles_to(self.vehicle,
                                                                 self.obs_count - 1,
                                                                 self.env.config["PERCEPTION_DISTANCE"])
-
         
         if self.close_vehicles:
-            df = df.append(pandas.DataFrame.from_records(
-                [v.to_dict(self.relative_features, self.vehicle)
-                 for v in self.close_vehicles[-self.obs_count + 1:]])[self.features],
-                           ignore_index=True)
+            close_vehicles = [v.to_dict(self.relative_features, self.vehicle)
+                 for v in self.close_vehicles[-self.obs_count + 1:]]
+            obs = np.vstack((obs, self._from_records(close_vehicles)))
+            #df = df.append(pandas.DataFrame.from_records(close_vehicles)[self.features], ignore_index=True)
 
-
-
-        # Normalize
-        #df = df.iloc[1:]
-        #df = self.normalize(df)
+        num_obs = obs.shape[0]
         # Fill missing rows
-        if df.shape[0] < self.obs_size+1:
-            rows = -np.ones((self.obs_size+1 - df.shape[0], len(self.features)))
-            df = df.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
+        if num_obs < self.obs_size+1:
+            rows = -np.ones((self.obs_size+1 - num_obs, len(self.features)))
+            obs = np.vstack((obs, rows))
+            #df = df.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
 
         if self.vehicle.is_ego():
             for v in self.close_vehicles:
                 if (v.color==DEFAULT_COLOR) or (v.color is None):
                     v.color = GREEN
         # Reorder
-        df = df[self.features]
+        #df = df[self.features]
         # Clip
-        obs = np.clip(df.values, -1, 1)
+        #obs = np.clip(df.values, -1, 1)
         # Flatten
         obs = np.ravel(obs)
 

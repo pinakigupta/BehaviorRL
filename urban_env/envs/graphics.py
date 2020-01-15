@@ -106,8 +106,7 @@ class EnvViewer(object):
                 self.screen.blit(self.agent_surface, (self.SCREEN_WIDTH, 0))
 
         self.screen.blit(self.sim_surface, (0, 0))
-        if not self.env.intent_pred:
-            self.clock.tick(self.env.config["SIMULATION_FREQUENCY"])
+        self.clock.tick(self.env.config["SIMULATION_FREQUENCY"])
         pygame.display.flip()
 
         if self.SAVE_IMAGES:
