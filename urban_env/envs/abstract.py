@@ -7,7 +7,6 @@
 from __future__ import division, print_function, absolute_import
 import copy
 import gym
-import pandas
 from gym import spaces, logger
 from gym.utils import seeding
 import numpy as np

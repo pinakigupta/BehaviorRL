@@ -7,7 +7,6 @@
 
 from __future__ import division, print_function, absolute_import
 import numpy as np
-import pandas
 from gym import GoalEnv
 from gym.spaces import Dict, Discrete, Box, Tuple
 import copy

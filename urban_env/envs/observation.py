@@ -7,7 +7,6 @@
 from __future__ import division, print_function, absolute_import
 import copy
 import gym
-import pandas
 from gym import spaces, logger
 from gym.utils import seeding
 import numpy as np
@@ -165,7 +164,6 @@ class KinematicObservation(ObservationType):
         # Add ego-vehicle
         ego_vehicle = [self.vehicle.to_dict(self.relative_features, self.vehicle)]
         obs = self._from_records(ego_vehicle)
-        #df = pandas.DataFrame.from_records(ego_vehicle)[self.features]
 
                 
         # Add nearby traffic
@@ -177,14 +175,12 @@ class KinematicObservation(ObservationType):
             close_vehicles = [v.to_dict(self.relative_features, self.vehicle)
                  for v in self.close_vehicles[-self.obs_count + 1:]]
             obs = np.vstack((obs, self._from_records(close_vehicles)))
-            #df = df.append(pandas.DataFrame.from_records(close_vehicles)[self.features], ignore_index=True)
 
         num_obs = obs.shape[0]
         # Fill missing rows
         if num_obs < self.obs_size+1:
             rows = -np.ones((self.obs_size+1 - num_obs, len(self.features)))
             obs = np.vstack((obs, rows))
-            #df = df.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
 
         if self.vehicle.is_ego():
             for v in self.close_vehicles:
@@ -300,9 +296,10 @@ class KinematicsGoalObservation(KinematicObservation):
     
     def eval_func(self, v):
         
-        
-        obs = np.ravel(pandas.DataFrame.from_records([self.vehicle.to_dict(self.relative_features, self.vehicle)])[self.features])
-        goal = np.ravel(pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle)])[self.features])
+        obs = [self.vehicle.to_dict(self.relative_features, self.vehicle)]
+        obs = self._from_records(obs)
+        goal = [v.to_dict(self.relative_features, self.vehicle)]
+        goal = self._from_records(goal)
         return self.env.distance_2_goal_reward(obs, goal)
 
     def _set_closest_goals(self):            
