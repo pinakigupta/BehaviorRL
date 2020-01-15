@@ -209,12 +209,12 @@ class AbstractEnv(gym.Env):
 
         self._simulate(action)
 
-        current_wall_time = print_execution_time(current_wall_time, "After Sim" )
+        #current_wall_time = print_execution_time(current_wall_time, "After Sim" )
         
         import time
         current_wall_time = time.time()
         obs = self.observation.observe()
-        current_wall_time = print_execution_time(current_wall_time, "End of Env step" )
+        #current_wall_time = print_execution_time(current_wall_time, "End of Env step" )
         self.obs = obs
         reward = self._reward(action)
         self.action = action

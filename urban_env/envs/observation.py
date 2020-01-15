@@ -150,7 +150,14 @@ class KinematicObservation(ObservationType):
             df['width'] = df['width']/10            
         return df
 
-
+    def _from_records(self, objs, features=None):
+        if features is None:
+            features = self.features
+        arr = np.arange(len(objs)*len(features), dtype=np.float).reshape(len(objs), len(features))
+        for i in range(len(objs)):
+            z = [objs[i][f] for f in features]
+            arr[i] = np.asarray(z)
+        return arr
 
     def observe(self):
 
@@ -331,8 +338,7 @@ class KinematicsGoalObservation(KinematicObservation):
     def observe_self(self):
         current_wall_time = time.time()
         ego_obs = [self.vehicle.to_dict(self.relative_features, self.vehicle)]
-        ego_obs = pandas.DataFrame.from_records(ego_obs)[self.features]
-        #ego_obs = self.normalize(ego_obs)
+        ego_obs = self._from_records(ego_obs)
         ego_obs = np.ravel(ego_obs)
         return ego_obs
 
@@ -356,15 +362,6 @@ class KinematicsGoalObservation(KinematicObservation):
         goal = np.ravel(goal)
         return goal
 
-    def _from_records(self, objs, features=None):
-        if features is None:
-            features = self.features
-        arr = np.arange(len(objs)*len(features), dtype=np.float).reshape(len(objs), len(features))
-        for i in range(len(objs)):
-            z = [objs[i][f] for f in features]
-            arr[i] = np.asarray(z)
-        return arr
-
 
 
     def observe_pedestrians(self):
@@ -372,29 +369,26 @@ class KinematicsGoalObservation(KinematicObservation):
         closest_obs_count = 0
         if self.closest_pedestrians:
             peds = [v.to_dict(self.relative_features, self.vehicle) for v in self.closest_pedestrains]
-            peds = pandas.DataFrame.from_records(peds)[self.pedestrian_features]
-            #peds = self.normalize(peds)
+            peds = self._from_records(peds, self.pedestrian_features)
             closest_obs_count = peds.shape[0]
         # Fill missing rows
         if closest_obs_count == 0:
             rows = -np.ones((self.pedestrians_size, len(self.pedestrian_features)))
-            peds = pandas.DataFrame(data=rows, columns=self.pedestrian_features)
+            peds = rows
         elif closest_obs_count < self.pedestrians_size:
             rows = -np.ones((self.pedestrians_size - closest_obs_count, len(self.pedestrian_features)))
-            peds = peds.append(pandas.DataFrame(data=rows, columns=self.pedestrian_features), ignore_index=True)
+            peds = np.vstack((peds, rows))
         pedestrians = np.ravel(peds) #flatten
         return pedestrians
 
     def observe_constraints(self):
-        constraint = pandas.DataFrame.from_records(
-                    [v.to_dict(self.relative_features, self.vehicle) 
+        constraint = [v.to_dict(self.relative_features, self.vehicle) 
                                 for v in self.env.road.virtual_vehicles
-                                    if v not in self.env.road.goals])[self.constraint_features]
+                                    if v not in self.env.road.goals]
+        constraint = self._from_records(constraint, self.constraint_features)
         if constraint.shape[0] < self.constraints_count:
             rows = -np.ones((self.constraints_count - constraint.shape[0], len(self.constraint_features)))
-            constraint = constraint.append(pandas.DataFrame(data=rows, columns=self.constraint_features), ignore_index=True)
-        current_wall_time = time.time()
-        #constraint = self.normalize(constraint)
+            constraint = np.vstack((constraint, rows))
         constraint = np.ravel(constraint)
         return constraint
 
