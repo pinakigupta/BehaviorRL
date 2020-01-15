@@ -14,7 +14,6 @@ from itertools import combinations, repeat
 from multiprocessing import Pool, Process, cpu_count
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from pathos.multiprocessing import ProcessingPool as Pool
 
 from urban_env.logger import Loggable
 from urban_env.road.lane import LineType, StraightLane

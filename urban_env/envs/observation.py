@@ -13,6 +13,8 @@ from gym.utils import seeding
 import numpy as np
 from collections import deque
 from functools import partial
+import multiprocessing
+import time
 
 from urban_env import utils
 from urban_env.envs.finite_mdp import  compute_ttc_grid
@@ -22,6 +24,7 @@ from urban_env.vehicle.behavior import IDMVehicle
 from urban_env.vehicle.control import MDPVehicle
 from urban_env.vehicle.dynamics import Obstacle
 from urban_env.envdict import RED, GREEN, BLUE, YELLOW, BLACK, PURPLE, DEFAULT_COLOR, EGO_COLOR, WHITE
+from urban_env.utils import print_execution_time
 
 from handle_model_files import is_predict_only
 
@@ -113,11 +116,11 @@ class KinematicObservation(ObservationType):
             For now, assume that the road is straight along the x axis.
         :param Dataframe df: observation data
         """
-        road = self.env.road
-        side_lanes = road.network.all_side_lanes(self.env.vehicle.lane_index)
+
         self.x_position_range = self.env.config["x_position_range"]
         self.y_position_range = self.env.config["y_position_range"]
         self.velocity_range = self.env.config["velocity_range"]
+
 
         if 'x' in df:
             df['x'] = utils.remap(df['x'], [- self.x_position_range, self.x_position_range], [-1, 1])
@@ -127,6 +130,8 @@ class KinematicObservation(ObservationType):
             df['vx'] = utils.remap(df['vx'], [-self.velocity_range, self.velocity_range], [-1, 1])
         if 'vy' in df:
             df['vy'] = utils.remap(df['vy'], [-self.velocity_range, self.velocity_range], [-1, 1])
+
+        
 
         if 'psi' in df:
             if hasattr(self.vehicle, 'route_lane_index'):
@@ -142,7 +147,7 @@ class KinematicObservation(ObservationType):
         if 'length' in df:
             df['length'] = df['length']/100
         if 'width' in df:
-            df['length'] = df['length']/10            
+            df['width'] = df['width']/10            
         return df
 
 
@@ -175,7 +180,7 @@ class KinematicObservation(ObservationType):
 
         # Normalize
         #df = df.iloc[1:]
-        df = self.normalize(df)
+        #df = self.normalize(df)
         # Fill missing rows
         if df.shape[0] < self.obs_size+1:
             rows = -np.ones((self.obs_size+1 - df.shape[0], len(self.features)))
@@ -250,24 +255,63 @@ class KinematicsGoalObservation(KinematicObservation):
         except AttributeError:
             return None
 
+   
+
+    def observation_worker(self, obsname, obs_dict):
+        current_wall_time = time.time()
+
+        if obsname is "observation":
+            obs_dict.update({"observation": self.observe_vehicles()})
+        elif obsname is "pedestrians":
+            obs_dict.update({"pedestrians": self.observe_pedestrians()})
+        elif obsname is "achieved_goal":
+            obs_dict.update({"achieved_goal": self.observe_self()})
+        elif obsname is "constraint":
+            obs_dict.update({"constraint": self.observe_constraints()})
+        elif obsname is "desired_goal":
+            obs_dict.update({"desired_goal": self.observe_goals()})
+        elif obsname is "impatience":
+            obs_dict.update({"impatience": np.array([])})
+        elif obsname is "placeholder":
+            obs_dict.update({"placeholder": np.array([])})
+
     def observe(self):
-        obs = np.ravel(self.normalize(pandas.DataFrame.from_records([self.vehicle.to_dict(self.relative_features, self.vehicle)])[self.features]))
-        self._set_closest_goals()
-        self._set_closest_pedestrians()
-        obs_dict = {
-                        "observation": super(KinematicsGoalObservation, self).observe(),
+        current_wall_time = time.time()
+        manager = multiprocessing.Manager()
+        #obs_dict = manager.dict()
+        obs_dict = {}
+        jobs = []
+        '''obs_dict = {
+                        "observation": self.observe_vehicles(),
                         "pedestrians": self.observe_pedestrians(),
-                        "achieved_goal": obs ,
+                        "achieved_goal": self.observe_self(),
                         "constraint": self.observe_constraints(),
                         "desired_goal": self.observe_goals(),
                         "impatience": np.array([]), #min(1.0, max(0.0, self.steps/self.config["duration"]))
-                        "placeholder":np.array([]),
-                    }
-        return obs_dict
+                        "placeholder": np.array([]),
+                    }'''
+        obsnames = ["observation", "pedestrians", "achieved_goal", "constraint", "desired_goal", "impatience", "placeholder"]
+        for obsname in obsnames:
+            self.observation_worker(obsname, obs_dict)
+            #current_wall_time = print_execution_time(current_wall_time, "After " + obsname)
+            '''p = multiprocessing.Process(target=self.observation_worker, args=(obsname, obs_dict))
+            jobs.append(p)
+            p.start()
+
+        for proc in jobs:
+            proc.join()'''
+
+        self.return_dict = {}
+        for key, value in obs_dict.items():
+            self.return_dict[key] = value
+
+        return self.return_dict
     
     def eval_func(self, v):
-        obs = np.ravel(self.normalize(pandas.DataFrame.from_records([self.vehicle.to_dict(self.relative_features, self.vehicle)])[self.features]))
-        goal = np.ravel(self.normalize(pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle)])[self.features]))
+        
+        
+        obs = np.ravel(pandas.DataFrame.from_records([self.vehicle.to_dict(self.relative_features, self.vehicle)])[self.features])
+        goal = np.ravel(pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle)])[self.features])
         return self.env.distance_2_goal_reward(obs, goal)
 
     def _set_closest_goals(self):            
@@ -293,11 +337,23 @@ class KinematicsGoalObservation(KinematicObservation):
                                                                     objects=self.env.road.pedestrians
                                                                    )        
 
+    def observe_self(self):
+        current_wall_time = time.time()
+        ego_obs = [self.vehicle.to_dict(self.relative_features, self.vehicle)]
+        ego_obs = pandas.DataFrame.from_records(ego_obs)[self.features]
+        #ego_obs = self.normalize(ego_obs)
+        ego_obs = np.ravel(ego_obs)
+        return ego_obs
+
+    def observe_vehicles(self):
+        return super(KinematicsGoalObservation, self).observe()
+
     def observe_goals(self):
+        self._set_closest_goals()
         closest_obs_count = 0
         if self.closest_goals:
-            raw_goals = pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) for v in self.closest_goals])[self.features]
-            goal = self.normalize(raw_goals)
+            goal = pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) for v in self.closest_goals])[self.features]
+            #goal = self.normalize(goal)
             closest_obs_count = goal.shape[0]
         if closest_obs_count == 0:
             rows = -np.ones((self.goals_size, len(self.features)))
@@ -310,11 +366,12 @@ class KinematicsGoalObservation(KinematicObservation):
         return goals
 
     def observe_pedestrians(self):
+        self._set_closest_pedestrians()
         closest_obs_count = 0
         if self.closest_pedestrians:
-            raw_peds = pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) for v in self.closest_pedestrains])\
+            peds = pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) for v in self.closest_pedestrains])\
                                                     [self.pedestrian_features]
-            peds = self.normalize(raw_peds)
+            #peds = self.normalize(peds)
             closest_obs_count = peds.shape[0]
         # Fill missing rows
         if closest_obs_count == 0:
@@ -333,9 +390,11 @@ class KinematicsGoalObservation(KinematicObservation):
                                     if v not in self.env.road.goals])[self.constraint_features]
         if constraint.shape[0] < self.constraints_count:
             rows = -np.ones((self.constraints_count - constraint.shape[0], len(self.constraint_features)))
-            constraint = constraint.append(pandas.DataFrame(data=rows, columns=self.constraint_features), ignore_index=True) 
-        constraints = np.ravel(self.normalize(constraint))
-        return constraints
+            constraint = constraint.append(pandas.DataFrame(data=rows, columns=self.constraint_features), ignore_index=True)
+        current_wall_time = time.time()
+        #constraint = self.normalize(constraint)
+        constraint = np.ravel(constraint)
+        return constraint
 
     def closest_vehicles(self):
         closest_to_ref = [self.vehicle]

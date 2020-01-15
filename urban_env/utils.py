@@ -15,6 +15,13 @@ from numpy.linalg import norm
 EPSILON = 0.01
 
 
+def print_execution_time(current_wall_time, msg=""):
+    import time
+    current_time = time.time()
+    msg += " time elapsed (in ms)"
+    print(msg, round((current_time-current_wall_time)*1e3, 2))
+    return current_time
+
 def constrain(x, a, b):
     return np.minimum(np.maximum(x, a), b)
 

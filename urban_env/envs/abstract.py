@@ -180,6 +180,9 @@ class AbstractEnv(gym.Env):
         raise NotImplementedError()
 
     def step(self, action):
+
+        
+        
         """
             Perform an action and step the environment dynamics.
 
@@ -188,6 +191,8 @@ class AbstractEnv(gym.Env):
         :param int action: the action performed by the ego-vehicle
         :return: a tuple (observation, reward, terminal, info)
         """
+
+        
         if self.intent_pred:
             self.config["SIMULATION_FREQUENCY"] = self.config["PREDICTION_SIMULATION_FREQUENCY"]
 
@@ -198,9 +203,12 @@ class AbstractEnv(gym.Env):
             self.config["_predict_only"] = True
             #self.reset()
 
-        self._simulate(action)
-        
 
+        self._simulate(action)
+
+        from urban_env.utils import print_execution_time
+        import time
+        current_wall_time = time.time()
         obs = self.observation.observe()
         self.obs = obs
         reward = self._reward(action)
@@ -219,6 +227,9 @@ class AbstractEnv(gym.Env):
         constraint = self._constraint(action)
         info = {'constraint': constraint, "c_": constraint}
         info = {**info, **self._info() }
+
+        
+        
 
         return obs, reward, terminal, info
 

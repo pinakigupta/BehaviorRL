@@ -61,7 +61,6 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
         env = gym.make(env_name)
         multiagent = False
         use_lstm = {DEFAULT_POLICY_ID: False}'''
-    
 
     if hasattr(agent, "workers"):
         env = gym.make(
@@ -96,33 +95,22 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
         prev_rewards = collections.defaultdict(lambda: 0.)
         done = False
         reward_total = 0.0
+        # rollout one trajectory
         while not done and steps < (num_steps or steps + 1):
-            multi_obs = obs if multiagent else {_DUMMY_AGENT_ID: obs}
-            action_dict = {}
-            for agent_id, a_obs in multi_obs.items():
-                if a_obs is not None:
-                    policy_id = mapping_cache.setdefault(
-                        agent_id, policy_agent_mapping(agent_id))
-                    p_use_lstm = use_lstm[policy_id]
-                    if p_use_lstm:
-                        a_action, p_state, _ = agent.compute_action(
-                            a_obs,
-                            state=agent_states[agent_id],
-                            prev_action=prev_actions[agent_id],
-                            prev_reward=prev_rewards[agent_id],
-                            policy_id=policy_id)
-                        agent_states[agent_id] = p_state
-                    else:
-                        a_action = agent.compute_action(
-                            a_obs,
-                            prev_action=prev_actions[agent_id],
-                            prev_reward=prev_rewards[agent_id],
-                            policy_id=policy_id)
-                    action_dict[agent_id] = a_action
-                    prev_actions[agent_id] = a_action
-            action = action_dict
+            from urban_env.utils import print_execution_time
+            import time
+            current_wall_time = time.time()
 
-            action = action if multiagent else action[_DUMMY_AGENT_ID]
+            multi_obs = obs if multiagent else {_DUMMY_AGENT_ID: obs}
+            action = act(multi_obs,
+                         agent,
+                         multiagent,
+                         prev_actions,
+                         prev_rewards,
+                         policy_agent_mapping,
+                         mapping_cache,
+                         use_lstm
+                         )
             next_obs, reward, done, _ = env.step(action)
             if multiagent:
                 for agent_id, r in reward.items():
@@ -131,34 +119,23 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
                 prev_rewards[_DUMMY_AGENT_ID] = reward
 
             policy_id = mapping_cache.setdefault(
-                        _DUMMY_AGENT_ID, policy_agent_mapping(_DUMMY_AGENT_ID))
+                _DUMMY_AGENT_ID, policy_agent_mapping(_DUMMY_AGENT_ID))
 
+            #current_wall_time = print_execution_time(current_wall_time, "Before intent pred ")
             if predict:
-                
-                predict_one_step_of_rollout(
-                                                            env,
-                                                            agent,
-                                                            multi_obs,
-                                                            action,
-                                                            reward,
-                                                            policy_id,
-                                                            False
-                                            )
-                '''p = Process( target=predict_one_step_of_rollout,
-                             args=(
-                                                            env,
-                                                            agent,
-                                                            multi_obs,
-                                                            action,
-                                                            reward,
-                                                            mapping_cache,
-                                                            False,
-                                  )
 
-                            )
-                p.start()
-                p.join()'''
+                predict_one_step_of_rollout(
+                    env,
+                    agent,
+                    multi_obs,
+                    action,
+                    reward,
+                    policy_id,
+                    False
+                    )
+
                 no_render = True
+            #print_execution_time(current_wall_time, "After intent pred ")    
 
             if multiagent:
                 done = done["__all__"]
@@ -177,6 +154,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
 
     if out is not None:
         pickle.dump(rollouts, open(out, "wb"))
+
 
 def predict_one_step_of_rollout(env, agent, obs, action, reward, policy_id, no_render=True):
     predict_env = copy.deepcopy(env)
@@ -199,9 +177,37 @@ def predict_one_step_of_rollout(env, agent, obs, action, reward, policy_id, no_r
             policy_id=policy_id)
         pred_obs, pred_reward, pred_done, _ = predict_env.step(pred_action)
         pred_steps += 1
-        #print("pred_steps ", pred_steps)
+        # print("pred_steps ", pred_steps)
     if not no_render:
         predict_env.render()
+
+
+def act(multi_obs, agent, multiagent, prev_actions, prev_rewards, policy_agent_mapping, mapping_cache, use_lstm):
+    action_dict = {}
+    for agent_id, a_obs in multi_obs.items():
+        if a_obs is not None:
+            policy_id = mapping_cache.setdefault(
+                        agent_id, policy_agent_mapping(agent_id))
+            p_use_lstm = use_lstm[policy_id]
+            if p_use_lstm:
+                a_action, p_state, _ = agent.compute_action(
+                    a_obs,
+                    state=agent_states[agent_id],
+                    prev_action=prev_actions[agent_id],
+                    prev_reward=prev_rewards[agent_id],
+                    policy_id=policy_id)
+                agent_states[agent_id] = p_state
+            else:
+                a_action = agent.compute_action(
+                    a_obs,
+                    prev_action=prev_actions[agent_id],
+                    prev_reward=prev_rewards[agent_id],
+                    policy_id=policy_id)
+            action_dict[agent_id] = a_action
+            prev_actions[agent_id] = a_action
+    action = action_dict
+    action = action if multiagent else action[_DUMMY_AGENT_ID]
+    return action
 
 
 def ray_retrieve_agent(env_id=play_env_id, config=None):

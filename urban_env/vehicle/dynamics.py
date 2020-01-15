@@ -411,16 +411,16 @@ class Vehicle(Loggable):
         sin_h = self.direction[1]
         psi = self.heading
         d = {
-            'x': x,
-            'y': y,
-            'vx': vx,
-            'vy': vy,
+            'x': utils.remap(x, [- self.config["x_position_range"], self.config["x_position_range"]], [-1, 1]),
+            'y': utils.remap(y, [- self.config["y_position_range"], self.config["y_position_range"]], [-1, 1]),
+            'vx': utils.remap(vx, [- self.config["velocity_range"], self.config["velocity_range"]], [-1, 1]),
+            'vy': utils.remap(vy, [- self.config["velocity_range"], self.config["velocity_range"]], [-1, 1]),
             'cos_h': cos_h,
             'sin_h': sin_h,
-            'length': self.LENGTH,
-            'width': self.WIDTH,
-            'psi': psi,
-            'lane_psi': self.lane.heading_at(self.position[0]),
+            'length': self.LENGTH/100,
+            'width': self.WIDTH/10,
+            'psi': psi/(2*np.pi),
+            'lane_psi': self.lane.heading_at(self.position[0])/(2*np.pi),
         }
         if (origin_vehicle is not self):
             origin_dict = origin_vehicle.to_dict([], origin_vehicle)
