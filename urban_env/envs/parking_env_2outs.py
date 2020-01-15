@@ -164,10 +164,11 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self.prev_time = None
 
     def step(self, action):
+        from urban_env.utils import print_execution_time
         current_wall_time = time.time()
         if self.prev_time is not None:
-            if not self.intent_pred:
-                print("time elapsed (in ms)", round((current_wall_time - self.prev_time)*1e3, 2) , " step ", self.steps)  # in bytes 
+            if not self.intent_pred and is_predict_only():
+                print_execution_time(current_wall_time, " step " + str(self.steps) + " : " )
         self.prev_time = current_wall_time
         self.steps += 1
         ##############################################
