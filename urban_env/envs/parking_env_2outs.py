@@ -467,7 +467,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
     def _add_goals(self):
         ##### ADDING OTHER GOALS #####
         lane = self.np_random.choice(self.road.network.lanes_list()[:-self.border_lane_count])
-        for _ in range(self.goals_count):
+        existing_goals_count = len(self.road.goals)
+        for _ in range(self.goals_count - existing_goals_count):
             while lane in self.parking_spots_used:   
                 lane = self.np_random.choice(self.road.network.lanes_list()[:-self.border_lane_count])
             self.parking_spots_used.append(lane)
@@ -497,7 +498,16 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 self.vehicle.position[1] = 0.0
             else: # remove the object
                 self.road.vehicles.remove(v)
-            self.vehicle.crashed = v.crashed = False                
+            self.vehicle.crashed = v.crashed = False      
+
+        if self.config["goals_count"] == 'all':
+            empty_spots_to_be_filled_with_goals = len(self.road.vehicles) + 1 < (self.parking_spots*2)
+            if empty_spots_to_be_filled_with_goals > 0 : 
+                self.goals_count = (self.parking_spots*2) -  self.vehicles_count
+                self._add_goals()
+
+
+            
 
 
 
