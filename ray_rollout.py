@@ -177,6 +177,7 @@ def predict_one_step_of_rollout(env, agent, obs, action, reward, policy_id, no_r
         v.is_projection = True
     predict_env.intent_pred = True
     predict_env.DEFAULT_CONFIG["_predict_only"] = True
+    predict_env0 = copy.deepcopy(predict_env)
     pred_steps = 0
     pred_obs = obs[_DUMMY_AGENT_ID]
     pred_done = False
@@ -194,7 +195,9 @@ def predict_one_step_of_rollout(env, agent, obs, action, reward, policy_id, no_r
         pred_steps += 1
     #print("Total pred_steps ", pred_steps)
     if not no_render:
-        predict_env.render()
+        predict_env0.vehicle.projection = copy.deepcopy(predict_env.vehicle.projection)
+        predict_env0.step(action)
+        predict_env0.render()
 
 
 def act(multi_obs, agent, multiagent, prev_actions, prev_rewards, policy_agent_mapping, mapping_cache, use_lstm):
