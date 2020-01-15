@@ -100,25 +100,30 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
         import time
         current_wall_time = time.time()
         prev_step_time = 0
+        prev_action_time = 0
         while not done and steps < (num_steps or steps + 1):
 
             current_wall_time = time.time()
-            loop_time = current_wall_time-prev_step_time
+            sim_loop_time = current_wall_time-prev_step_time
+            action_loop_time =  current_wall_time-prev_action_time
             
-            if loop_time < 1/env.config["SIMULATION_FREQUENCY"]:
-                print("loop time (in ms) ", round(1e3*loop_time, 2))
+            if sim_loop_time < 1/env.config["SIMULATION_FREQUENCY"]:
+                print("loop time (in ms) ", round(1e3*sim_loop_time, 2))
                 continue
 
             multi_obs = obs if multiagent else {_DUMMY_AGENT_ID: obs}
-            action = act(multi_obs,
-                         agent,
-                         multiagent,
-                         prev_actions,
-                         prev_rewards,
-                         policy_agent_mapping,
-                         mapping_cache,
-                         use_lstm
-                         )
+
+            if action_loop_time > 1/env.config["POLICY_FREQUENCY"]:
+                action = act(   
+                                multi_obs,
+                                agent,
+                                multiagent,
+                                prev_actions,
+                                prev_rewards,
+                                policy_agent_mapping,
+                                mapping_cache,
+                                use_lstm
+                                )
             #current_wall_time = print_execution_time(current_wall_time, "After calculating action ")
             next_obs, reward, done, _ = env.step(action)
             prev_step_time = time.time()
