@@ -119,7 +119,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "PREDICTION_SIMULATION_FREQUENCY": 10,  # The frequency at which the system dynamics are predicted [Hz],
             "POLICY_FREQUENCY": 2,  # The frequency at which the agent can take actions [Hz]
             "TRAJECTORY_FREQUENCY": 0.5, # The frequency at which the agent trajectory is generated, mainly for visualization
-            "TRAJECTORY_HORIZON": 5,
+            "TRAJECTORY_HORIZON": 10,
           },
         **{ # Parking lot config related
             "PARKING_LOT_WIDTH": 'random',
