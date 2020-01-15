@@ -112,6 +112,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
                          mapping_cache,
                          use_lstm
                          )
+            current_wall_time = print_execution_time(current_wall_time, "After calculating action ")
             next_obs, reward, done, _ = env.step(action)
             if multiagent:
                 for agent_id, r in reward.items():
@@ -122,7 +123,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
             policy_id = mapping_cache.setdefault(
                 _DUMMY_AGENT_ID, policy_agent_mapping(_DUMMY_AGENT_ID))
 
-            #current_wall_time = print_execution_time(current_wall_time, "Before intent pred ")
+            current_wall_time = print_execution_time(current_wall_time, "Before intent pred ")
             if predict:
 
                 predict_one_step_of_rollout(
@@ -136,7 +137,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
                     )
 
                 no_render = True
-            #current_wall_time = print_execution_time(current_wall_time, "After intent pred ")    
+            current_wall_time = print_execution_time(current_wall_time, "After intent pred ")    
 
             if multiagent:
                 done = done["__all__"]

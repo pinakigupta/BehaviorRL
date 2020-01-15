@@ -85,7 +85,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "observation": {
                 "type": "KinematicsGoal",
                 "features":  ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h'],
-                "constraint_features":  ['x', 'y', 'vx', 'length', 'cos_h', 'sin_h'],
+                "constraint_features":  ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h'],
                 "pedestrian_features": ['x', 'y', 'vx', 'vy'],
                 "relative_features": ['x', 'y'],
                 "scale": 100,
@@ -103,7 +103,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "_predict_only": is_predict_only(),
             "screen_width": 800,
             "screen_height": 800,
-            "DIFFICULTY_LEVELS": 3,
+            "DIFFICULTY_LEVELS": 6,
             "OBS_STACK_SIZE": 1,
             "vehicles_count": 'random',
             "goals_count": 'all',
@@ -120,7 +120,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             "PREDICTION_SIMULATION_FREQUENCY": 10,  # The frequency at which the system dynamics are predicted [Hz],
             "POLICY_FREQUENCY": 2,  # The frequency at which the agent can take actions [Hz]
             "TRAJECTORY_FREQUENCY": 0.5, # The frequency at which the agent trajectory is generated, mainly for visualization
-            "TRAJECTORY_HORIZON": 10,
+            "TRAJECTORY_HORIZON": 5,
           },
         **{ # Parking lot config related
             "PARKING_LOT_WIDTH": 'random',
