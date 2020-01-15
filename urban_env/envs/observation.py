@@ -281,15 +281,6 @@ class KinematicsGoalObservation(KinematicObservation):
         #obs_dict = manager.dict()
         obs_dict = {}
         jobs = []
-        '''obs_dict = {
-                        "observation": self.observe_vehicles(),
-                        "pedestrians": self.observe_pedestrians(),
-                        "achieved_goal": self.observe_self(),
-                        "constraint": self.observe_constraints(),
-                        "desired_goal": self.observe_goals(),
-                        "impatience": np.array([]), #min(1.0, max(0.0, self.steps/self.config["duration"]))
-                        "placeholder": np.array([]),
-                    }'''
         obsnames = ["observation", "pedestrians", "achieved_goal", "constraint", "desired_goal", "impatience", "placeholder"]
         for obsname in obsnames:
             self.observation_worker(obsname, obs_dict)
@@ -352,25 +343,36 @@ class KinematicsGoalObservation(KinematicObservation):
         self._set_closest_goals()
         closest_obs_count = 0
         if self.closest_goals:
-            goal = pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) for v in self.closest_goals])[self.features]
-            #goal = self.normalize(goal)
+            goal = [v.to_dict(self.relative_features, self.vehicle) for v in self.closest_goals]
+            goal = self._from_records(goal)
             closest_obs_count = goal.shape[0]
         if closest_obs_count == 0:
             rows = -np.ones((self.goals_size, len(self.features)))
-            goal = pandas.DataFrame(data=rows, columns=self.features)            
+            goal = rows
         # Fill missing rows
         elif closest_obs_count < self.goals_size:
             rows = -np.ones((self.goals_size -closest_obs_count, len(self.features)))
-            goal = goal.append(pandas.DataFrame(data=rows, columns=self.features), ignore_index=True)
-        goals = np.ravel(goal) #flatten
-        return goals
+            goal = np.vstack((goal, rows))
+        goal = np.ravel(goal)
+        return goal
+
+    def _from_records(self, objs, features=None):
+        if features is None:
+            features = self.features
+        arr = np.arange(len(objs)*len(features), dtype=np.float).reshape(len(objs), len(features))
+        for i in range(len(objs)):
+            z = [objs[i][f] for f in features]
+            arr[i] = np.asarray(z)
+        return arr
+
+
 
     def observe_pedestrians(self):
         self._set_closest_pedestrians()
         closest_obs_count = 0
         if self.closest_pedestrians:
-            peds = pandas.DataFrame.from_records([v.to_dict(self.relative_features, self.vehicle) for v in self.closest_pedestrains])\
-                                                    [self.pedestrian_features]
+            peds = [v.to_dict(self.relative_features, self.vehicle) for v in self.closest_pedestrains]
+            peds = pandas.DataFrame.from_records(peds)[self.pedestrian_features]
             #peds = self.normalize(peds)
             closest_obs_count = peds.shape[0]
         # Fill missing rows

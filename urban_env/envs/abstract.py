@@ -192,7 +192,10 @@ class AbstractEnv(gym.Env):
         :return: a tuple (observation, reward, terminal, info)
         """
 
-        
+        from urban_env.utils import print_execution_time
+        import time
+        current_wall_time = time.time()
+
         if self.intent_pred:
             self.config["SIMULATION_FREQUENCY"] = self.config["PREDICTION_SIMULATION_FREQUENCY"]
 
@@ -206,10 +209,12 @@ class AbstractEnv(gym.Env):
 
         self._simulate(action)
 
-        from urban_env.utils import print_execution_time
+        current_wall_time = print_execution_time(current_wall_time, "After Sim" )
+        
         import time
         current_wall_time = time.time()
         obs = self.observation.observe()
+        current_wall_time = print_execution_time(current_wall_time, "End of Env step" )
         self.obs = obs
         reward = self._reward(action)
         self.action = action

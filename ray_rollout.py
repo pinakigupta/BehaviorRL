@@ -96,11 +96,12 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
         done = False
         reward_total = 0.0
         # rollout one trajectory
+        from urban_env.utils import print_execution_time
+        import time
+        current_wall_time = time.time()
         while not done and steps < (num_steps or steps + 1):
-            from urban_env.utils import print_execution_time
-            import time
-            current_wall_time = time.time()
 
+            current_wall_time = time.time()
             multi_obs = obs if multiagent else {_DUMMY_AGENT_ID: obs}
             action = act(multi_obs,
                          agent,
@@ -121,7 +122,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
             policy_id = mapping_cache.setdefault(
                 _DUMMY_AGENT_ID, policy_agent_mapping(_DUMMY_AGENT_ID))
 
-            #current_wall_time = print_execution_time(current_wall_time, "Before intent pred ")
+            current_wall_time = print_execution_time(current_wall_time, "Before intent pred ")
             if predict:
 
                 predict_one_step_of_rollout(
@@ -135,7 +136,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
                     )
 
                 no_render = True
-            #print_execution_time(current_wall_time, "After intent pred ")    
+            #current_wall_time = print_execution_time(current_wall_time, "After intent pred ")    
 
             if multiagent:
                 done = done["__all__"]
@@ -177,7 +178,7 @@ def predict_one_step_of_rollout(env, agent, obs, action, reward, policy_id, no_r
             policy_id=policy_id)
         pred_obs, pred_reward, pred_done, _ = predict_env.step(pred_action)
         pred_steps += 1
-        # print("pred_steps ", pred_steps)
+    #print("Total pred_steps ", pred_steps)
     if not no_render:
         predict_env.render()
 
