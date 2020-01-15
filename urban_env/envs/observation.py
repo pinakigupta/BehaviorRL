@@ -186,11 +186,7 @@ class KinematicObservation(ObservationType):
             for v in self.close_vehicles:
                 if (v.color==DEFAULT_COLOR) or (v.color is None):
                     v.color = GREEN
-        # Reorder
-        #df = df[self.features]
-        # Clip
-        #obs = np.clip(df.values, -1, 1)
-        # Flatten
+
         obs = np.ravel(obs)
 
         if hasattr(self.vehicle, 'route_lane_index'):
@@ -273,7 +269,7 @@ class KinematicsGoalObservation(KinematicObservation):
 
     def observe(self):
         current_wall_time = time.time()
-        manager = multiprocessing.Manager()
+        #manager = multiprocessing.Manager()
         #obs_dict = manager.dict()
         obs_dict = {}
         jobs = []

@@ -160,15 +160,14 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         EnvViewer.SCREEN_WIDTH = self.config['screen_width']
         self.scene_complexity = self.config['DIFFICULTY_LEVELS']
         self.reset()
-        self.prev_time = None
+        self.prev_time = time.time()
 
     def step(self, action):
         from urban_env.utils import print_execution_time
-        current_wall_time = time.time()
         if self.prev_time is not None:
             if not self.intent_pred and is_predict_only():
-                print_execution_time(current_wall_time, " step " + str(self.steps) + " : " )
-        self.prev_time = current_wall_time
+                current_wall_time = print_execution_time(self.prev_time, " step " + str(self.steps) + " : " )
+                self.prev_time = current_wall_time
         self.steps += 1
         ##############################################
         acceleration = action[0].item() * self.vehicle.config['max_acceleration']
