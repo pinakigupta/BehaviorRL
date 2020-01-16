@@ -581,6 +581,9 @@ class Obstacle(Vehicle):
         if self.is_projection:
             if not self.projection:
                 self.projection.append(copy.deepcopy(self))
+    
+    def act(self, action=None, **kwargs):
+        pass
 
 
 class Pedestrian(Vehicle):

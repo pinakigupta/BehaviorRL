@@ -11,6 +11,7 @@ from gym import spaces, logger
 from gym.utils import seeding
 import numpy as np
 from collections import deque
+import time
 
 from urban_env import utils
 from urban_env.envs.observation import observation_factory
@@ -22,7 +23,8 @@ from urban_env.vehicle.control import MDPVehicle
 from urban_env.vehicle.dynamics import Obstacle
 from urban_env.envdict import ACTIONS_DICT
 from handle_model_files import is_predict_only
-
+from urban_env.utils import print_execution_time
+        
 
 class AbstractEnv(gym.Env):
     """
@@ -190,8 +192,6 @@ class AbstractEnv(gym.Env):
         :param int action: the action performed by the ego-vehicle
         :return: a tuple (observation, reward, terminal, info)
         """
-
-        from urban_env.utils import print_execution_time
         import time
         current_wall_time = time.time()
 
@@ -254,9 +254,12 @@ class AbstractEnv(gym.Env):
                     self.vehicle.act(self.ACTIONS[action])
                 #else:
                 #    self.vehicle.act(action)
-
+            current_wall_time = time.time()
             self.road.act(self.observations)
+
+            #current_wall_time = print_execution_time(current_wall_time, "After Act" )
             self.road.step(1 / self.config["SIMULATION_FREQUENCY"], SCALE)
+            #current_wall_time = print_execution_time(current_wall_time, "After Step" )
             self.time += 1
 
             # Automatically render intermediate simulation steps if a viewer has been launched

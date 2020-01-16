@@ -324,17 +324,19 @@ class Road(Loggable):
             Decide the actions of each entity on the road.
         """
 
-        for vehicle in self.vehicles:
-                lane_index = self.network.get_closest_lane_index(position=vehicle.position,
-                                                                    heading=vehicle.heading,
-                                                                    )
-                lane_distance = self.network.get_lane(lane_index).distance(vehicle.position)
+        for v in list(set(self.vehicles)-set(self.virtual_vehicles)):
+            if not isinstance(v, Obstacle):
+                lane_index = self.network.get_closest_lane_index(
+                                                                position=v.position,
+                                                                heading=v.heading,
+                                                                )
+                lane_distance = self.network.get_lane(lane_index).distance(v.position)
                 if lane_distance > self.config["closest_lane_dist_thresh"]:
-                    print(vehicle.Id(), " lane_distance ", lane_distance,
+                    print(v.Id(), " lane_distance ", lane_distance,
                             "from closest lane", lane_index, ".Removing vehicle")
-                    self.vehicles.remove(vehicle)
+                    self.vehicles.remove(v)
                 else:
-                    vehicle.act(observations=observations)
+                    v.act(observations=observations)
 
     def step(self, dt, SCALE=1):
         """

@@ -18,6 +18,7 @@ RUN pip install -r requirements.txt
 RUN pip install --ignore-installed gym
 RUN pip3 install tensorflow tensorflow-gpu pillow requests setproctitle psutil lz4 awscli boto boto3 tabulate
 RUN git clone https://github.com/lgsvl/PythonAPI.git && pip3 install --user PythonAPI/
+RUN pip3 install numpy==1.16.4
 
 FROM base AS intermediate
 # stage 2
