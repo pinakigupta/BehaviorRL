@@ -96,7 +96,7 @@ class EnvViewer(object):
                     VehicleGraphics.display_trajectory(
                         vehicle_trajectory,
                         self.sim_surface)
-        RoadGraphics.display_traffic(self.env.road, self.sim_surface, not self.env.intent_pred)
+        RoadGraphics.display_traffic(self.env.road, self.sim_surface)
 
         if self.agent_display:
             self.agent_display(self.agent_surface, self.sim_surface)
@@ -106,7 +106,7 @@ class EnvViewer(object):
                 self.screen.blit(self.agent_surface, (self.SCREEN_WIDTH, 0))
 
         self.screen.blit(self.sim_surface, (0, 0))
-        self.clock.tick(self.env.config["SIMULATION_FREQUENCY"])
+        self.clock.tick(self.env.config["SIMULATION_FREQUENCY"]+1)
         pygame.display.flip()
 
         if self.SAVE_IMAGES:

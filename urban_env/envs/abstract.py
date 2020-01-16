@@ -296,6 +296,7 @@ class AbstractEnv(gym.Env):
             self.viewer.handle_events()
         self.should_update_rendering = False
 
+
     def close(self):
         """
             Close the environment.

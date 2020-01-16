@@ -108,7 +108,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
             action_loop_time =  current_wall_time-prev_action_time
             
             if sim_loop_time < 1/env.config["SIMULATION_FREQUENCY"]:
-                print("loop time (in ms) ", round(1e3*sim_loop_time, 2))
+                #print("loop time (in ms) ", round(1e3*sim_loop_time, 2))
                 continue
 
             multi_obs = obs if multiagent else {_DUMMY_AGENT_ID: obs}
@@ -136,21 +136,22 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
             policy_id = mapping_cache.setdefault(
                 _DUMMY_AGENT_ID, policy_agent_mapping(_DUMMY_AGENT_ID))
 
-            #current_wall_time = print_execution_time(current_wall_time, "Before intent pred ")
+            current_wall_time = print_execution_time(current_wall_time, "Before intent pred ")
             if predict:
 
-                predict_one_step_of_rollout(
-                    env,
-                    agent,
-                    multi_obs,
-                    action,
-                    reward,
-                    policy_id,
-                    False
-                    )
-
-                no_render = True
-            #current_wall_time = print_execution_time(current_wall_time, "After intent pred ")    
+                projections = predict_one_step_of_rollout(
+                                                            env,
+                                                            agent,
+                                                            multi_obs,
+                                                            action,
+                                                            reward,
+                                                            policy_id,
+                                                            False
+                                                         )
+                env.vehicle.projection = projections
+                env.intent_pred = True
+                no_render = False
+            current_wall_time = print_execution_time(current_wall_time, "After intent pred ")    
 
             if multiagent:
                 done = done["__all__"]
@@ -174,10 +175,10 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
 def predict_one_step_of_rollout(env, agent, obs, action, reward, policy_id, no_render=True):
     predict_env = copy.deepcopy(env)
     for v in predict_env.road.vehicles:
+        v.projection = []
         v.is_projection = True
     predict_env.intent_pred = True
     predict_env.DEFAULT_CONFIG["_predict_only"] = True
-    predict_env0 = copy.deepcopy(predict_env)
     pred_steps = 0
     pred_obs = obs[_DUMMY_AGENT_ID]
     pred_done = False
@@ -194,10 +195,7 @@ def predict_one_step_of_rollout(env, agent, obs, action, reward, policy_id, no_r
         pred_obs, pred_reward, pred_done, _ = predict_env.step(pred_action)
         pred_steps += 1
     #print("Total pred_steps ", pred_steps)
-    if not no_render:
-        predict_env0.vehicle.projection = copy.deepcopy(predict_env.vehicle.projection)
-        predict_env0.step(action)
-        predict_env0.render()
+    return predict_env.vehicle.projection
 
 
 def act(multi_obs, agent, multiagent, prev_actions, prev_rewards, policy_agent_mapping, mapping_cache, use_lstm):
