@@ -540,6 +540,20 @@ class Vehicle(Loggable):
             out_q.append(states)
         return states
 
+    def __deepcopy__(self, memo=None):
+        """
+            Perform a deep copy but without copying the environment viewer.
+        """
+        cls = self.__class__
+        result = cls.__new__(cls)
+        if memo is not None:
+            memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            if k not in ['LGAgent']:
+                setattr(result, k, copy.deepcopy(v, memo))
+            else:
+                setattr(result, k, None)
+        return result
 
 class Obstacle(Vehicle):
     """

@@ -86,15 +86,18 @@ class LG_Sim_Env(ParkingEnv):
         **{
             "observation": {
                 "type": "KinematicsGoal",
-                "features": {"observation": ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h']},
+                "features":  ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h'],
+                "constraint_features":  ['x', 'y', 'vx', 'vy', 'cos_h', 'sin_h'],
+                "pedestrian_features": ['x', 'y', 'vx', 'vy'],                
                 "relative_features": ['x', 'y'],
                 "scale": 100,
                 "obs_size": 10,
                 "obs_count": 10,
                 "goals_size": 10,
                 "goals_count": 10,
-                "constraints_count": 5,
-                           },
+                "pedestrians_size": 0,
+                "pedestrians_count": 0,
+                "constraints_count": 5,                           },
             #"obstacle_type": "urban_env.envs.LG_sim_env.ObstacleLG",
             "DIFFICULTY_LEVELS": 4,
             "OBS_STACK_SIZE": 1,
@@ -131,7 +134,7 @@ class LG_Sim_Env(ParkingEnv):
         if config is None:
             config = self.DEFAULT_CONFIG
         else:
-            config = {**self.DEFAULT_CONFIG, **config}
+            config = {**self.DEFAULT_CONFIG, **config} 
 
         super(LG_Sim_Env, self).__init__(config=config)
 
@@ -156,12 +159,17 @@ class LG_Sim_Env(ParkingEnv):
         throttle_brake = action[0].item()
         
         #self.vehicle.LGAgent.on_collision(self.on_collision)
-        self.control.braking = self.vehicle.braking
-        self.control.throttle = self.vehicle.throttle
-        self.control.steering = action[1].item() * np.rad2deg(self.vehicle.config['max_steer_angle']) / 39.4
-        self.control.reverse = self.vehicle.reverse
-        self.vehicle.LGAgent.apply_control(self.control, True)
-        self.sim.run(time_limit=5/self.config["POLICY_FREQUENCY"])
+        if self.control is not None:
+            self.control.braking = self.vehicle.braking
+            self.control.throttle = self.vehicle.throttle
+            self.control.steering = action[1].item() * np.rad2deg(self.vehicle.config['max_steer_angle']) / 39.4
+            self.control.reverse = self.vehicle.reverse
+        
+        if self.vehicle.LGAgent is not None:
+            self.vehicle.LGAgent.apply_control(self.control, True)
+        
+        if self.sim is not None:
+            self.sim.run(time_limit=5/self.config["POLICY_FREQUENCY"])
 
         '''print(" reverse ", self.vehicle.reverse,
               " velocity ", "{0:.2f}".format(velocity), 
@@ -227,6 +235,21 @@ class LG_Sim_Env(ParkingEnv):
         self._populate_scene()
         return obs
 
+
+    def __deepcopy__(self, memo=None):
+        """
+            Perform a deep copy but without copying the environment viewer.
+        """
+        cls = self.__class__
+        result = cls.__new__(cls)
+        if memo is not None:
+            memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            if k not in ['viewer', 'automatic_rendering_callback', 'sim','control']:
+                setattr(result, k, copy.deepcopy(v, memo))
+            else:
+                setattr(result, k, None)
+        return result
 
     def close(self):
         """

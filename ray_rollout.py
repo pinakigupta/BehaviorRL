@@ -244,7 +244,7 @@ def ray_retrieve_agent(env_id=play_env_id, config=None):
         config["num_workers"] = min(2, config["num_workers"])
 
     cls = get_agent_class(algo)
-    agent = cls(env=play_env_id, config=config)
+    agent = cls(env=None, config=config)
     agent.restore(results_folder)
     policy = agent.get_policy()
     return agent
