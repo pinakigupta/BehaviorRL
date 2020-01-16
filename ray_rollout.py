@@ -54,7 +54,7 @@ def retrieve_ray_folder_info(target_folder, checkpt=None):
     return restore_folder, local_restore_path, algo
 
 
-def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False):
+def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict=False):
     policy_agent_mapping = default_policy_agent_mapping
 
     '''if env_name is not None:
@@ -136,8 +136,8 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
             policy_id = mapping_cache.setdefault(
                 _DUMMY_AGENT_ID, policy_agent_mapping(_DUMMY_AGENT_ID))
 
-            current_wall_time = print_execution_time(current_wall_time, "Before intent pred ")
-            if predict:
+            #current_wall_time = print_execution_time(current_wall_time, "Before intent pred ")
+            if intent_predict:
 
                 projections = predict_one_step_of_rollout(
                                                             env,
@@ -149,9 +149,9 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, predict=False)
                                                             False
                                                          )
                 env.vehicle.projection = projections
-                env.intent_pred = True
+                # env.intent_pred = True
                 no_render = False
-            current_wall_time = print_execution_time(current_wall_time, "After intent pred ")    
+            #current_wall_time = print_execution_time(current_wall_time, "After intent pred ")    
 
             if multiagent:
                 done = done["__all__"]
