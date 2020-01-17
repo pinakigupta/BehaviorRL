@@ -106,6 +106,7 @@ class LG_Sim_Env(ParkingEnv):
             "pedestrian_count": 0,
             "constraints_count": 4,
             "SIMULATION_FREQUENCY": 20,  # The frequency at which the system dynamics are simulated [Hz]
+            "PREDICTION_SIMULATION_FREQUENCY": 20,  # The frequency at which the system dynamics are predicted [Hz],
             "POLICY_FREQUENCY": 20,  # The frequency at which the agent can take actions [Hz]
             "velocity_range": 1.5*ParkingEnv.PARKING_MAX_VELOCITY,
             "MAX_VELOCITY": ParkingEnv.PARKING_MAX_VELOCITY,
@@ -136,10 +137,7 @@ class LG_Sim_Env(ParkingEnv):
         else:
             config = {**self.DEFAULT_CONFIG, **config} 
 
-        super(LG_Sim_Env, self).__init__(config=config)
-
-        #self.sim = lgsvl.Simulator(address=os.environ.get("SIMULATOR_HOST", "127.0.0.1"), port=8080) 
-        
+        super(LG_Sim_Env, self).__init__(config=config)     
 
 
         '''if self.sim.current_scene == self.config["map"]:

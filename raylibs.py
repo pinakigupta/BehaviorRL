@@ -351,9 +351,11 @@ def ray_train(save_in_sub_folder=None,
 def ray_play(env_id=None, config=None, agent=None):
     if agent is None:
         agent=ray_retrieve_agent(config=config)        
-    rollout(agent=agent,
+    rollout(
+            agent=agent,
             env_name=env_id,
             num_steps=10000,
             no_render=False,
             out=None,
-            intent_predict=True)
+            intent_predict=True
+           )
