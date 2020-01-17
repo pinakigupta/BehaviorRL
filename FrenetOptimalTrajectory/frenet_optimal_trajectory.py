@@ -308,6 +308,15 @@ def generate_target_course(x, y):
 
     return rx, ry, ryaw, rk, csp
 
+def transform(position, ego):
+    '''p = np.append(ego.position, 1)
+    h = ego.heading
+    T = np.array([ [math.cos(h), math.sin(h), -p[0]], [-math.sin(h), math.cos(h), -p[1]], [0, 0, 1]])
+    p1 = np.dot(T, p)'''
+    #return p1[:2]
+    x1 = (position[0]-ego.position[0])*math.cos(h) + (position[1]-ego.position[1])*math.sin(h)
+    y1 = (position[1]-ego.position[1])*math.cos(h) + (position[0]-ego.position[0])*math.sin(h)
+    return np.array([x1, y1])
 
 def trajectoryplanner(projections=None, env=None):
     print(__file__ + " start!!")
@@ -319,20 +328,24 @@ def trajectoryplanner(projections=None, env=None):
     wx = []
     wy = []
     for projection in projections:
-        wx.append(projection.position[0]-env.vehicle.position[0])
-        wy.append(projection.position[1]-env.vehicle.position[1])
+        position = transform(projection.position, env.vehicle)
+        wx.append(position[0])
+        wy.append(position[1])
         #wx = [0.0, 10.0, 20.5, 35.0, 70.5]
         #wy = [0.0, -6.0, 5.0, 6.5, 0.0]
     # obstacle lists
+
+    x = transform(env.vehicle.position, env.vehicle)
 
     if len(wx) <= 1:
         return
     
     obs = []
     if env is not None:
-        for v in list(set(env.road.vehicles)-set(env.road.goals)):
+        for v in list(set(env.road.vehicles)-set(env.road.virtual_vehicles)):
             if v is not env.vehicle:
-                obs.append(list(v.position- env.vehicle.position))
+                position =  transform(v.position, env.vehicle)
+                obs.append(list(position))
     '''ob = np.array([[20.0, 10.0],
                    [30.0, 6.0],
                    [30.0, 8.0],
