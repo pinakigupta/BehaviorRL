@@ -324,6 +324,9 @@ def trajectoryplanner(projections=None):
         #wx = [0.0, 10.0, 20.5, 35.0, 70.5]
         #wy = [0.0, -6.0, 5.0, 6.5, 0.0]
     # obstacle lists
+
+    if len(wx) <= 1:
+        return
     '''ob = np.array([[20.0, 10.0],
                    [30.0, 6.0],
                    [30.0, 8.0],
