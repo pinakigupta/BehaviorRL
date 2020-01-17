@@ -154,7 +154,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
                 # env.intent_pred = True
                 no_render = False
             #current_wall_time = print_execution_time(current_wall_time, "After intent pred ")    
-            trajectoryplanner(projections)
+            trajectoryplanner(projections, env)
 
             if multiagent:
                 done = done["__all__"]

@@ -309,7 +309,7 @@ def generate_target_course(x, y):
     return rx, ry, ryaw, rk, csp
 
 
-def trajectoryplanner(projections=None):
+def trajectoryplanner(projections=None, env=None):
     print(__file__ + " start!!")
 
     # way points
@@ -319,21 +319,27 @@ def trajectoryplanner(projections=None):
     wx = []
     wy = []
     for projection in projections:
-        wx.append(projection.position[0])
-        wy.append(projection.position[1])
+        wx.append(projection.position[0]-env.vehicle.position[0])
+        wy.append(projection.position[1]-env.vehicle.position[1])
         #wx = [0.0, 10.0, 20.5, 35.0, 70.5]
         #wy = [0.0, -6.0, 5.0, 6.5, 0.0]
     # obstacle lists
 
     if len(wx) <= 1:
         return
+    
+    obs = []
+    if env is not None:
+        for v in list(set(env.road.vehicles)-set(env.road.goals)):
+            if v is not env.vehicle:
+                obs.append(list(v.position- env.vehicle.position))
     '''ob = np.array([[20.0, 10.0],
                    [30.0, 6.0],
                    [30.0, 8.0],
                    [35.0, 8.0],
                    [50.0, 3.0]
                    ])'''
-    ob = np.array([[]])
+    ob = np.array(obs)
     tx, ty, tyaw, tc, csp = generate_target_course(wx, wy)
 
     # initial state
@@ -365,7 +371,8 @@ def trajectoryplanner(projections=None):
         if show_animation:  # pragma: no cover
             plt.cla()
             plt.plot(tx, ty)
-           # plt.plot(ob[:, 0], ob[:, 1], "xk")
+            if list(ob[0]):
+                plt.plot(ob[:, 0], ob[:, 1], "xk")
             plt.plot(path.x[1:], path.y[1:], "-or")
             plt.plot(path.x[1], path.y[1], "vc")
             plt.xlim(path.x[1] - area, path.x[1] + area)
