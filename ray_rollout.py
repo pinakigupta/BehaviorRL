@@ -19,6 +19,8 @@ from settings import req_dirs, models_folder, ray_folder
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, RUN_WITH_RAY, InceptcurrentDT, is_predict_only
 from handle_model_files import pathname, copy_terminal_output_file, terminal_output_file_name
 
+from FrenetOptimalTrajectory.frenet_optimal_trajectory import trajectoryplanner
+
 
 def filetonum(filename):
     try:
@@ -152,6 +154,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
                 # env.intent_pred = True
                 no_render = False
             #current_wall_time = print_execution_time(current_wall_time, "After intent pred ")    
+            trajectoryplanner(projections)
 
             if multiagent:
                 done = done["__all__"]

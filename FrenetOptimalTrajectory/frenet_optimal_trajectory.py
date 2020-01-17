@@ -16,9 +16,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 import math
-import cubic_spline_planner
+from FrenetOptimalTrajectory import cubic_spline_planner
 
-SIM_LOOP = 500
+SIM_LOOP = 1
 
 # Parameter
 MAX_SPEED = 50.0 / 3.6  # maximum speed [m/s]
@@ -244,6 +244,9 @@ def calc_global_paths(fplist, csp):
 
 def check_collision(fp, ob):
 
+    if not list(ob[0]):
+        return True
+
     for i in range(len(ob[:, 0])):
         d = [((ix - ob[i, 0])**2 + (iy - ob[i, 1])**2)
              for (ix, iy) in zip(fp.x, fp.y)]
@@ -306,20 +309,28 @@ def generate_target_course(x, y):
     return rx, ry, ryaw, rk, csp
 
 
-def main():
+def trajectoryplanner(projections=None):
     print(__file__ + " start!!")
 
     # way points
-    wx = [0.0, 10.0, 20.5, 35.0, 70.5]
-    wy = [0.0, -6.0, 5.0, 6.5, 0.0]
+    if projections is None:
+        return
+    
+    wx = []
+    wy = []
+    for projection in projections:
+        wx.append(projection.position[0])
+        wy.append(projection.position[1])
+        #wx = [0.0, 10.0, 20.5, 35.0, 70.5]
+        #wy = [0.0, -6.0, 5.0, 6.5, 0.0]
     # obstacle lists
-    ob = np.array([[20.0, 10.0],
+    '''ob = np.array([[20.0, 10.0],
                    [30.0, 6.0],
                    [30.0, 8.0],
                    [35.0, 8.0],
                    [50.0, 3.0]
-                   ])
-
+                   ])'''
+    ob = np.array([[]])
     tx, ty, tyaw, tc, csp = generate_target_course(wx, wy)
 
     # initial state
@@ -331,9 +342,12 @@ def main():
 
     area = 20.0  # animation area length [m]
 
-    for i in range(SIM_LOOP):
+    for _ in range(SIM_LOOP):
         path = frenet_optimal_planning(
             csp, s0, c_speed, c_d, c_d_d, c_d_dd, ob)
+        
+        if path is None:
+            continue
 
         s0 = path.s[1]
         c_d = path.d[1]
@@ -348,21 +362,18 @@ def main():
         if show_animation:  # pragma: no cover
             plt.cla()
             plt.plot(tx, ty)
-            plt.plot(ob[:, 0], ob[:, 1], "xk")
+           # plt.plot(ob[:, 0], ob[:, 1], "xk")
             plt.plot(path.x[1:], path.y[1:], "-or")
             plt.plot(path.x[1], path.y[1], "vc")
             plt.xlim(path.x[1] - area, path.x[1] + area)
             plt.ylim(path.y[1] - area, path.y[1] + area)
             plt.title("v[km/h]:" + str(c_speed * 3.6)[0:4])
             plt.grid(True)
-            plt.pause(0.0001)
+            plt.pause(0.1)
 
     print("Finish")
-    if show_animation:  # pragma: no cover
-        plt.grid(True)
-        plt.pause(0.0001)
-        plt.show()
+
 
 
 if __name__ == '__main__':
-    main()
+    trajectoryplanner()
