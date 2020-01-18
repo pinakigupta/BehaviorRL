@@ -323,8 +323,17 @@ def transform(position, ego):
     y1 = (position[1]-ego.position[1])*math.cos(h) + (position[0]-ego.position[0])*math.sin(h)
     return np.array([x1, y1])
 
+
+
 def trajectoryplanner(projections=None, env=None):
-    #print(__file__ + " start!!")
+
+    # Parameter
+    global MAX_SPEED, MAX_ROAD_WIDTH, DT, MAXT, TARGET_SPEED
+    MAX_SPEED = env.config["MAX_VELOCITY"]
+    MAX_ROAD_WIDTH = 10.0
+    DT = 1/env.config["TRAJECTORY_FREQUENCY"]
+    MAXT = env.config["TRAJECTORY_HORIZON"]
+    TARGET_SPEED = min(TARGET_SPEED, MAX_SPEED)
 
     # way points
     if projections is None:
@@ -373,10 +382,6 @@ def trajectoryplanner(projections=None, env=None):
         c_d_dd = path.d_dd[1]
         c_speed = path.s_d[1]
 
-        '''if np.hypot(path.x[1] - tx[-1], path.y[1] - ty[-1]) <= 1.0:
-            print("Goal")
-            break'''
-
 
         if show_animation:  # pragma: no cover
             plt.cla()
@@ -384,7 +389,8 @@ def trajectoryplanner(projections=None, env=None):
             if list(ob[0]):
                 plt.plot(ob[:, 0], ob[:, 1], "xk")
             plt.plot(path.x[1:], path.y[1:], "-or")
-            plt.plot(path.x[1], path.y[1], "vc")
+            if path.x[1:]:
+                plt.plot(path.x[1], path.y[1], "vc")
             plt.xlim(-env.PARKING_LOT_WIDTH/2, env.PARKING_LOT_WIDTH/2)
             plt.ylim(-env.PARKING_LOT_LENGTH/2, env.PARKING_LOT_LENGTH/2)            
             plt.title("v[m/s]:" + str(c_speed)[0:4])
