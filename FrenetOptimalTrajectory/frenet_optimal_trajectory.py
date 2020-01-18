@@ -232,12 +232,16 @@ def calc_global_paths(fplist, csp):
             fp.yaw.append(math.atan2(dy, dx))
             fp.ds.append(math.sqrt(dx**2 + dy**2))
 
-        fp.yaw.append(fp.yaw[-1])
-        fp.ds.append(fp.ds[-1])
+        if fp.yaw:
+            fp.yaw.append(fp.yaw[-1])
+        
+        if fp.ds:
+            fp.ds.append(fp.ds[-1])
 
         # calc curvature
-        for i in range(len(fp.yaw) - 1):
-            fp.c.append((fp.yaw[i + 1] - fp.yaw[i]) / fp.ds[i])
+        if fp.yaw and fp.ds:
+            for i in range(len(fp.yaw) - 1):
+                fp.c.append((fp.yaw[i + 1] - fp.yaw[i]) / fp.ds[i])
 
     return fplist
 
@@ -313,13 +317,14 @@ def transform(position, ego):
     h = ego.heading
     T = np.array([ [math.cos(h), math.sin(h), -p[0]], [-math.sin(h), math.cos(h), -p[1]], [0, 0, 1]])
     p1 = np.dot(T, p)'''
+    h = ego.heading
     #return p1[:2]
     x1 = (position[0]-ego.position[0])*math.cos(h) + (position[1]-ego.position[1])*math.sin(h)
     y1 = (position[1]-ego.position[1])*math.cos(h) + (position[0]-ego.position[0])*math.sin(h)
     return np.array([x1, y1])
 
 def trajectoryplanner(projections=None, env=None):
-    print(__file__ + " start!!")
+    #print(__file__ + " start!!")
 
     # way points
     if projections is None:
@@ -328,14 +333,11 @@ def trajectoryplanner(projections=None, env=None):
     wx = []
     wy = []
     for projection in projections:
-        position = transform(projection.position, env.vehicle)
+        position = projection.position #transform(projection.position, env.vehicle)
         wx.append(position[0])
         wy.append(position[1])
-        #wx = [0.0, 10.0, 20.5, 35.0, 70.5]
-        #wy = [0.0, -6.0, 5.0, 6.5, 0.0]
-    # obstacle lists
 
-    x = transform(env.vehicle.position, env.vehicle)
+    ego = env.vehicle
 
     if len(wx) <= 1:
         return
@@ -344,20 +346,15 @@ def trajectoryplanner(projections=None, env=None):
     if env is not None:
         for v in list(set(env.road.vehicles)-set(env.road.virtual_vehicles)):
             if v is not env.vehicle:
-                position =  transform(v.position, env.vehicle)
+                position =  v.position #transform(v.position, env.vehicle)
                 obs.append(list(position))
-    '''ob = np.array([[20.0, 10.0],
-                   [30.0, 6.0],
-                   [30.0, 8.0],
-                   [35.0, 8.0],
-                   [50.0, 3.0]
-                   ])'''
+
     ob = np.array(obs)
     tx, ty, tyaw, tc, csp = generate_target_course(wx, wy)
 
     # initial state
-    c_speed = 10.0 / 3.6  # current speed [m/s]
-    c_d = 2.0  # current lateral position [m]
+    c_speed = ego.velocity   # current speed [m/s]
+    c_d = 0.0  # current lateral position [m]
     c_d_d = 0.0  # current lateral speed [m/s]
     c_d_dd = 0.0  # current latral acceleration [m/s]
     s0 = 0.0  # current course position
@@ -365,8 +362,7 @@ def trajectoryplanner(projections=None, env=None):
     area = 20.0  # animation area length [m]
 
     for _ in range(SIM_LOOP):
-        path = frenet_optimal_planning(
-            csp, s0, c_speed, c_d, c_d_d, c_d_dd, ob)
+        path = frenet_optimal_planning(csp, s0, c_speed, c_d, c_d_d, c_d_dd, ob)
         
         if path is None:
             continue
@@ -377,9 +373,10 @@ def trajectoryplanner(projections=None, env=None):
         c_d_dd = path.d_dd[1]
         c_speed = path.s_d[1]
 
-        if np.hypot(path.x[1] - tx[-1], path.y[1] - ty[-1]) <= 1.0:
+        '''if np.hypot(path.x[1] - tx[-1], path.y[1] - ty[-1]) <= 1.0:
             print("Goal")
-            break
+            break'''
+
 
         if show_animation:  # pragma: no cover
             plt.cla()
@@ -388,13 +385,15 @@ def trajectoryplanner(projections=None, env=None):
                 plt.plot(ob[:, 0], ob[:, 1], "xk")
             plt.plot(path.x[1:], path.y[1:], "-or")
             plt.plot(path.x[1], path.y[1], "vc")
-            plt.xlim(path.x[1] - area, path.x[1] + area)
-            plt.ylim(path.y[1] - area, path.y[1] + area)
-            plt.title("v[km/h]:" + str(c_speed * 3.6)[0:4])
+            plt.xlim(-env.PARKING_LOT_WIDTH/2, env.PARKING_LOT_WIDTH/2)
+            plt.ylim(-env.PARKING_LOT_LENGTH/2, env.PARKING_LOT_LENGTH/2)            
+            plt.title("v[m/s]:" + str(c_speed)[0:4])
             plt.grid(True)
-            plt.pause(0.1)
+            plt.pause(0.001)
 
-    print("Finish")
+    if path is not None:
+        print("path length ", len(path.x))
+    return path
 
 
 
