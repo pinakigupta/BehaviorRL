@@ -269,11 +269,13 @@ def check_paths(fplist, ob):
     for i, _ in enumerate(fplist):
         if any([v > MAX_SPEED for v in fplist[i].s_d]):  # Max speed check
             continue
-        elif any([abs(a) > MAX_ACCEL for a in fplist[i].s_dd]):  # Max accel check
+        if any([abs(a) > MAX_ACCEL for a in fplist[i].s_dd]):  # Max accel check
             continue
-        elif any([abs(c) > MAX_CURVATURE for c in fplist[i].c]):  # Max curvature check
+        if any([abs(c) > MAX_CURVATURE for c in fplist[i].c]):  # Max curvature check
             continue
-        elif not check_collision(fplist[i], ob):
+        if not check_collision(fplist[i], ob):
+            continue
+        if len(fplist[i].x)<=1 or len(fplist[i].y)<=1:
             continue
 
         okind.append(i)
@@ -341,10 +343,12 @@ def trajectoryplanner(projections=None, env=None):
     
     wx = []
     wy = []
+    wv = []
     for projection in projections:
         position = projection.position #transform(projection.position, env.vehicle)
         wx.append(position[0])
         wy.append(position[1])
+        wv.append(projection.velocity)
 
     ego = env.vehicle
 

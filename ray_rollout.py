@@ -19,6 +19,9 @@ from settings import req_dirs, models_folder, ray_folder
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, RUN_WITH_RAY, InceptcurrentDT, is_predict_only
 from handle_model_files import pathname, copy_terminal_output_file, terminal_output_file_name
 
+from urban_env.vehicle.dynamics import Vehicle
+from urban_env.envdict import BLUE
+
 from FrenetOptimalTrajectory.frenet_optimal_trajectory import trajectoryplanner
 
 
@@ -155,6 +158,22 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
                 no_render = False
             #current_wall_time = print_execution_time(current_wall_time, "After intent pred ")    
             trajectory = trajectoryplanner(projections, env)
+            if trajectory is not None:
+                ego_reference = copy.deepcopy(env.vehicle)
+                ego_reference.color = BLUE
+                ego_reference.config["COLLISIONS_ENABLED"] = False
+                trajectory_projections = []
+                
+                for i in range(len(trajectory.x)):
+                    v = Vehicle(road=env.road,
+                                position=[trajectory.x[i], trajectory.y[i]],
+                                heading=trajectory.yaw[i],
+                                is_projection=True)
+                    v.config["COLLISIONS_ENABLED"] = False            
+                    trajectory_projections.append(copy.deepcopy(v))
+                ego_reference.projection = trajectory_projections
+                if ego_reference not in env.road.vehicles:
+                    env.road.vehicles.append(ego_reference)
 
             if multiagent:
                 done = done["__all__"]

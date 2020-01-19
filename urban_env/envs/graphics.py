@@ -85,7 +85,8 @@ class EnvViewer(object):
                 self.set_agent_action_sequence(self.env.actions)
         el'''
         del self.vehicle_trajectories[:]
-        self.vehicle_trajectories.append(self.env.vehicle.projection)
+        for v in self.env.road.vehicles:
+            self.vehicle_trajectories.append(v.projection)
 
         self.sim_surface.move_display_window_to(self.window_position())
         RoadGraphics.display(self.env.road, self.sim_surface)
