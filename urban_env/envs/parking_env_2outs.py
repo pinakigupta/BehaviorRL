@@ -438,9 +438,9 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                                heading=self.ego_initial_pose[2], #2*np.pi*self.np_random.rand(),
                                velocity=0,
                                route_lane_index=None,
+                               is_ego_vehicle=True,
                                config=self.config
                                )
-        self.vehicle.is_ego_vehicle = True
         self.road.vehicles.append(self.vehicle)
 
     def _spawn_vehicles(self):

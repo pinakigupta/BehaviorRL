@@ -203,9 +203,9 @@ class TwoWayEnv(AbstractEnv):
                                  velocity=np.random.randint(low=15, high=35),
                                  target_velocity=self.ROAD_SPEED,
                                  heading=ego_lane.heading_at(x0),
+                                 is_ego_vehicle=True,
                                  config=self.config
                                  )
-        ego_vehicle.is_ego_vehicle = True
         self.road.vehicles.append(ego_vehicle)
         self.road.ego_vehicle = ego_vehicle
         self.vehicle = ego_vehicle

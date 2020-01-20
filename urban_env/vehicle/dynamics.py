@@ -72,7 +72,14 @@ class Vehicle(Loggable):
                  width=2.0, 
                  virtual=False, 
                  color=None, 
-                 config=DEFAULT_CONFIG, 
+                 acceleration=0.0,
+                 jerk=0.0,
+                 is_projection=None,
+                 is_ego_vehicle=False,
+                 hidden=None,
+                 simagent=None,
+                 projection=[],
+                 config=DEFAULT_CONFIG,
                  **kwargs
                  ):
         self.config = {**self.DEFAULT_CONFIG, **config}
@@ -82,8 +89,8 @@ class Vehicle(Loggable):
         self.position = np.array(position).astype('float')
         self.heading = heading
         self.velocity = velocity
-        self.acceleration = 0.0
-        self.jerk = 0.0
+        self.acceleration = acceleration
+        self.jerk = jerk,
         self.color = color
         if lane_index is None:
             self.lane_index = self.road.network.get_closest_lane_index(self.position, self.heading) if self.road else np.nan
@@ -99,13 +106,12 @@ class Vehicle(Loggable):
         self.crashed = False
         self.log = []
         self.virtual = virtual
-        self.is_projection = False
-        self.is_ego_vehicle = False
+        self.is_projection = is_projection
+        self.is_ego_vehicle = is_ego_vehicle
         self.control_action = None
-        self.hidden = False
-        self.LGAgent = None
-        self.projection = []
-        self.projection_length = None
+        self.hidden = hidden
+        self.LGAgent = simagent
+        self.projection = projection
         self.steps = 0
 
     
@@ -403,8 +409,7 @@ class Vehicle(Loggable):
                                               (other.position, SCALE*other.LENGTH, SCALE*other.WIDTH, other.heading)):
             #self.velocity = other.velocity = min(self.velocity, other.velocity)
             self.crashed = other.crashed = True
-            #if self.is_ego_vehicle:
-            #    print("ego crashed")
+
 
     @property
     def direction(self):
