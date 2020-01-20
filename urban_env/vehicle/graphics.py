@@ -83,7 +83,7 @@ class VehicleGraphics(object):
         color = WHITE
         font = pygame.font.Font(font_type, size) 
 
-        if not(v.virtual or virtual) or True:
+        if not(v.virtual or virtual):
             text = ' '*10+v.Id()
             text = font.render(text, False, color) 
             textRect = text.get_rect()

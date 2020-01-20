@@ -26,7 +26,7 @@ from urban_env.vehicle.control import MDPVehicle
 from urban_env.vehicle.behavior import IDMVehicle
 from urban_env.utils import *
 from handle_model_files import is_predict_only
-from urban_env.envdict import WHITE, RED, BLACK, GREY
+from urban_env.envdict import WHITE, RED, BLACK, GREY, BLUE
 
 import pprint
 
@@ -166,7 +166,8 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         from urban_env.utils import print_execution_time
         if self.prev_time is not None:
             if not self.intent_pred and is_predict_only():
-                current_wall_time = print_execution_time(self.prev_time, " step " + str(self.steps) + " : " )
+                #current_wall_time = print_execution_time(self.prev_time, " step " + str(self.steps) + " : " )
+                current_wall_time = time.time()
                 self.prev_time = current_wall_time
         self.steps += 1
         ##############################################
@@ -195,6 +196,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         #obs = self._observation()
         obs, reward, done, info = super(ParkingEnv_2outs, self).step(self.vehicle.control_action)
+        self._update_reference()
 
         #terminal = self._is_terminal()
         #self.print_obs_space(ref_vehicle=self.vehicle, obs_type="observation")
@@ -506,10 +508,20 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
                 self.goals_count = (self.parking_spots*2) -  self.vehicles_count
                 self._add_goals()
 
-
+    def _spawn_reference(self):
+        self.reference_vehicle = copy.deepcopy(self.vehicle)
+        self.reference_vehicle.projection.clear()
+        self.reference_vehicle.is_ego_vehicle = False
+        self.reference_vehicle.color = BLUE
+        self.reference_vehicle.hidden = True
+        self.reference_vehicle.config["COLLISIONS_ENABLED"] = False
+        self.road.vehicles.append(self.reference_vehicle)
             
 
-
+    def _update_reference(self):
+        self.reference_vehicle.position = self.vehicle.position
+        self.reference_vehicle.heading = self.vehicle.heading
+        self.reference_vehicle.velocity = self.vehicle.velocity
 
     def _populate_parking(self):
         """
@@ -525,6 +537,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
         self._add_constraint_vehicles()
         self._spawn_cleanup()
         self._add_goals()
+        self._spawn_reference()
 
     def distance_2_goal_reward(self, achieved_goal, desired_goal, p=2):
         goal_err = achieved_goal - desired_goal

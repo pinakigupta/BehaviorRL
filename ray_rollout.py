@@ -107,6 +107,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
         prev_step_time = 0
         prev_action_time = 0
         trajectory = None
+
         while not done and steps < (num_steps or steps + 1):
 
             current_wall_time = time.time()
@@ -157,32 +158,24 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
                 env.vehicle.projection = projections
                 # env.intent_pred = True
                 no_render = False
-            #current_wall_time = print_execution_time(current_wall_time, "After intent pred ")    
-            trajectory1 = trajectoryplanner(projections, env)
-            if trajectory is not None:
-                if 'ego_reference' in locals():
-                    ego_reference.position = env.vehicle.position
-                    ego_reference.heading = env.vehicle.heading
-                    ego_reference.velocity = env.vehicle.velocity
-                    del(ego_reference.projection[:])
-                else:
-                    ego_reference = copy.deepcopy(env.vehicle)
-                    ego_reference.projection.clear()
-                    ego_reference.color = BLUE
-                    ego_reference.config["COLLISIONS_ENABLED"] = False
+                #current_wall_time = print_execution_time(current_wall_time, "After intent pred ")    
+                trajectory = trajectoryplanner(projections, env)
+                del(env.reference_vehicle.projection[:])
 
+            if trajectory is not None:
                 trajectory_projections = []
                 for i in range(len(trajectory.x)):
                     v = Vehicle(road=env.road,
                                 position=[trajectory.x[i], trajectory.y[i]],
                                 heading=trajectory.yaw[i],
-                                is_projection=True)
+                                is_projection=True,
+                                color=BLUE
+                               )
                     v.config["COLLISIONS_ENABLED"] = False            
                     trajectory_projections.append(copy.deepcopy(v))
-                ego_reference.projection = trajectory_projections
-                if ego_reference not in env.road.vehicles:
-                    env.road.vehicles.append(ego_reference)
-                print("ego_reference ", ego_reference)
+                env.reference_vehicle.projection = trajectory_projections
+                    
+                print("ego_reference ", env.reference_vehicle, " # of trajectory_projections ", len(trajectory_projections))
 
             if multiagent:
                 done = done["__all__"]
