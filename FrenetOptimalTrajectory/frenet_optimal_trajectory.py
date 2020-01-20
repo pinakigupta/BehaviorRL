@@ -41,7 +41,7 @@ KD = 1.0
 KLAT = 1.0
 KLON = 1.0
 
-show_animation = True
+show_animation = False
 
 
 class quintic_polynomial:
@@ -234,7 +234,7 @@ def calc_global_paths(fplist, csp):
 
         if fp.yaw:
             fp.yaw.append(fp.yaw[-1])
-        
+
         if fp.ds:
             fp.ds.append(fp.ds[-1])
 
@@ -247,6 +247,9 @@ def calc_global_paths(fplist, csp):
 
 
 def check_collision(fp, ob):
+
+    if len(ob) == 0:
+        return True
 
     if not list(ob[0]):
         return True
@@ -275,7 +278,7 @@ def check_paths(fplist, ob):
             continue
         if not check_collision(fplist[i], ob):
             continue
-        if len(fplist[i].x)<=1 or len(fplist[i].y)<=1:
+        if len(fplist[i].x) <= 1 or len(fplist[i].y) <= 1:
             continue
 
         okind.append(i)
@@ -314,17 +317,20 @@ def generate_target_course(x, y):
 
     return rx, ry, ryaw, rk, csp
 
+
 def transform(position, ego):
     '''p = np.append(ego.position, 1)
     h = ego.heading
-    T = np.array([ [math.cos(h), math.sin(h), -p[0]], [-math.sin(h), math.cos(h), -p[1]], [0, 0, 1]])
+    T = np.array([ [math.cos(h), math.sin(h), -p[0]],
+                 [-math.sin(h), math.cos(h), -p[1]], [0, 0, 1]])
     p1 = np.dot(T, p)'''
     h = ego.heading
-    #return p1[:2]
-    x1 = (position[0]-ego.position[0])*math.cos(h) + (position[1]-ego.position[1])*math.sin(h)
-    y1 = (position[1]-ego.position[1])*math.cos(h) + (position[0]-ego.position[0])*math.sin(h)
+    # return p1[:2]
+    x1 = (position[0]-ego.position[0])*math.cos(h) + \
+        (position[1]-ego.position[1])*math.sin(h)
+    y1 = (position[1]-ego.position[1])*math.cos(h) + \
+        (position[0]-ego.position[0])*math.sin(h)
     return np.array([x1, y1])
-
 
 
 def trajectoryplanner(projections=None, env=None):
@@ -340,26 +346,26 @@ def trajectoryplanner(projections=None, env=None):
     # way points
     if projections is None:
         return
-    
-    wx = []
-    wy = []
-    wv = []
+
+    ego = env.vehicle
+    wx = [ego.position[0]]
+    wy = [ego.position[1]]
+    wv = [ego.velocity]
     for projection in projections:
-        position = projection.position #transform(projection.position, env.vehicle)
+        # transform(projection.position, env.vehicle)
+        position = projection.position
         wx.append(position[0])
         wy.append(position[1])
         wv.append(projection.velocity)
 
-    ego = env.vehicle
-
     if len(wx) <= 1:
         return
-    
+
     obs = []
     if env is not None:
         for v in list(set(env.road.vehicles)-set(env.road.virtual_vehicles)):
             if v is not env.vehicle:
-                position =  v.position #transform(v.position, env.vehicle)
+                position = v.position  # transform(v.position, env.vehicle)
                 obs.append(list(position))
 
     ob = np.array(obs)
@@ -374,37 +380,35 @@ def trajectoryplanner(projections=None, env=None):
 
     area = 20.0  # animation area length [m]
 
-    for _ in range(SIM_LOOP):
-        path = frenet_optimal_planning(csp, s0, c_speed, c_d, c_d_d, c_d_dd, ob)
-        
-        if path is None:
-            continue
+    path = frenet_optimal_planning(csp, s0, c_speed, c_d, c_d_d, c_d_dd, ob)
 
-        s0 = path.s[1]
-        c_d = path.d[1]
-        c_d_d = path.d_d[1]
-        c_d_dd = path.d_dd[1]
-        c_speed = path.s_d[1]
+    if path is None:
+        return None
 
+    s0 = path.s[1]
+    c_d = path.d[1]
+    c_d_d = path.d_d[1]
+    c_d_dd = path.d_dd[1]
+    c_speed = path.s_d[1]
 
-        if show_animation:  # pragma: no cover
-            plt.cla()
-            plt.plot(tx, ty)
-            if list(ob[0]):
-                plt.plot(ob[:, 0], ob[:, 1], "xk")
-            plt.plot(path.x[1:], path.y[1:], "-or")
-            if path.x[1:]:
-                plt.plot(path.x[1], path.y[1], "vc")
-            plt.xlim(-env.PARKING_LOT_WIDTH/2, env.PARKING_LOT_WIDTH/2)
-            plt.ylim(-env.PARKING_LOT_LENGTH/2, env.PARKING_LOT_LENGTH/2)            
-            plt.title("v[m/s]:" + str(c_speed)[0:4])
-            plt.grid(True)
-            plt.pause(0.001)
+    if show_animation:  # pragma: no cover
+        plt.clf()
+        plt.plot(wx, wy, "g")
+        plt.plot(tx, ty)
+        if list(ob[0]):
+            plt.plot(ob[:, 0], ob[:, 1], "xk")
+        plt.plot(path.x[1:], path.y[1:], "-or")
+        if path.x[1:]:
+            plt.plot(path.x[1], path.y[1], "vc")
+        plt.xlim(-env.PARKING_LOT_WIDTH/2, env.PARKING_LOT_WIDTH/2)
+        plt.ylim(-env.PARKING_LOT_LENGTH/2, env.PARKING_LOT_LENGTH/2)
+        plt.title("v[m/s]:" + str(c_speed)[0:4])
+        plt.grid(True)
+        plt.pause(0.001)
 
     if path is not None:
         print("path length ", len(path.x))
     return path
-
 
 
 if __name__ == '__main__':
