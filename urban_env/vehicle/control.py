@@ -251,24 +251,6 @@ class ControlledVehicle(Vehicle):
         #    return
         return super(ControlledVehicle, self).check_collision(other, SCALE)
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q=None, pred_horizon=-1, **kwargs):
-        """
-            Predict the future trajectory of the vehicle given a sequence of actions.
-
-        :param actions: a sequence of future actions.
-        :param action_duration: the duration of each action.
-        :param trajectory_timestep: the duration between each save of the vehicle state.
-        :param dt: the timestep of the simulation
-        :return: the sequence of future states
-        """
-        return super(ControlledVehicle, self)._(
-                                                actions=actions,
-                                                action_duration=action_duration,
-                                                trajectory_timestep=trajectory_timestep,
-                                                dt=dt,
-                                                pred_horizon=pred_horizon,
-                                                out_q=out_q
-                                                )
 
     def Id(self):
         return super(ControlledVehicle, self).Id()
@@ -367,40 +349,7 @@ class MDPVehicle(ControlledVehicle):
         """
         return self.speed_to_index(self.velocity)
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q=None, pred_horizon=-1, **kwargs):
-        """
-            Predict the future trajectory of the vehicle given a sequence of actions.
 
-        :param actions: a sequence of future actions.
-        :param action_duration: the duration of each action.
-        :param trajectory_timestep: the duration between each save of the vehicle state.
-        :param dt: the timestep of the simulation
-        :return: the sequence of future states
-        """
-        states = []
-        v = copy.deepcopy(self)
-        v.set_as_projection_only()
-        #v.virtual = True
-        t = 0
-        action = actions[0]
-        for _ in actions:
-            # v.act(action)  # High-level decision
-            for _ in range(int(action_duration / dt)):
-                t += 1
-                v.act(action)  # High and Low-level control action
-                v.step(dt)
-                if (t % int(trajectory_timestep / dt)) == 0:
-                    states.append(copy.deepcopy(v))
-
-                if pred_horizon > 0 and t > pred_horizon//dt:
-                    break
-            else:
-                continue
-            break
-        del(v)
-        if out_q is not None:
-            out_q.append(copy.deepcopy(states))
-        return states
 
     def Id(self):
         return super(MDPVehicle, self).Id()
@@ -470,7 +419,6 @@ class IDMDPVehicle(MDPVehicle):
             super(IDMDPVehicle, self).act(self.discrete_action)
         self.sim_steps += 1
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q, pred_horizon=-1, **kwargs):
-        return None
+
 
 

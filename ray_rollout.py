@@ -204,8 +204,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
 def predict_one_step_of_rollout(env, agent, obs, action, reward, policy_id, no_render=True):
     predict_env = copy.deepcopy(env)
     for v in predict_env.road.vehicles:
-        v.projection = []
-        v.is_projection = True
+        v.intent_pred = True
     predict_env.intent_pred = True
     predict_env.DEFAULT_CONFIG["_predict_only"] = True
     pred_steps = 0

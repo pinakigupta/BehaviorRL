@@ -78,7 +78,7 @@ class Vehicle(Loggable):
                  is_ego_vehicle=False,
                  hidden=None,
                  simagent=None,
-                 projection=[],
+                 intent_pred=False,
                  config=DEFAULT_CONFIG,
                  **kwargs
                  ):
@@ -111,7 +111,8 @@ class Vehicle(Loggable):
         self.control_action = None
         self.hidden = hidden
         self.LGAgent = simagent
-        self.projection = projection
+        self.projection = []
+        self.intent_pred = intent_pred
         self.steps = 0
 
     
@@ -513,58 +514,16 @@ class Vehicle(Loggable):
     def Id(self):
         return str(id(self))[-3:]
 
-    def set_as_projection_only(self):
-        self.is_projection = True
     
     def intent_prediction(self):
-        if self.is_projection:
+        if self.intent_pred:
             dprojection_step = self.config["SIMULATION_FREQUENCY"]//self.config["TRAJECTORY_FREQUENCY"]
             if (self.steps % dprojection_step)==0:
-                self.projection.append(copy.deepcopy(self))
+                projection = copy.deepcopy(self)
+                projection.is_projection = True
+                self.projection.append(projection)
 
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q=None, pred_horizon=-1, **kwargs):
-        """
-            Predict the future trajectory of the vehicle given a sequence of actions.
-
-        :param actions: a sequence of future actions.
-        :param action_duration: the duration of each action.
-        :param trajectory_timestep: the duration between each save of the vehicle state.
-        :param dt: the timestep of the simulation
-        :return: the sequence of future states
-        """
-        return self.projection
-        states = []
-        v = copy.deepcopy(self)
-        v.set_as_projection_only()
-        #v.virtual = True
-        t = 0
-        for action in actions:  # only used to iterate (MDP # of actions)
-            # v.act(action)  # High-level decision
-            acceleration = action[0].item() * v.config['max_acceleration']
-            steering = action[1].item() * v.config['max_steer_angle']
-            control_action = (
-                                        {
-                                            "acceleration": acceleration,
-                                            "steering": steering                                                    
-                                        }
-                             )            
-            for _ in range(int(action_duration / dt)):
-                t += 1
-                v.act(control_action)  # Low-level control action
-                v.step(dt)
-                if (t % int(trajectory_timestep / dt)) == 0:
-                    states.append(copy.deepcopy(v))
-
-                if pred_horizon > 0 and t > pred_horizon//dt:
-                    break
-            else:
-                continue
-            break
-        del(v)
-        if out_q is not None:
-            out_q.append(states)
-        return states
 
     def __deepcopy__(self, memo=None):
         """
@@ -608,8 +567,7 @@ class Obstacle(Vehicle):
     def Id(self):
         return super(Obstacle, self).Id()
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q=None, pred_horizon=-1, **kwargs):
-        pass
+
 
     def step(self, dt):
         if self.LGAgent is not None:
@@ -620,9 +578,7 @@ class Obstacle(Vehicle):
         
         
     def intent_prediction(self):
-        if self.is_projection:
-            if not self.projection:
-                self.projection.append(copy.deepcopy(self))
+        pass
     
     def act(self, action=None, **kwargs):
         pass
@@ -649,8 +605,7 @@ class Pedestrian(Vehicle):
     def Id(self):
         return super(Pedestrian, self).Id()
 
-    def predict_trajectory(self, actions, action_duration, trajectory_timestep, dt, out_q=None, pred_horizon=-1, **kwargs):
-        return None
+
 
     def check_collision(self, other, SCALE = 1.0):
         if other.is_ego():
