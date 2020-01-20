@@ -22,8 +22,8 @@ SIM_LOOP = 1
 
 # Parameter
 MAX_SPEED = 50.0 / 3.6  # maximum speed [m/s]
-MAX_ACCEL = 2.0  # maximum acceleration [m/ss]
-MAX_CURVATURE = 1.0  # maximum curvature [1/m]
+MAX_ACCEL = 20.0  # maximum acceleration [m/ss]
+MAX_CURVATURE = 10.0  # maximum curvature [1/m]
 MAX_ROAD_WIDTH = 7.0  # maximum road width [m]
 D_ROAD_W = 1.0  # road width sampling length [m]
 DT = 0.2  # time tick [s]
@@ -365,8 +365,9 @@ def trajectoryplanner(projections=None, env=None):
     if env is not None:
         for v in list(set(env.road.vehicles)-set(env.road.virtual_vehicles)):
             if v is not env.vehicle:
-                position = v.position  # transform(v.position, env.vehicle)
-                obs.append(list(position))
+                if v.config["COLLISIONS_ENABLED"]:
+                    position = v.position  # transform(v.position, env.vehicle)
+                    obs.append(list(position))
 
     ob = np.array(obs)
     tx, ty, tyaw, tc, csp = generate_target_course(wx, wy)
