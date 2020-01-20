@@ -133,6 +133,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
                                 )
             #current_wall_time = print_execution_time(current_wall_time, "After calculating action ")
             next_obs, reward, done, _ = env.step(action)
+            env._update_reference()
             prev_step_time = time.time()
             if multiagent:
                 for agent_id, r in reward.items():
@@ -145,7 +146,6 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
 
             #current_wall_time = print_execution_time(current_wall_time, "Before intent pred ")
             if intent_predict:
-
                 projections = predict_one_step_of_rollout(
                                                             env,
                                                             agent,
@@ -158,24 +158,29 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
                 env.vehicle.projection = projections
                 # env.intent_pred = True
                 no_render = False
-                #current_wall_time = print_execution_time(current_wall_time, "After intent pred ")    
+                current_wall_time = print_execution_time(current_wall_time, "After intent pred ")    
                 trajectory = trajectoryplanner(projections, env)
-                del(env.reference_vehicle.projection[:])
+                current_wall_time = print_execution_time(current_wall_time, "After trajectory planning ") 
+                if env.reference_vehicle.projection:
+                    del(env.reference_vehicle.projection[:]) 
 
             if trajectory is not None:
+
                 trajectory_projections = []
                 for i in range(len(trajectory.x)):
-                    v = Vehicle(road=env.road,
+                    v = Vehicle(
+                                road=env.road,
                                 position=[trajectory.x[i], trajectory.y[i]],
                                 heading=trajectory.yaw[i],
                                 is_projection=True,
                                 color=BLUE
                                )
                     v.config["COLLISIONS_ENABLED"] = False            
-                    trajectory_projections.append(copy.deepcopy(v))
-                env.reference_vehicle.projection = trajectory_projections
+                    #trajectory_projections.append(copy.deepcopy(v))
+                    env.reference_vehicle.projection.append(copy.deepcopy(v))
+                current_wall_time = print_execution_time(current_wall_time, "After trajectory projection ")
                     
-                print("ego_reference ", env.reference_vehicle, " # of trajectory_projections ", len(trajectory_projections))
+                #print("ego_reference ", env.reference_vehicle, " # of trajectory_projections ", len(trajectory_projections))
 
             if multiagent:
                 done = done["__all__"]

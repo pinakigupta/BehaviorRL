@@ -418,6 +418,8 @@ class AbstractEnv(gym.Env):
         for k, v in self.__dict__.items():
             if k not in ['viewer', 'automatic_rendering_callback']:
                 setattr(result, k, copy.deepcopy(v, memo))
+            elif isinstance(v, list):
+                setattr(result, k, [])
             else:
                 setattr(result, k, None)
         return result

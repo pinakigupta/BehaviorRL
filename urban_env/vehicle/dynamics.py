@@ -105,6 +105,7 @@ class Vehicle(Loggable):
         self.hidden = False
         self.LGAgent = None
         self.projection = []
+        self.projection_length = None
         self.steps = 0
 
     
@@ -171,7 +172,9 @@ class Vehicle(Loggable):
         return v
 
     @classmethod
-    def create_from(cls, vehicle):
+    def create_from(cls,
+                    vehicle
+                   ):
         """
             Create a new vehicle from an existing one.
             Only the vehicle dynamics are copied, other properties are default.
@@ -182,6 +185,24 @@ class Vehicle(Loggable):
         v = cls(vehicle.road, vehicle.position,
                 vehicle.heading, vehicle.velocity)
         return v
+
+
+    @staticmethod
+    def update_from_v2v(from_vehicle,
+                        to_vehicle,
+                       ):
+        """
+            Create a new vehicle from an existing one.
+            Only the vehicle dynamics are copied, other properties are default.
+
+        :param vehicle: a vehicle
+        :return: a new vehicle at the same dynamical state
+        """
+        #to_vehicle.road = from_vehicle.road
+        to_vehicle.position = copy.deepcopy(from_vehicle.position)
+        to_vehicle.heading = from_vehicle.heading
+        to_vehicle.velocity = from_vehicle.velocity
+
 
     def act(self, action=None, **kwargs):
         """
@@ -549,8 +570,10 @@ class Vehicle(Loggable):
         if memo is not None:
             memo[id(self)] = result
         for k, v in self.__dict__.items():
-            if k not in ['LGAgent']:
+            if k not in ['LGAgent', 'projection']:
                 setattr(result, k, copy.deepcopy(v, memo))
+            elif isinstance(v, list):
+                setattr(result, k, [])
             else:
                 setattr(result, k, None)
         return result

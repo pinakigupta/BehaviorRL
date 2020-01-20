@@ -196,7 +196,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
         #obs = self._observation()
         obs, reward, done, info = super(ParkingEnv_2outs, self).step(self.vehicle.control_action)
-        self._update_reference()
+        
 
         #terminal = self._is_terminal()
         #self.print_obs_space(ref_vehicle=self.vehicle, obs_type="observation")
@@ -510,7 +510,7 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
 
     def _spawn_reference(self):
         self.reference_vehicle = copy.deepcopy(self.vehicle)
-        self.reference_vehicle.projection.clear()
+        #self.reference_vehicle.projection.clear()
         self.reference_vehicle.is_ego_vehicle = False
         self.reference_vehicle.color = BLUE
         self.reference_vehicle.hidden = True
@@ -519,9 +519,10 @@ class ParkingEnv_2outs(AbstractEnv, GoalEnv):
             
 
     def _update_reference(self):
-        self.reference_vehicle.position = self.vehicle.position
-        self.reference_vehicle.heading = self.vehicle.heading
-        self.reference_vehicle.velocity = self.vehicle.velocity
+        Vehicle.update_from_v2v(
+                                from_vehicle=self.vehicle,
+                                to_vehicle=self.reference_vehicle
+                                )
 
     def _populate_parking(self):
         """
