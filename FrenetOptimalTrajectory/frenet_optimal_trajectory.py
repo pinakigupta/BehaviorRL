@@ -41,7 +41,7 @@ KD = 1.0
 KLAT = 1.0
 KLON = 1.0
 
-show_animation = False
+show_animation = True
 
 
 class quintic_polynomial:
@@ -362,6 +362,7 @@ def trajectoryplanner(projections=None, env=None):
         return
 
     obs = []
+    goals = []
     if env is not None:
         for v in list(set(env.road.vehicles)-set(env.road.virtual_vehicles)):
             if v is not env.vehicle:
@@ -369,7 +370,13 @@ def trajectoryplanner(projections=None, env=None):
                     position = v.position  # transform(v.position, env.vehicle)
                     obs.append(list(position))
 
+        for v in env.road.goals:
+            position = v.position  # transform(v.position, env.vehicle)
+            goals.append(list(position))                    
+
     ob = np.array(obs)
+    goal = np.array(goals)
+
     tx, ty, tyaw, tc, csp = generate_target_course(wx, wy)
 
     # initial state
@@ -396,8 +403,12 @@ def trajectoryplanner(projections=None, env=None):
         plt.clf()
         plt.plot(wx, wy, "g")
         plt.plot(tx, ty)
-        if list(ob[0]):
-            plt.plot(ob[:, 0], ob[:, 1], "xk")
+        if len(ob) > 0:
+            if list(ob[0]):
+                plt.plot(ob[:, 0], ob[:, 1], "xk")
+        if len(goal) > 0:
+            if list(goal[0]):
+                plt.plot(goal[:, 0], goal[:, 1], "+g")                
         plt.plot(path.x[1:], path.y[1:], "-or")
         if path.x[1:]:
             plt.plot(path.x[1], path.y[1], "vc")
