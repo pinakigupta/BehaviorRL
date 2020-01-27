@@ -16,6 +16,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 import math
+from scipy.interpolate import interp1d
+
+
 from FrenetOptimalTrajectory import cubic_spline_planner
 
 SIM_LOOP = 1
@@ -166,7 +169,7 @@ class Frenet_path:
         self.c = []
 
 
-def calc_frenet_paths(c_speed, c_d, c_d_d, c_d_dd, s0):
+def calc_frenet_paths(c_speed, c_d, c_d_d, c_d_dd, s0, t2v):
 
     frenet_paths = []
 
@@ -185,6 +188,7 @@ def calc_frenet_paths(c_speed, c_d, c_d_d, c_d_dd, s0):
             fp.d_dd = [lat_qp.calc_second_derivative(t) for t in fp.t]
             fp.d_ddd = [lat_qp.calc_third_derivative(t) for t in fp.t]
 
+
             # Loongitudinal motion planning (Velocity keeping)
             for tv in np.arange(TARGET_SPEED - D_T_S * N_S_SAMPLE, TARGET_SPEED + D_T_S * N_S_SAMPLE, D_T_S):
                 tfp = copy.deepcopy(fp)
@@ -194,12 +198,13 @@ def calc_frenet_paths(c_speed, c_d, c_d_d, c_d_dd, s0):
                 tfp.s_d = [lon_qp.calc_first_derivative(t) for t in fp.t]
                 tfp.s_dd = [lon_qp.calc_second_derivative(t) for t in fp.t]
                 tfp.s_ddd = [lon_qp.calc_third_derivative(t) for t in fp.t]
+                target_s_d = [t2v(t) for t in fp.t]
 
                 Jp = sum(np.power(tfp.d_ddd, 2))  # square of jerk
                 Js = sum(np.power(tfp.s_ddd, 2))  # square of jerk
 
                 # square of diff from target speed
-                ds = (TARGET_SPEED - tfp.s_d[-1])**2
+                ds = sum(np.power(np.array(target_s_d) - np.array(tfp.s_d), 2))
 
                 tfp.cd = KJ * Jp + KT * Ti + KD * tfp.d[-1]**2
                 tfp.cv = KJ * Js + KT * Ti + KD * ds
@@ -218,6 +223,7 @@ def calc_global_paths(fplist, csp):
         for i in range(len(fp.s)):
             ix, iy = csp.calc_position(fp.s[i])
             if ix is None:
+                csp.calc_position(fp.s[i])
                 break
             iyaw = csp.calc_yaw(fp.s[i])
             di = fp.d[i]
@@ -287,9 +293,9 @@ def check_paths(fplist, ob):
     return [fplist[i] for i in okind]
 
 
-def frenet_optimal_planning(csp, s0, c_speed, c_d, c_d_d, c_d_dd, ob):
+def frenet_optimal_planning(csp, s0, c_speed, c_d, c_d_d, c_d_dd, ob, t2v):
 
-    fplist = calc_frenet_paths(c_speed, c_d, c_d_d, c_d_dd, s0)
+    fplist = calc_frenet_paths(c_speed, c_d, c_d_d, c_d_dd, s0, t2v)
     fplist = calc_global_paths(fplist, csp)
     fplist = check_paths(fplist, ob)
     print("# of fps ", len(fplist))
@@ -338,11 +344,13 @@ def transform(position, ego):
 def trajectoryplanner(projections=None, env=None):
 
     # Parameter
-    global MAX_SPEED, MAX_ROAD_WIDTH, DT, MAXT, TARGET_SPEED
+    global MAX_SPEED, MAX_ROAD_WIDTH, DT, MINT, MAXT, TARGET_SPEED
     MAX_SPEED = env.config["MAX_VELOCITY"]
     MAX_ROAD_WIDTH = 10.0
     DT = 1/env.config["TRAJECTORY_FREQUENCY"]
-    MAXT = env.config["TRAJECTORY_HORIZON"]
+    THORIZON = env.config["TRAJECTORY_HORIZON"]
+    MAXT = min(THORIZON, DT*len(projections))+DT
+    MINT = max(THORIZON-DT, 0)
     TARGET_SPEED = min(TARGET_SPEED, MAX_SPEED)
 
     # way points
@@ -353,15 +361,24 @@ def trajectoryplanner(projections=None, env=None):
     wx = [ego.position[0]]
     wy = [ego.position[1]]
     wv = [ego.velocity]
+    wt = [0.0]
     for projection in projections:
         # transform(projection.position, env.vehicle)
         position = projection.position
         wx.append(position[0])
         wy.append(position[1])
         wv.append(projection.velocity)
+        wt.append(wt[-1]+DT)
+
+    print("length of projections ", len(projections))
 
     if len(wx) <= 1:
         return
+    
+
+    t2v = interp1d(x=wt,
+                   y=wv,
+                   bounds_error=False)
 
     obs = []
     goals = []
@@ -381,6 +398,8 @@ def trajectoryplanner(projections=None, env=None):
 
     tx, ty, tyaw, tc, csp = generate_target_course(wx, wy)
 
+    print("MAXT ", MAXT, "MINT ", MINT, " tx ", len(tx), " ty ", len(ty))
+
     # initial state
     c_speed = ego.velocity   # current speed [m/s]
     c_d = 0.0  # current lateral position [m]
@@ -390,7 +409,7 @@ def trajectoryplanner(projections=None, env=None):
 
     area = 20.0  # animation area length [m]
 
-    path = frenet_optimal_planning(csp, s0, c_speed, c_d, c_d_d, c_d_dd, ob)
+    path = frenet_optimal_planning(csp, s0, c_speed, c_d, c_d_d, c_d_dd, ob, t2v)
 
     if path is None:
         return None
