@@ -154,6 +154,7 @@ class Frenet_path:
         self.s_d = []
         self.s_dd = []
         self.s_ddd = []
+        
         self.cd = 0.0
         self.cv = 0.0
         self.cf = 0.0
@@ -272,10 +273,10 @@ def check_paths(fplist, ob):
     for i, _ in enumerate(fplist):
         if any([v > MAX_SPEED for v in fplist[i].s_d]):  # Max speed check
             continue
-        if any([abs(a) > MAX_ACCEL for a in fplist[i].s_dd]):  # Max accel check
+        '''if any([abs(a) > MAX_ACCEL for a in fplist[i].s_dd]):  # Max accel check
             continue
         if any([abs(c) > MAX_CURVATURE for c in fplist[i].c]):  # Max curvature check
-            continue
+            continue'''
         if not check_collision(fplist[i], ob):
             continue
         if len(fplist[i].x) <= 1 or len(fplist[i].y) <= 1:
@@ -291,6 +292,7 @@ def frenet_optimal_planning(csp, s0, c_speed, c_d, c_d_d, c_d_dd, ob):
     fplist = calc_frenet_paths(c_speed, c_d, c_d_d, c_d_dd, s0)
     fplist = calc_global_paths(fplist, csp)
     fplist = check_paths(fplist, ob)
+    print("# of fps ", len(fplist))
 
     # find minimum cost path
     mincost = float("inf")
@@ -418,8 +420,7 @@ def trajectoryplanner(projections=None, env=None):
         plt.grid(True)
         plt.pause(0.001)
 
-    if path is not None:
-        print("path length ", len(path.x))
+
     return path
 
 

@@ -32,6 +32,23 @@ def filetonum(filename):
         return -1
 
 
+def trajectoryprojections(trajectory, env):
+    trajectory_projections = []
+    for i in range(len(trajectory.x)):
+        v = Vehicle(
+            road=env.road,
+            position=[trajectory.x[i], trajectory.y[i]],
+            heading=trajectory.yaw[i],
+            is_projection=True,
+            color=BLUE,
+            length=1.0,
+            width=1.0,
+        )
+        v.config["COLLISIONS_ENABLED"] = False
+        # trajectory_projections.append(copy.deepcopy(v))
+        env.reference_vehicle.projection.append(copy.deepcopy(v))
+
+
 def dirsearch(resultstr):
     for dirname, dirnames, filenames in os.walk("/"):
         if '.git' in dirnames:
@@ -112,8 +129,8 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
 
             current_wall_time = time.time()
             sim_loop_time = current_wall_time-prev_step_time
-            action_loop_time =  current_wall_time-prev_action_time
-            
+            action_loop_time = current_wall_time-prev_action_time
+
             if sim_loop_time < 1/env.config["SIMULATION_FREQUENCY"]:
                 #print("loop time (in ms) ", round(1e3*sim_loop_time, 2))
                 continue
@@ -121,16 +138,16 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
             multi_obs = obs if multiagent else {_DUMMY_AGENT_ID: obs}
 
             if action_loop_time > 1/env.config["POLICY_FREQUENCY"]:
-                action = act(   
-                                multi_obs,
-                                agent,
-                                multiagent,
-                                prev_actions,
-                                prev_rewards,
-                                policy_agent_mapping,
-                                mapping_cache,
-                                use_lstm
-                                )
+                action = act(
+                    multi_obs,
+                    agent,
+                    multiagent,
+                    prev_actions,
+                    prev_rewards,
+                    policy_agent_mapping,
+                    mapping_cache,
+                    use_lstm
+                )
             #current_wall_time = print_execution_time(current_wall_time, "After calculating action ")
             next_obs, reward, done, _ = env.step(action)
             env._update_reference()
@@ -147,40 +164,35 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
             #current_wall_time = print_execution_time(current_wall_time, "Before intent pred ")
             if intent_predict:
                 projections = predict_one_step_of_rollout(
-                                                            env,
-                                                            agent,
-                                                            multi_obs,
-                                                            action,
-                                                            reward,
-                                                            policy_id,
-                                                            False
-                                                         )
+                    env,
+                    agent,
+                    multi_obs,
+                    action,
+                    reward,
+                    policy_id,
+                    False
+                )
                 env.vehicle.projection = projections
                 # env.intent_pred = True
                 no_render = False
-                current_wall_time = print_execution_time(current_wall_time, "After intent pred ")    
+                #current_wall_time = print_execution_time(current_wall_time, "After intent pred ")
                 trajectory = trajectoryplanner(projections, env)
-                current_wall_time = print_execution_time(current_wall_time, "After trajectory planning ") 
+                if trajectory is not None:
+                    print("path length ", len(trajectory.x),
+                          "projections length ", len(projections))
+                else:
+                    print("path length ", 0,
+                          "projections length ", len(projections))
+
+                #current_wall_time = print_execution_time(current_wall_time, "After trajectory planning ")
                 if env.reference_vehicle.projection:
-                    del(env.reference_vehicle.projection[:]) 
+                    del(env.reference_vehicle.projection[:])
 
             if trajectory is not None:
+                trajectoryprojections(trajectory, env)
+                #current_wall_time = print_execution_time(current_wall_time, "After trajectory projection ")
 
-                trajectory_projections = []
-                for i in range(len(trajectory.x)):
-                    v = Vehicle(
-                                road=env.road,
-                                position=[trajectory.x[i], trajectory.y[i]],
-                                heading=trajectory.yaw[i],
-                                is_projection=True,
-                                color=BLUE
-                               )
-                    v.config["COLLISIONS_ENABLED"] = False            
-                    #trajectory_projections.append(copy.deepcopy(v))
-                    env.reference_vehicle.projection.append(copy.deepcopy(v))
-                current_wall_time = print_execution_time(current_wall_time, "After trajectory projection ")
-                    
-                #print("ego_reference ", env.reference_vehicle, " # of trajectory_projections ", len(trajectory_projections))
+                # print("ego_reference ", env.reference_vehicle, " # of trajectory_projections ", len(trajectory_projections))
 
             if multiagent:
                 done = done["__all__"]
@@ -231,7 +243,7 @@ def act(multi_obs, agent, multiagent, prev_actions, prev_rewards, policy_agent_m
     for agent_id, a_obs in multi_obs.items():
         if a_obs is not None:
             policy_id = mapping_cache.setdefault(
-                        agent_id, policy_agent_mapping(agent_id))
+                agent_id, policy_agent_mapping(agent_id))
             p_use_lstm = use_lstm[policy_id]
             if p_use_lstm:
                 a_action, p_state, _ = agent.compute_action(
