@@ -1,5 +1,5 @@
 opencv-python==4.0.0.21
-websockets==7.0
+websockets==9.1
 Keras-Applications==1.0.7
 Keras-Preprocessing==1.0.9
 matplotlib==3.0.3
