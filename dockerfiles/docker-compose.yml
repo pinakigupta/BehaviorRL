@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: dockerfiles/Dockerfile
     volumes: 
-      - ../../rl_baselines_ad:/rl_baselines_ad
+      - ../:/rl_baselines_ad
       - ~/.aws:/tmp/.aws 
       - ~/.ssh:/tmp/.ssh
       -  /tmp/.X11-unix:/tmp/.X11-unix
@@ -25,7 +25,7 @@ services:
     image: lgsvlsimulator
     build: 
       context: .
-      dockerfile: dockerfiles/lg-docker/Dockerfile
+      dockerfile: lg-docker/Dockerfile
     volumes: 
       - ../lg-sim:/lg-sim
       -  /var/lib/docker/volumes/lgsvlsimulator:/root/.config/unity3d 

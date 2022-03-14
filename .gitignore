@@ -23,6 +23,7 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+run/models/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -56,5 +57,5 @@ docs/_build/
 
 # PyBuilder
 target/
-run/models/
+
 

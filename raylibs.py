@@ -276,7 +276,8 @@ def ray_train(save_in_sub_folder=None,
                           # RESTORE_AND_RESUME: Use a previous model to finish previous unfinished training 
                           # NONE: Start fresh
                           
-    RESTORE_COND = config["RESTORE_COND"]
+    # RESTORE_COND = config["RESTORE_COND"]
+    RESTORE_COND = "NONE"
     if RESTORE_COND == "RESTORE_AND_RESUME":
         restore_folder, local_restore_path, _ = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
         local_dir=local_restore_path
