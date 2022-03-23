@@ -90,6 +90,7 @@ class IDMVehicle(ControlledVehicle):
         action = {}
         
         self.front_vehicle, self.rear_vehicle = self.road.neighbour_vehicles(self)
+        # print("self.front_vehicle", self.front_vehicle, "  self.rear_vehicle ", self.rear_vehicle)
 
         if self.front_vehicle is not None:
             if self.front_vehicle.is_ego() and (not is_predict_only()):
@@ -103,7 +104,7 @@ class IDMVehicle(ControlledVehicle):
         action['steering'] = self.steering_control(self.target_lane_index)
 
         # Longitudinal: IDM
-        action['acceleration'] = self.acceleration(control_vehicle=self,
+        action['acceleration'] = self.calc_acceleration(control_vehicle=self,
                                                    front_vehicle=self.front_vehicle,
                                                    rear_vehicle=self.rear_vehicle)
         # action['acceleration'] = self.recover_from_stop(action['acceleration'])
@@ -121,7 +122,7 @@ class IDMVehicle(ControlledVehicle):
         self.timer += dt
         super(IDMVehicle, self).step(dt)
 
-    def acceleration(self, control_vehicle, front_vehicle=None, rear_vehicle=None):
+    def calc_acceleration(self, control_vehicle, front_vehicle=None, rear_vehicle=None):
         """
             Compute an acceleration command with the Intelligent Driver Model.
 
@@ -255,14 +256,14 @@ class IDMVehicle(ControlledVehicle):
         """
         # Is the maneuver unsafe for the new following vehicle?
         new_preceding, new_following = self.road.neighbour_vehicles(self, lane_index)
-        new_following_a = self.acceleration(control_vehicle=new_following, front_vehicle=new_preceding)
-        new_following_pred_a = self.acceleration(control_vehicle=new_following, front_vehicle=self)
+        new_following_a = self.calc_acceleration(control_vehicle=new_following, front_vehicle=new_preceding)
+        new_following_pred_a = self.calc_acceleration(control_vehicle=new_following, front_vehicle=self)
         if new_following_pred_a < -self.LANE_CHANGE_MAX_BRAKING_IMPOSED:
             return False
 
         # Do I have a planned route for a specific lane which is safe for me to access?
         old_preceding, old_following = self.road.neighbour_vehicles(self)
-        self_pred_a = self.acceleration(control_vehicle=self, front_vehicle=new_preceding)
+        self_pred_a = self.calc_acceleration(control_vehicle=self, front_vehicle=new_preceding)
         if self.route and self.route[0][2]:
             # Wrong direction
             if np.sign(lane_index[2] - self.target_lane_index[2]) != np.sign(self.route[0][2] - self.target_lane_index[2]):
@@ -273,9 +274,9 @@ class IDMVehicle(ControlledVehicle):
 
         # Is there an acceleration advantage for me and/or my followers to change lane?
         else:
-            self_a = self.acceleration(control_vehicle=self, front_vehicle=old_preceding)
-            old_following_a = self.acceleration(control_vehicle=old_following, front_vehicle=self)
-            old_following_pred_a = self.acceleration(control_vehicle=old_following, front_vehicle=old_preceding)
+            self_a = self.calc_acceleration(control_vehicle=self, front_vehicle=old_preceding)
+            old_following_a = self.calc_acceleration(control_vehicle=old_following, front_vehicle=self)
+            old_following_pred_a = self.calc_acceleration(control_vehicle=old_following, front_vehicle=old_preceding)
             jerk = self_pred_a - self_a + self.POLITENESS * (new_following_pred_a - new_following_a
                                                              + old_following_pred_a - old_following_a)
             if jerk < self.LANE_CHANGE_MIN_ACC_GAIN:
@@ -352,7 +353,7 @@ class LinearVehicle(IDMVehicle):
         ub = self.road.np_random.uniform(size=np.shape(self.STEERING_PARAMETERS))
         self.STEERING_PARAMETERS = self.STEERING_RANGE[0] + ub*(self.STEERING_RANGE[1] - self.STEERING_RANGE[0])
 
-    def acceleration(self, control_vehicle, front_vehicle=None, rear_vehicle=None):
+    def calc_acceleration(self, control_vehicle, front_vehicle=None, rear_vehicle=None):
         """
             Compute an acceleration command with a Linear Model.
 

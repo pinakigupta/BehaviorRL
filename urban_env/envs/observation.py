@@ -103,7 +103,7 @@ class KinematicObservation(ObservationType):
 
 
     def space(self):
-        one_obs_space = spaces.Box(shape=(len(self.features) * (self.obs_size + self.obs_size),), low=-1, high=1, dtype=np.float32)
+        one_obs_space = spaces.Box(shape=(len(self.features) * (self.obs_size ),), low=-1, high=1, dtype=np.float32)
         if(self.env.config["OBS_STACK_SIZE"] == 1):
             return one_obs_space
         return spaces.Tuple(tuple([one_obs_space]*self.env.config["OBS_STACK_SIZE"]))
@@ -178,8 +178,8 @@ class KinematicObservation(ObservationType):
 
         num_obs = obs.shape[0]
         # Fill missing rows
-        if num_obs < self.obs_size+1:
-            rows = -np.ones((self.obs_size+1 - num_obs, len(self.features)))
+        if num_obs < self.obs_size:
+            rows = -np.zeros((self.obs_size - num_obs, len(self.features)))
             obs = np.vstack((obs, rows))
 
         if self.vehicle.is_ego():
@@ -209,7 +209,7 @@ class KinematicObservation(ObservationType):
             return tuple(self.observations)
         return None
 
-
+'''
 class KinematicsGoalObservation(KinematicObservation):
     def __init__(self,
                  env,
@@ -277,12 +277,7 @@ class KinematicsGoalObservation(KinematicObservation):
         for obsname in obsnames:
             self.observation_worker(obsname, obs_dict)
             #current_wall_time = print_execution_time(current_wall_time, "After " + obsname)
-            '''p = multiprocessing.Process(target=self.observation_worker, args=(obsname, obs_dict))
-            jobs.append(p)
-            p.start()
 
-        for proc in jobs:
-            proc.join()'''
 
         self.return_dict = {}
         for key, value in obs_dict.items():
@@ -390,7 +385,7 @@ class KinematicsGoalObservation(KinematicObservation):
                                 "pedestrians": self.closest_pedestrians,          
                               }
         return close_vehicles_dict
-
+'''
 
 def observation_factory(env, ref_vehicle, config):
     if config["type"] == "TimeToCollision":

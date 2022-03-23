@@ -129,7 +129,11 @@ class AbstractEnv(gym.Env):
             raise ValueError("The observation configuration must be defined")
         self.observation = observation_factory(self, self.vehicle, self.config["observation"])
         self.observation_space = self.observation.space()
+
         self.observations = {v: observation_factory(self, v, self.config["observation"]) for v in self.road.vehicles}
+        # print("----------------------------------------------------------------------------------")
+        # print("self.observation", self.observation.space())
+        # print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
     def is_discrete_action(self):
         is_discrete = (type(self.action_space) == gym.spaces.discrete.Discrete)

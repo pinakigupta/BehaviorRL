@@ -39,11 +39,16 @@ class TwoWayEnv(AbstractEnv):
         **{
             "observation": {
                 "type": "Kinematics",
-                "features": {"vehicles": ['x', 'y', 'vx', 'vy', 'psi']},
+                # "features": {"vehicles": ['x', 'y', 'vx', 'vy', 'psi']},
+                "features":  ['x', 'y', 'vx', 'vy', 'psi'],
                 "relative_features": ['x'],
                 "obs_count": 6,
-                "obs_size": 6
+                "obs_size": 6,
+                "goals_size": None,
+                "goals_count": None              
             },
+
+            "obstacle_type": "urban_env.vehicle.dynamics.Obstacle",
             "other_vehicles_type": "urban_env.vehicle.behavior.IDMVehicle", 
             "duration": 250,
             "_predict_only": is_predict_only(),
@@ -58,8 +63,17 @@ class TwoWayEnv(AbstractEnv):
             "GOAL_LENGTH": 1000,
             "x_position_range": AbstractEnv.DEFAULT_CONFIG["PERCEPTION_DISTANCE"],
             "y_position_range": AbstractLane.DEFAULT_WIDTH * 2,
-            "velocity_range": MDPVehicle.SPEED_MAX,            
-            }
+            "velocity_range": MDPVehicle.SPEED_MAX,   
+            "MAX_VELOCITY": MDPVehicle.SPEED_MAX,  
+            "closest_lane_dist_thresh": 500,       
+            },
+        **{  # Frequency related
+            "SIMULATION_FREQUENCY": 10,  # The frequency at which the system dynamics are simulated [Hz],
+            "PREDICTION_SIMULATION_FREQUENCY": 10,  # The frequency at which the system dynamics are predicted [Hz],
+            "POLICY_FREQUENCY": 2,  # The frequency at which the agent can take actions [Hz]
+            "TRAJECTORY_FREQUENCY": 0.5, # The frequency at which the agent trajectory is generated, mainly for visualization
+            "TRAJECTORY_HORIZON": 10,
+          },
     }
 
     def __init__(self, config=DEFAULT_CONFIG):
@@ -200,7 +214,7 @@ class TwoWayEnv(AbstractEnv):
         ego_vehicle = MDPVehicle(
                                  self.road,
                                  position=ego_init_position,
-                                 velocity=np.random.randint(low=15, high=35),
+                                 velocity= np.random.randint(low=15, high=25),
                                  target_velocity=self.ROAD_SPEED,
                                  heading=ego_lane.heading_at(x0),
                                  config=self.config
