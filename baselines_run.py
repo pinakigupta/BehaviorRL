@@ -65,8 +65,8 @@ def main(mainkwargs):
     max_iteration = 1
 
     config = {
-                "LOAD_MODEL_FOLDER": "20200111-051102",
-                "RESTORE_COND": "RESTORE", 
+                # "LOAD_MODEL_FOLDER": "20200111-051102",
+                "RESTORE_COND": "NONE", 
                 "MODEL":        {
                                 #    "use_lstm": True,
                                      "fcnet_hiddens": [256, 128, 128],

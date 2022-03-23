@@ -270,19 +270,22 @@ def ray_train(save_in_sub_folder=None,
                                 
     
     restore_folder=None
-    algo = "PPO" # RL Algorithm of choice
-    LOAD_MODEL_FOLDER = config["LOAD_MODEL_FOLDER"] # Location of previous model (if needed) for training 
+    algo = "PPO" # RL Algorithm of choice]
+    if "LOAD_MODEL_FOLDER"  in config:
+        LOAD_MODEL_FOLDER = config["LOAD_MODEL_FOLDER"] # Location of previous model (if needed) for training 
+    else:
+        LOAD_MODEL_FOLDER = None
     #RESTORE_COND = "NONE" # RESTORE: Use a previous model to start new training 
                           # RESTORE_AND_RESUME: Use a previous model to finish previous unfinished training 
                           # NONE: Start fresh
                           
     # RESTORE_COND = config["RESTORE_COND"]
     RESTORE_COND = "NONE"
-    if RESTORE_COND == "RESTORE_AND_RESUME":
+    if RESTORE_COND == "RESTORE_AND_RESUME" and (LOAD_MODEL_FOLDER is not None):
         restore_folder, local_restore_path, _ = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
         local_dir=local_restore_path
         resume=True
-    elif RESTORE_COND == "RESTORE":
+    elif RESTORE_COND == "RESTORE" and (LOAD_MODEL_FOLDER is not None):
         restore_folder, local_restore_path, _ = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
         local_dir=local_dir_path
         resume=False
