@@ -120,18 +120,18 @@ class KinematicObservation(ObservationType):
         self.y_position_range = self.env.config["y_position_range"]
         self.velocity_range = self.env.config["velocity_range"]
 
-
+        eps = 0.001
         if 'x' in df:
-            df['x'] = utils.remap(df['x'], [- self.x_position_range, self.x_position_range], [-1, 1])
+            df['x'] = utils.remap(df['x'], [- self.x_position_range, self.x_position_range], [-0.999, 0.999])
         if 'y' in df:
-            df['y'] = utils.remap(df['y'], [-self.y_position_range, self.y_position_range], [-1, 1])
+            df['y'] = utils.remap(df['y'], [-self.y_position_range, self.y_position_range], [-0.999, 0.999])
         if 'vx' in df:
-            df['vx'] = utils.remap(df['vx'], [-self.velocity_range, self.velocity_range], [-1, 1])
+            df['vx'] = utils.remap(df['vx'], [-self.velocity_range, self.velocity_range], [-0.999, 0.999])
         if 'vy' in df:
-            df['vy'] = utils.remap(df['vy'], [-self.velocity_range, self.velocity_range], [-1, 1])
+            df['vy'] = utils.remap(df['vy'], [-self.velocity_range, self.velocity_range], [-0.999, 0.999])
 
         
-        eps = 0.001
+        
         if 'psi' in df:
             if hasattr(self.vehicle, 'route_lane_index'):
                 df['psi'] = (df['psi'] - road.network.get_lane(self.vehicle.route_lane_index).heading_at(self.vehicle.position[0]))/(2*np.pi)
