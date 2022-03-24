@@ -74,6 +74,11 @@ class TwoWayEnv(AbstractEnv):
             "TRAJECTORY_FREQUENCY": 0.5, # The frequency at which the agent trajectory is generated, mainly for visualization
             "TRAJECTORY_HORIZON": 10,
           },
+        **{  # RL Policy model related
+            "LOAD_MODEL_FOLDER": "20190516-120321",
+            "RESTORE_COND": "RESTORE", 
+            "retrieved_agent_policy": 0,
+          },
     }
 
     def __init__(self, config=DEFAULT_CONFIG):
@@ -286,7 +291,7 @@ class TwoWayEnv(AbstractEnv):
             
         rand_veh_count = np.random.randint(low=0, high=2*scene_complexity)
         for i in range(rand_veh_count):
-            x0 = self.ego_x0+90+40*i + 10*self.np_random.randn()
+            x0 = self.ego_x0+ 90+40*i + 10*self.np_random.randn()
             v =     IDMVehicle(road,
                                position=road.network.get_lane(lane_index)
                                .position(x0, 0),

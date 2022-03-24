@@ -23,6 +23,8 @@ from urban_env.vehicle.dynamics import Obstacle, unwrap_vehicle_step
 
 class RoadNetwork(object):
 
+
+
     def __init__(self):
         self.graph = {}
 
@@ -272,7 +274,7 @@ class Road(Loggable):
                                and not v.virtual
                                and v not in self.virtual_vehicles
                                # and -2*vehicle.LENGTH < vehicle.lane_distance_to(v)
-                               and abs(vehicle.distance_to(v)) < perception_distance],
+                               and abs(vehicle.distance_to(v)) < 0.99*perception_distance],
                               key=lambda v: abs(vehicle.distance_to(v))
                               )
             return sorted_v[:count]
@@ -282,7 +284,7 @@ class Road(Loggable):
                            and not v.virtual
                            and v not in self.virtual_vehicles
                            # and -2*vehicle.LENGTH < vehicle.lane_distance_to(v)
-                           and abs(vehicle.lane_distance_to(v)) < perception_distance],
+                           and abs(vehicle.lane_distance_to(v)) < 0.99*perception_distance],
                           key=lambda v: abs(vehicle.lane_distance_to(v))
                           )
         return sorted_v[:count]
@@ -305,7 +307,7 @@ class Road(Loggable):
 
         sorted_v = sorted([v for v in objects
                            if v is not vehicle
-                           and dist_func(v) < perception_distance],
+                           and dist_func(v) < 0.99*perception_distance],
                            key =lambda v: dist_func(v))
                               
         return sorted_v[:count]
