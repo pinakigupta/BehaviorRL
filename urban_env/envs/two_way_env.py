@@ -75,7 +75,7 @@ class TwoWayEnv(AbstractEnv):
             "TRAJECTORY_HORIZON": 10,
           },
         **{  # RL Policy model related
-            "LOAD_MODEL_FOLDER": "20190516-120321",
+            "LOAD_MODEL_FOLDER": "20220325-191207",
             "RESTORE_COND": "RESTORE", 
             "retrieved_agent_policy": 0,
           },
@@ -92,11 +92,12 @@ class TwoWayEnv(AbstractEnv):
     def step(self, action):
         self.steps += 1
         self.previous_action = action
+        # print(" action 2way ", action)
         obs, rew, done, info = super(TwoWayEnv, self).step(action)
+        # self.print_obs_space(ref_vehicle=self.vehicle)
         self.episode_travel = self.vehicle.position[0] - self.ego_x0 
 
         #self.print_obs_space(ref_vehicle=self.idmdp_opp_vehicle)
-        #self.print_obs_space(ref_vehicle=self.vehicle)
         #self.print_obs_space(ref_vehicle=self.idmdp_vehicle)
         #self._set_curriculam(curriculam_reward_threshold=0.6*self.GOAL_REWARD)
         return (obs, rew, done, info)
@@ -436,10 +437,15 @@ class TwoWayEnv(AbstractEnv):
         print("obs space, step ", self.steps)
         if ref_vehicle.discrete_action is not None:
             print("reference discrete action ", ref_vehicle.discrete_action)
+        else:
+            print("reference vehicle discrete_action is None ")
+
         if ref_vehicle.control_action is not None:
             print("reference accel = ", 
                     ref_vehicle.control_action['acceleration'],
                     " steering = ", ref_vehicle.control_action['steering'])
+        else:
+            print("reference vehicle control action is None")
         
         #sys.stdout.flush()
         pp = pprint.PrettyPrinter(indent=4)

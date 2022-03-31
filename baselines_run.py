@@ -65,8 +65,8 @@ def main(mainkwargs):
     max_iteration = 1
 
     config = {
-                # "LOAD_MODEL_FOLDER": "20200111-051102",
-                "RESTORE_COND": "NONE", 
+                "LOAD_MODEL_FOLDER": "20220330-235920",
+                "RESTORE_COND": "RESTORE", 
                 "MODEL":        {
                                 #    "use_lstm": True,
                                      "fcnet_hiddens": [256, 128, 128],
@@ -138,7 +138,8 @@ def main(mainkwargs):
 
     else:
         if RUN_WITH_RAY:
-            from raylibs import ray_init
+            from raylibs import ray_init, purge_ray_dirs
+            purge_ray_dirs()
             ray_init(**mainkwargs)
             from ray_rollout import ray_retrieve_agent
             from settings import update_policy  
@@ -147,6 +148,7 @@ def main(mainkwargs):
             from urban_env.envs.two_way_env import TwoWayEnv
             from urban_env.envs.abstract import AbstractEnv
             register_env('parking_2outs-v0', lambda config: urban_env.envs.ParkingEnv_2outs(config))
+            register_env('two-way-v0', lambda config: urban_env.envs.TwoWayEnv(config))
             #play_env = gym.make(play_env_id)
             #config=play_env.config
             retrieved_agent = ray_retrieve_agent(env_id=play_env_id, config=config)

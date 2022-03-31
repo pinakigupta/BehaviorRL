@@ -255,6 +255,7 @@ class AbstractEnv(gym.Env):
             if action is not None : # and self.time % int(self.SIMULATION_FREQUENCY // self.POLICY_FREQUENCY) == 0:
                 # Forward action to the vehicle                    
                 if type(action) is not dict: 
+                    # print("action ", action, " self.ACTIONS " , self.ACTIONS)
                     self.vehicle.act(self.ACTIONS[action])
                 #else:
                 #    self.vehicle.act(action)

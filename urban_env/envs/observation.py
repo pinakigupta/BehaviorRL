@@ -209,7 +209,6 @@ class KinematicObservation(ObservationType):
             return tuple(self.observations)
         return None
 
-'''
 class KinematicsGoalObservation(KinematicObservation):
     def __init__(self,
                  env,
@@ -385,7 +384,7 @@ class KinematicsGoalObservation(KinematicObservation):
                                 "pedestrians": self.closest_pedestrians,          
                               }
         return close_vehicles_dict
-'''
+
 
 def observation_factory(env, ref_vehicle, config):
     if config["type"] == "TimeToCollision":

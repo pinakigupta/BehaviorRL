@@ -461,9 +461,12 @@ class IDMDPVehicle(MDPVehicle):
         if self.sim_steps >= self.config["SIMULATION_FREQUENCY"]//self.config["POLICY_FREQUENCY"]:
             if self.retrieved_agent_policy is not None:
                 self.discrete_action = ACTIONS_DICT[self.retrieved_agent_policy.compute_single_action(obs, [])[0]]
+                # print(" self.discrete_action ", self.discrete_action)
                 #self.discrete_action = ACTIONS_DICT[0]
                 self.sim_steps = 0
                 #print("ID", self.Id(), "action ", self.discrete_action," steps ", self.sim_steps)
+            # else:
+            #     print(" self.retrieved_agent_policy is None ")
 
         
         if self.discrete_action is not None:

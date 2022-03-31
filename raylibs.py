@@ -35,13 +35,16 @@ from ray_rollout import retrieve_ray_folder_info, ray_retrieve_agent, filetonum,
 
 redis_add = ray.services.get_node_ip_address() + ":6379"
 
+
 def get_immediate_subdirectories(a_dir):
     if not a_dir:
         return
     return [name for name in os.listdir(a_dir)
             if os.path.isdir(os.path.join(a_dir, name))]
 
+
 def purge_ray_dirs():
+    import shutil
     all_folders = glob.glob(pathname + "/" + ray_folder+'/*')
     for folder in all_folders:
         results_folder = folder + "/pygame-ray"
@@ -55,10 +58,10 @@ def purge_ray_dirs():
         all_checkpt_folders = get_immediate_subdirectories(results_folder)
         if all_checkpt_folders:
             continue
-        import shutil
         print("purging folder ", folder)
         shutil.rmtree(folder)
-purge_ray_dirs()
+    shutil.rmtree('/root/ray_results')
+# purge_ray_dirs()
 
 def ray_node_ips():
     @ray.remote
@@ -294,6 +297,7 @@ def ray_train(save_in_sub_folder=None,
         resume=False
 
     checkpoint_freq=int(num_timesteps)//min(int(num_timesteps), 20)
+    print("checkpoint_freq ", checkpoint_freq)
 
     
     retrieved_agent_policy = settings.retrieved_agent_policy
@@ -354,7 +358,7 @@ def ray_train(save_in_sub_folder=None,
 
 def ray_play(env_id=None, config=None, agent=None):
     if agent is None:
-        agent=ray_retrieve_agent(config=config)        
+        agent=ray_retrieve_agent(config=config)   
     rollout(
             agent=agent,
             env_name=env_id,

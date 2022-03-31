@@ -28,18 +28,29 @@ def filetonum(filename):
 
 
 def dirsearch(resultstr):
-    for dirname, dirnames, filenames in os.walk("/"):
+    print("resultstr ", resultstr)
+    for dirname, dirnames, filenames in os.walk('/'):
         if '.git' in dirnames:
             # don't go into any .git directories.
             dirnames.remove('.git')
-        for subdirname in dirnames:
+        for subdirname in dirnames: 
+            if 'ray_results' in dirname:         
+                print(" subdirname ", subdirname, " , dirname ", dirname)
             if resultstr in subdirname:
+                print("resultstr ", resultstr, " subdirname ", subdirname, " dirname ", dirname)
+                return dirname+"/" + subdirname         
+        for subdirname in filenames:            
+            if resultstr in subdirname:
+                print("resultstr ", resultstr, " subdirname ", subdirname, " dirname ", dirname)
+                return dirname+"/"+subdirname
                 return(os.path.join(dirname, subdirname))
+
 
 
 def retrieve_ray_folder_info(target_folder, checkpt=None):
     local_restore_path = dirsearch(target_folder)
     restore_folder = local_restore_path + "/pygame-ray/"
+    print("target_folder = ", target_folder , " ", "restore_folder = ", restore_folder)
     subdir = next(os.walk(restore_folder))[1][0]
     restore_folder = restore_folder + subdir + "/"
     all_checkpt_folders = glob.glob(restore_folder+'/*')
@@ -79,6 +90,8 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
         }
     else:
         raise ValueError('Env name/id is None and agent has no workers')
+
+    print("action_init ", action_init)
 
     if out is not None:
         rollouts = []
@@ -200,6 +213,7 @@ def predict_one_step_of_rollout(env, agent, obs, action, reward, policy_id, no_r
 
 def act(multi_obs, agent, multiagent, prev_actions, prev_rewards, policy_agent_mapping, mapping_cache, use_lstm):
     action_dict = {}
+    print(" multi_obs.items() ", multi_obs.items())
     for agent_id, a_obs in multi_obs.items():
         if a_obs is not None:
             policy_id = mapping_cache.setdefault(
@@ -230,6 +244,7 @@ def ray_retrieve_agent(env_id=play_env_id, config=None):
     # if config is None:
     #    config = gym.make(env_id).config
     LOAD_MODEL_FOLDER = config["LOAD_MODEL_FOLDER"]
+    print("LOAD_MODEL_FOLDER", LOAD_MODEL_FOLDER)
     results_folder, _, algo = retrieve_ray_folder_info(LOAD_MODEL_FOLDER)
     print("results_folder = ", results_folder)
     print("algo = ", algo)
