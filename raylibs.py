@@ -60,8 +60,10 @@ def purge_ray_dirs():
             continue
         print("purging folder ", folder)
         shutil.rmtree(folder)
-    shutil.rmtree('/root/ray_results')
-# purge_ray_dirs()
+    try:
+        shutil.rmtree('/root/ray_results')
+    except:
+        print("No directory to remove in /root/ray_results")# purge_ray_dirs()
 
 def ray_node_ips():
     @ray.remote
@@ -365,5 +367,5 @@ def ray_play(env_id=None, config=None, agent=None):
             num_steps=10000,
             no_render=False,
             out=None,
-            intent_predict=True
+            intent_predict=False
            )

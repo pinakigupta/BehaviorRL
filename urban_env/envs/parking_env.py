@@ -48,7 +48,7 @@ class ParkingEnv(AbstractEnv, GoalEnv):
         It implements a reach-type task, where the agent observes their position and velocity and must
         control their acceleration and steering so as to reach a given goal.
 
-        Credits to Munir Jojo-Verge for the idea and initial implementation.
+        Credits to Pinaki Gupta for the idea and initial implementation.
     """
 
     COLLISION_REWARD     = -1.0            

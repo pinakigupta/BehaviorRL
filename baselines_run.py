@@ -1,12 +1,10 @@
 import gym
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, homepath, RUN_WITH_RAY, InceptcurrentDT
 from handle_model_files import create_dirs, req_dirs, models_folder, makedirpath, is_master, is_predict_only, default_args
-from mpi4py import MPI
 import subprocess
 import warnings
 import glob
 import numpy as np
-import tensorflow as tf
 import random
 from settings import req_dirs, models_folder, ray_folder
 import sys
@@ -65,8 +63,8 @@ def main(mainkwargs):
     max_iteration = 1
 
     config = {
-                "LOAD_MODEL_FOLDER": "20220330-235920",
-                "RESTORE_COND": "RESTORE", 
+                "LOAD_MODEL_FOLDER": "20220331-181530",
+                "RESTORE_COND": "NONE", 
                 "MODEL":        {
                                 #    "use_lstm": True,
                                      "fcnet_hiddens": [256, 128, 128],
@@ -106,6 +104,8 @@ def main(mainkwargs):
                          }
             ray_train(config=config, **mainkwargs)
         else:
+            from mpi4py import MPI
+            import tensorflow as tf
             while mega_batch_itr <= max_iteration:
                 from baselines.common import tf_util, mpi_util
                 from baselines.common.vec_env import VecEnv
@@ -174,7 +174,7 @@ if __name__ == "__main__":
     argdict = dict(arg.split('=') for arg in sys.argv[1:])
     argdict = {
                **{
-                   "LOCAL_MODE": False,
+                   "LOCAL_MODE": True,
                    "DEBUG_MODE": False,
                  },
                  **argdict,

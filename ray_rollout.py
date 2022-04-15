@@ -182,7 +182,11 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
         print("Episode reward", reward_total)
 
     if out is not None:
-        pickle.dump(rollouts, open(out, "wb"))
+        import generate_env_data
+        print("trying to generate env data")
+        generate_env_data.main(["--num_samples", "10000","--env", "env"], rollouts)
+        print("Finished adding env data")
+        # pickle.dump(rollouts, open(out, "wb"))
 
 
 def predict_one_step_of_rollout(env, agent, obs, action, reward, policy_id, no_render=True):
@@ -213,7 +217,7 @@ def predict_one_step_of_rollout(env, agent, obs, action, reward, policy_id, no_r
 
 def act(multi_obs, agent, multiagent, prev_actions, prev_rewards, policy_agent_mapping, mapping_cache, use_lstm):
     action_dict = {}
-    print(" multi_obs.items() ", multi_obs.items())
+    # print(" multi_obs.items() ", multi_obs.items())
     for agent_id, a_obs in multi_obs.items():
         if a_obs is not None:
             policy_id = mapping_cache.setdefault(

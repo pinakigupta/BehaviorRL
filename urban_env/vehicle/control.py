@@ -10,12 +10,7 @@ import copy
 from urban_env import utils
 from urban_env.vehicle.dynamics import Vehicle
 from importlib import reload
-import settings
-
-from ray.rllib.rollout import default_policy_agent_mapping, DefaultMapping
-from settings import retrieved_agent_policy
-from ray.rllib.env.base_env import _DUMMY_AGENT_ID
-from ray.rllib.policy.sample_batch import DEFAULT_POLICY_ID
+# import settings
 
 from urban_env.envdict import ACTIONS_DICT
 

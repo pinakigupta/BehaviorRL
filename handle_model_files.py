@@ -3,7 +3,8 @@ import os
 import sys
 import glob
 import time
-from mpi4py import MPI
+from warnings import catch_warnings
+
 from settings import req_dirs, models_folder, ray_folder
 from shutil import copyfile
 import subprocess
@@ -55,6 +56,8 @@ num_timesteps = '1' # Keeping steps at 1 will only sping off prediction/simulati
 '''
 # train_env_id = 'LG-SIM-ENV-v0'
 # play_env_id = 'LG-SIM-ENV-v0'
+train_env_id = 'parking_2outs-v0'
+play_env_id = 'parking_2outs-v0'
 train_env_id = 'two-way-v0'
 play_env_id = 'two-way-v0'
 alg = 'ppo2'
@@ -85,15 +88,19 @@ def create_dirs(req_dirs):
 
 
 def is_master():
-    return MPI.COMM_WORLD.Get_rank() == 0
+    try:
+        from mpi4py import MPI
+        return MPI.COMM_WORLD.Get_rank() == 0
+    except:
+        return True
 
-
+InceptcurrentDT = None
 if is_master():
     InceptcurrentDT = time.strftime("%Y%m%d-%H%M%S")
-else:
-    InceptcurrentDT = None
 
-InceptcurrentDT = MPI.COMM_WORLD.bcast(InceptcurrentDT, root=0)
+    
+
+# InceptcurrentDT = MPI.COMM_WORLD.bcast(InceptcurrentDT, root=0)
 
 terminal_output_file_name = 'output.txt'
 def copy_terminal_output_file(save_folder=None, terminal_output_file_name=None ):
@@ -182,6 +189,7 @@ def default_args(save_in_sub_folder=None):
     def save_model(save_file=None):
         if save_file is not None:
             if not is_predict_only():
+                from mpi4py import MPI
                 if MPI is None or is_master():
                     create_save_folder(save_folder=save_folder)
                     DEFAULT_ARGUMENTS.append('--save_path=' + save_file)

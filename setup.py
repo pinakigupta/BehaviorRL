@@ -1,21 +1,21 @@
 ######################################################################
 #          Deep Reinforcement Learning for Autonomous Driving
 #                  Created/Modified on: February 5, 2019
-#                      Author: Munir Jojo-Verge
+#                      Author: Pinaki Gupta
 #######################################################################
 
 from setuptools import setup, find_packages
 
 setup(
     name='urban-env',
-    version='0.0.dev2',
+    version='0.0.dev3',
     description='An environment for simulated Urban driving tasks',
     url='',
     author='Pinaki Gupta',
     author_email='gpinaki@yahoo.com',
     license='MIT',
     # Needed to actually package something
-    packages=['urban_env'],
+    packages=['urban_env', 'urban_env.envs', 'urban_env.vehicle', 'urban_env.road'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: MIT License',
@@ -24,7 +24,7 @@ setup(
     ],
 
     keywords='Urban autonomous driving simulation environment for reinforcement learning research and testing',
-    #packages=find_packages(exclude=['docs', 'scripts', 'tests']),
+#    packages=find_packages(exclude=['docs', 'scripts', 'tests']),
     install_requires=['gym', 'numpy', 'pygame', 'jupyter', 'matplotlib', 'pandas'],
     tests_require=['pytest'],
     extras_require={

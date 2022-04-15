@@ -7,7 +7,6 @@
 from __future__ import division, print_function, absolute_import
 import numpy as np
 import gym
-from gym import GoalEnv
 from urban_env import utils
 from urban_env.envs.abstract import AbstractEnv
 from urban_env.road.lane import AbstractLane
