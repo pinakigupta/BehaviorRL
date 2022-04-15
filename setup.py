@@ -8,16 +8,18 @@ from setuptools import setup, find_packages
 
 setup(
     name='urban-env',
-    version='0.0.dev3',
+    version='0.0.dev5',
     description='An environment for simulated Urban driving tasks',
     url='',
     author='Pinaki Gupta',
     author_email='gpinaki@yahoo.com',
     license='MIT',
     # Needed to actually package something
+    include_package_data=True,
     packages=['urban_env', 'urban_env.envs', 'urban_env.vehicle', 'urban_env.road'],
+    py_modules=["settings", "baselines_run", "generate_env_data", "raylibs", "ray_rollout", "handle_model_files"],
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 3,  - Alpha',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.7',
