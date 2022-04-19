@@ -8,11 +8,10 @@ import ray
 import gym
 from multiprocessing import Process
 
-from ray.rllib.rollout import default_policy_agent_mapping, DefaultMapping
-from ray.rllib.agents.registry import get_agent_class
-from ray.rllib.env import MultiAgentEnv
-from ray.rllib.env.base_env import _DUMMY_AGENT_ID
-from ray.rllib.policy.sample_batch import DEFAULT_POLICY_ID
+
+
+
+# from ray.rllib.policy.sample_batch import DEFAULT_POLICY_ID
 
 
 from settings import req_dirs, models_folder, ray_folder
@@ -66,6 +65,9 @@ def retrieve_ray_folder_info(target_folder, checkpt=None):
 
 
 def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict=False):
+    from ray.rllib.rollout import default_policy_agent_mapping, DefaultMapping
+    from ray.rllib.env import MultiAgentEnv
+    from ray.rllib.env.base_env import _DUMMY_AGENT_ID
     policy_agent_mapping = default_policy_agent_mapping
 
     '''if env_name is not None:
@@ -114,7 +116,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
         current_wall_time = time.time()
         prev_step_time = 0
         prev_action_time = 0
-        while not done and steps < (num_steps or steps + 1):
+        while not done and steps < (num_steps):
 
             current_wall_time = time.time()
             sim_loop_time = current_wall_time-prev_step_time
@@ -262,6 +264,7 @@ def ray_retrieve_agent(env_id=play_env_id, config=None):
     if "num_workers" in config:
         config["num_workers"] = min(2, config["num_workers"])
 
+    from ray.rllib.agents.registry import get_agent_class
     cls = get_agent_class(algo)
     agent = cls(env=None, config=config)
     agent.restore(results_folder)

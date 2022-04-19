@@ -1,0 +1,5 @@
+sudo rm -rf build
+sudo rm -rf dist
+sudo rm -rf urban_env.egg-info
+
+python3 setup.py bdist_wheel

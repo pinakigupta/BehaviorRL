@@ -6,7 +6,7 @@ import h5py
 import argparse
 # from d4rl.locomotion import maze_env, ant, swimmer
 # from d4rl.locomotion.wrappers import NormalizedBoxEnv
-import torch
+# import torch
 # from PIL import Image
 import os
 
@@ -19,6 +19,7 @@ def reset_data():
             'terminals': [],
             'timeouts': [],
             'rewards': [],
+            # 'discrete_action': True,
             # 'infos/goal': [],
             # 'infos/qpos': [],
             # 'infos/qvel': [],
@@ -185,7 +186,7 @@ def main(args, rollouts):
     # if args.noisy:
     #     fname = args.env + '_maze_%s_noisy_multistart_%s_multigoal_%s.hdf5' % (args.maze, str(args.multi_start), str(args.multigoal))
     # else:
-    fname = args.env + "123" #+ 'maze_%s_multistart_%s_multigoal_%s.hdf5' % (args.maze, str(args.multi_start), str(args.multigoal))
+    fname = args.env + "1234" #+ 'maze_%s_multistart_%s_multigoal_%s.hdf5' % (args.maze, str(args.multi_start), str(args.multigoal))
 
     print(" fname ", fname)
     dataset = h5py.File(fname, 'w')

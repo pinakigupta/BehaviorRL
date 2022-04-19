@@ -1,39 +1,30 @@
-import urban_env
 import subprocess
-import tensorflow as tf
 import random
 from settings import req_dirs, models_folder, ray_folder
-import sys
 import os
 import time
 import glob
-import redis
 import ray
-import gym
 import settings
 from multiprocessing import cpu_count
 
-from ray.tune import Experiment, Trainable, run_experiments, register_env, sample_from
-from ray.tune.schedulers import PopulationBasedTraining, AsyncHyperBandScheduler
-from ray.tune.ray_trial_executor import RayTrialExecutor
+# from ray.tune import Experiment, Trainable, run_experiments, register_env, sample_from
+# from ray.tune.schedulers import PopulationBasedTraining #, AsyncHyperBandScheduler
+# from ray.tune.ray_trial_executor import RayTrialExecutor
 from ray.rllib.agents.trainer_template import build_trainer
 
 
-import ray.rllib.agents.ppo as ppo
-import ray.rllib.agents.impala as impala
-from ray.rllib.agents.ppo import PPOTrainer
-import ray.rllib.agents.es as es
-from ray.rllib.optimizers import AsyncGradientsOptimizer
+
 
 
 from handle_model_files import train_env_id, play_env_id, alg, network, num_timesteps, RUN_WITH_RAY, InceptcurrentDT, is_predict_only
 from handle_model_files import pathname, copy_terminal_output_file, terminal_output_file_name
-import handle_model_files
+# import handle_model_files
 
 
 from ray_rollout import retrieve_ray_folder_info, ray_retrieve_agent, filetonum, rollout
 
-redis_add = ray.services.get_node_ip_address() + ":6379"
+
 
 
 def get_immediate_subdirectories(a_dir):
@@ -156,6 +147,7 @@ def ray_init(LOCAL_MODE=False, **mainkwargs):
         return available_cluster_cpus, available_cluster_gpus
     else:
         try: # to init in the cluster
+            redis_add = ray.services.get_node_ip_address() + ":6379"
             ray.init(address=redis_add)
             ray_cluster_status_check(**mainkwargs)
             available_cluster_cpus = int(ray.cluster_resources().get("CPU"))
@@ -191,23 +183,7 @@ def explore(config):
 
 
 
-pbt = PopulationBasedTraining(
-    time_attr="training_iteration",
-    metric="episode_reward_mean",
-    mode="max",
-    perturbation_interval=7,
-    resample_probability=0.25,
-    # Specifies the mutations of these hyperparams
-    hyperparam_mutations={
-        "lambda": lambda: random.uniform(0.9, 1.0),
-        "clip_param": lambda: random.uniform(0.01, 0.5),
-        "lr": [1e-3, 5e-4, 1e-4, 5e-5, 1e-5],
-        "num_sgd_iter": lambda: random.randint(1, 30),
-        "sgd_minibatch_size": lambda: random.randint(128, 16384),
-        "train_batch_size": lambda: random.randint(2000, 160000),
-    },
-    custom_explore_fn=explore
-)
+
 
 def on_episode_start(info):
     print(info.keys())  # -> "env", 'episode"
@@ -232,6 +208,11 @@ def ray_train(save_in_sub_folder=None,
               config=None,
               **mainkwargs
               ):
+    import ray.rllib.agents.ppo as ppo
+    import ray.rllib.agents.impala as impala
+    from ray.rllib.agents.ppo import PPOTrainer
+    import ray.rllib.agents.es as es
+    from ray.rllib.optimizers import AsyncGradientsOptimizer
     #config = gym.make(train_env_id).config
 
     subprocess.run(["chmod", "-R", "a+rwx", save_in_sub_folder + "/"])
@@ -307,7 +288,25 @@ def ray_train(save_in_sub_folder=None,
     model = config["MODEL"] 
     print("delegated_cpus ", delegated_cpus, " delegated_gpus ", delegated_gpus)
 
-    
+    from ray.tune.schedulers import PopulationBasedTraining
+    pbt = PopulationBasedTraining(
+    time_attr="training_iteration",
+    metric="episode_reward_mean",
+    mode="max",
+    perturbation_interval=7,
+    resample_probability=0.25,
+    # Specifies the mutations of these hyperparams
+    hyperparam_mutations={
+        "lambda": lambda: random.uniform(0.9, 1.0),
+        "clip_param": lambda: random.uniform(0.01, 0.5),
+        "lr": [1e-3, 5e-4, 1e-4, 5e-5, 1e-5],
+        "num_sgd_iter": lambda: random.randint(1, 30),
+        "sgd_minibatch_size": lambda: random.randint(128, 16384),
+        "train_batch_size": lambda: random.randint(2000, 160000),
+    },
+    custom_explore_fn=explore
+)
+
     ray_trials = ray.tune.run(
             PPOTrainer,
             name="pygame-ray",
@@ -360,12 +359,24 @@ def ray_train(save_in_sub_folder=None,
 
 def ray_play(env_id=None, config=None, agent=None):
     if agent is None:
-        agent=ray_retrieve_agent(config=config)   
-    rollout(
-            agent=agent,
-            env_name=env_id,
-            num_steps=10000,
-            no_render=False,
-            out=None,
-            intent_predict=False
-           )
+       agent=ray_retrieve_agent(config=config)
+    num_steps=100
+    no_render=False
+    out=True
+    try:   
+        rollout(
+                agent=agent,
+                env_name=env_id,
+                num_steps=num_steps,
+                no_render=no_render,
+                out=out,
+                intent_predict=False
+            )
+    except:
+        ray.rollout(
+                    agent=agent,
+                    env_name=env_id,
+                    num_steps=num_steps,
+                    no_render=no_render,
+                    out=out
+                  )
