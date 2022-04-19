@@ -192,6 +192,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
 
 
 def predict_one_step_of_rollout(env, agent, obs, action, reward, policy_id, no_render=True):
+    from ray.rllib.env.base_env import _DUMMY_AGENT_ID
     predict_env = copy.deepcopy(env)
     for v in predict_env.road.vehicles:
         v.projection = []
@@ -218,6 +219,7 @@ def predict_one_step_of_rollout(env, agent, obs, action, reward, policy_id, no_r
 
 
 def act(multi_obs, agent, multiagent, prev_actions, prev_rewards, policy_agent_mapping, mapping_cache, use_lstm):
+    from ray.rllib.env.base_env import _DUMMY_AGENT_ID
     action_dict = {}
     # print(" multi_obs.items() ", multi_obs.items())
     for agent_id, a_obs in multi_obs.items():

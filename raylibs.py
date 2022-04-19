@@ -373,10 +373,14 @@ def ray_play(env_id=None, config=None, agent=None):
                 intent_predict=False
             )
     except:
-        ray.rollout(
-                    agent=agent,
-                    env_name=env_id,
-                    num_steps=num_steps,
-                    no_render=no_render,
-                    out=out
-                  )
+        try:
+            ray.rollout(
+                        agent=agent,
+                        env_name=env_id,
+                        num_steps=num_steps,
+                        no_render=no_render,
+                        out=out
+                    )
+        except:
+            print("There is no approprite rollout methods. Exiting")
+            exit()
