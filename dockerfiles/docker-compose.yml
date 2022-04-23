@@ -11,8 +11,8 @@ services:
       - ~/.aws:/tmp/.aws 
       - ~/.ssh:/tmp/.ssh
       -  /tmp/.X11-unix:/tmp/.X11-unix
-#    expose:
-#      - "8181"
+    expose:
+      - "5555"
     stdin_open: true
     tty: true
     network_mode: "host"

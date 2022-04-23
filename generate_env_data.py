@@ -42,7 +42,7 @@ def npify(data):
         if k in ['terminals', 'timeouts']:
             dtype = np.bool_
         else:
-            dtype = np.float32
+            dtype = np.float64
 
         data[k] = np.array(data[k], dtype=dtype)
 
@@ -136,7 +136,8 @@ def main(args, rollouts):
     # for _ in range(args.num_samples):
     for rollout in rollouts:
         for sar_tuple in rollout:
-            append_data(data, s=sar_tuple[0], a=sar_tuple[1], r=sar_tuple[3], done=sar_tuple[4] )
+            # print(" sar_tuple[0] type ", sar_tuple[0])
+            append_data(data, s=sar_tuple[0].astype(np.float64), a=sar_tuple[1], r=sar_tuple[3].astype(np.float64), done=sar_tuple[4] )
         # act, waypoint_goal = data_collection_policy(s)
 
         # if args.noisy:

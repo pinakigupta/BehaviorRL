@@ -360,7 +360,7 @@ def ray_train(save_in_sub_folder=None,
 def ray_play(env_id=None, config=None, agent=None):
     if agent is None:
        agent=ray_retrieve_agent(config=config)
-    num_steps=100
+    num_steps=1000000
     no_render=False
     out=True
     try:   
@@ -372,7 +372,8 @@ def ray_play(env_id=None, config=None, agent=None):
                 out=out,
                 intent_predict=False
             )
-    except:
+    except Exception as e:
+        print(e)
         try:
             ray.rollout(
                         agent=agent,
@@ -381,6 +382,7 @@ def ray_play(env_id=None, config=None, agent=None):
                         no_render=no_render,
                         out=out
                     )
-        except:
+        except Exception as e:
+            print(e)
             print("There is no approprite rollout methods. Exiting")
             exit()
