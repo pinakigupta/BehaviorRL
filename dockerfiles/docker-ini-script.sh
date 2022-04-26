@@ -48,5 +48,8 @@ cp -a /tmp/.ssh/. ~/.ssh
 chown -R root:root ~/.ssh
 chown -R root:root ~/.aws
 
+pip install pyzmq
+pip install torch
+
 
 

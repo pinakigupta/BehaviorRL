@@ -238,7 +238,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
     if out is not None:
         import generate_env_data
         print("trying to generate env data")
-        generate_env_data.main(["--num_samples", "10000","--env", "env"], rollouts)
+        generate_env_data.main(["--env", "env"], rollouts)
         print("Finished adding env data")
         # pickle.dump(rollouts, open(out, "wb"))
 
