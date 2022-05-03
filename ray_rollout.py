@@ -126,6 +126,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
     if out is not None:
         rollouts = []
     steps = 0
+
     while steps < (num_steps or steps + 1):
         mapping_cache = {}  # in case policy_agent_mapping is stochastic
         if out is not None:
@@ -144,102 +145,108 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
         current_wall_time = time.time()
         prev_step_time = 0
         prev_action_time = 0
-        while not done and steps < (num_steps):
+        USE_OFFLINE_MODEL = False 
+        try:
+            while not done and steps < (num_steps):
 
-            current_wall_time = time.time()
-            sim_loop_time = current_wall_time-prev_step_time
-            action_loop_time =  current_wall_time-prev_action_time
-            
-            if sim_loop_time < 1/env.config["SIMULATION_FREQUENCY"]:
-                #print("loop time (in ms) ", round(1e3*sim_loop_time, 2))
-                continue
+                current_wall_time = time.time()
+                sim_loop_time = current_wall_time-prev_step_time
+                action_loop_time =  current_wall_time-prev_action_time
+                
+                if sim_loop_time < 1/env.config["SIMULATION_FREQUENCY"]:
+                    #print("loop time (in ms) ", round(1e3*sim_loop_time, 2))
+                    continue
 
-            multi_obs = obs if multiagent else {_DUMMY_AGENT_ID: obs}
+                multi_obs = obs if multiagent else {_DUMMY_AGENT_ID: obs}                                  
+                if action_loop_time > 1/env.config["POLICY_FREQUENCY"]:
+                    if USE_OFFLINE_MODEL:
+                        # import torch
+                        # torch_policy = torch.jit.load('policy.pt')
+                        # torch_obs = multi_obs[_DUMMY_AGENT_ID]
+                        # print("torch_obs ", torch_obs , type(torch_obs))
+                        # torch_tensor_obs = torch.from_numpy(torch_obs)
+                        # torch_tensor_obs_double = torch_tensor_obs.double()
+                        # torch_tensor_obs_double.type(torch.DoubleTensor)
+                        # print(" torch_tensor_obs_double ", torch_tensor_obs_double)
+                        # action = torch_policy(torch_tensor_obs_double)
+                        # print("action ", action, type(action))
+                        message = recv_zipped_pickle(socket, protocol=4)
+                        action = message[0]
+                        print("Received request: %s" % action)
+                        send_zipped_pickle(socket, multi_obs[_DUMMY_AGENT_ID], protocol=4)                    
+                    else:
+                        action = act(   
+                                        multi_obs,
+                                        agent,
+                                        multiagent,
+                                        prev_actions,
+                                        prev_rewards,
+                                        policy_agent_mapping,
+                                        mapping_cache,
+                                        use_lstm
+                                        )
 
-            
-            USE_OFFLINE_MODEL = False            
+                        # print("action ", action, type(action))
 
-            if action_loop_time > 1/env.config["POLICY_FREQUENCY"]:
-                if USE_OFFLINE_MODEL:
-                    # import torch
-                    # torch_policy = torch.jit.load('policy.pt')
-                    # torch_obs = multi_obs[_DUMMY_AGENT_ID]
-                    # print("torch_obs ", torch_obs , type(torch_obs))
-                    # torch_tensor_obs = torch.from_numpy(torch_obs)
-                    # torch_tensor_obs_double = torch_tensor_obs.double()
-                    # torch_tensor_obs_double.type(torch.DoubleTensor)
-                    # print(" torch_tensor_obs_double ", torch_tensor_obs_double)
-                    # action = torch_policy(torch_tensor_obs_double)
-                    # print("action ", action, type(action))
-                    message = recv_zipped_pickle(socket, protocol=4)
-                    action = message[0]
-                    print("Received request: %s" % action)
-                    send_zipped_pickle(socket, multi_obs[_DUMMY_AGENT_ID], protocol=4)                    
+                #current_wall_time = print_execution_time(current_wall_time, "After calculating action ")
+                next_obs, reward, done, _ = env.step(action)
+                prev_step_time = time.time()
+                if multiagent:
+                    for agent_id, r in reward.items():
+                        prev_rewards[agent_id] = r
                 else:
-                    action = act(   
-                                    multi_obs,
-                                    agent,
-                                    multiagent,
-                                    prev_actions,
-                                    prev_rewards,
-                                    policy_agent_mapping,
-                                    mapping_cache,
-                                    use_lstm
-                                    )
+                    prev_rewards[_DUMMY_AGENT_ID] = reward
 
-                    # print("action ", action, type(action))
+                policy_id = mapping_cache.setdefault(
+                    _DUMMY_AGENT_ID, policy_agent_mapping(_DUMMY_AGENT_ID))
 
-            #current_wall_time = print_execution_time(current_wall_time, "After calculating action ")
-            next_obs, reward, done, _ = env.step(action)
-            prev_step_time = time.time()
-            if multiagent:
-                for agent_id, r in reward.items():
-                    prev_rewards[agent_id] = r
-            else:
-                prev_rewards[_DUMMY_AGENT_ID] = reward
+                #current_wall_time = print_execution_time(current_wall_time, "Before intent pred ")
+                if intent_predict:
 
-            policy_id = mapping_cache.setdefault(
-                _DUMMY_AGENT_ID, policy_agent_mapping(_DUMMY_AGENT_ID))
+                    projections = predict_one_step_of_rollout(
+                                                                env,
+                                                                agent,
+                                                                multi_obs,
+                                                                action,
+                                                                reward,
+                                                                policy_id,
+                                                                False
+                                                            )
+                    env.vehicle.projection = projections
+                    # env.intent_pred = True
+                    no_render = False
+                #current_wall_time = print_execution_time(current_wall_time, "After intent pred ")    
 
-            #current_wall_time = print_execution_time(current_wall_time, "Before intent pred ")
-            if intent_predict:
-
-                projections = predict_one_step_of_rollout(
-                                                            env,
-                                                            agent,
-                                                            multi_obs,
-                                                            action,
-                                                            reward,
-                                                            policy_id,
-                                                            False
-                                                         )
-                env.vehicle.projection = projections
-                # env.intent_pred = True
-                no_render = False
-            #current_wall_time = print_execution_time(current_wall_time, "After intent pred ")    
-
-            if multiagent:
-                done = done["__all__"]
-                reward_total += sum(reward.values())
-            else:
-                reward_total += reward
-            if not no_render:
-                env.render()
+                if multiagent:
+                    done = done["__all__"]
+                    reward_total += sum(reward.values())
+                else:
+                    reward_total += reward
+                if not no_render:
+                    env.render()
+                if out is not None:
+                    rollout.append([obs, action, next_obs, reward, done])
+                steps += 1
+                obs = next_obs
             if out is not None:
-                rollout.append([obs, action, next_obs, reward, done])
-            steps += 1
-            obs = next_obs
-        if out is not None:
-            rollouts.append(rollout)
-        print("Episode reward", reward_total)
+                rollouts.append(rollout)
+                import generate_env_data
+                print("trying to generate env data at step ", steps)
+                generate_env_data.main(["--env", "env"], rollouts)
+                    # print("Finished adding env data")
+            print("Episode reward", reward_total)
+        except Exception as e:
+            print("Error ", e , " at step ", steps)
+            if out is not None:
+                import generate_env_data
+                print("trying to generate env data")
+                generate_env_data.main(["--env", "env"], rollouts)
+                print("Finished adding env data")
+            pass
+
 
     # conn.close()
 
-    if out is not None:
-        import generate_env_data
-        print("trying to generate env data")
-        generate_env_data.main(["--env", "env"], rollouts)
-        print("Finished adding env data")
         # pickle.dump(rollouts, open(out, "wb"))
 
 

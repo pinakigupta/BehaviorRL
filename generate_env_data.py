@@ -137,7 +137,23 @@ def main(args, rollouts):
     for rollout in rollouts:
         for sar_tuple in rollout:
             # print(" sar_tuple[0] type ", sar_tuple[0])
-            append_data(data, s=sar_tuple[0].astype(np.float64), a=sar_tuple[1], r=sar_tuple[3].astype(np.float64), done=sar_tuple[4] )
+            try:
+                s = sar_tuple[0]
+                if isinstance(s, float):
+                    s = np.float64(s)
+                else:
+                    s = s.astype(np.float64)
+
+                r=sar_tuple[3]
+                if isinstance(r, float):
+                    r = np.float64(r)
+                else:
+                    r = r.astype(np.float64)
+
+                append_data(data, s=s, a=sar_tuple[1], r=r, done=sar_tuple[4])
+            except Exception as e:
+                print(" Error while appending data. Error ", e)
+                continue
         # act, waypoint_goal = data_collection_policy(s)
 
         # if args.noisy:
@@ -189,7 +205,7 @@ def main(args, rollouts):
     # else:
     fname = args.env + "1234" #+ 'maze_%s_multistart_%s_multigoal_%s.hdf5' % (args.maze, str(args.multi_start), str(args.multigoal))
 
-    print(" fname ", fname)
+    # print(" fname ", fname)
     dataset = h5py.File(fname, 'w')
     npify(data)
     for k in data:

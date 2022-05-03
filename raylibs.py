@@ -360,8 +360,8 @@ def ray_train(save_in_sub_folder=None,
 def ray_play(env_id=None, config=None, agent=None):
     if agent is None:
        agent=ray_retrieve_agent(config=config)
-    num_steps=1e6
-    no_render=False
+    num_steps=10000
+    no_render=True
     out=True
     try:   
         rollout(
