@@ -25,12 +25,14 @@ socket.bind("tcp://*:5555")
 def send_zipped_pickle(socket, obj, flags=0, protocol=-1):
     """pickle an object, and zip the pickle before sending it"""
     p = pickle.dumps(obj, protocol)
+    # print("pickle dump", p)
     z = zlib.compress(p)
     return socket.send(z, flags=flags)
 
 def recv_zipped_pickle(socket, flags=0, protocol=-1):
     """inverse of send_zipped_pickle"""
     z = socket.recv(flags)
+    # print("z ", z)
     p = zlib.decompress(z)
     return pickle.loads(p)
 
@@ -145,7 +147,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
         current_wall_time = time.time()
         prev_step_time = 0
         prev_action_time = 0
-        USE_OFFLINE_MODEL = False 
+        USE_OFFLINE_MODEL = True 
         try:
             while not done and steps < (num_steps):
 
@@ -170,8 +172,19 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
                         # print(" torch_tensor_obs_double ", torch_tensor_obs_double)
                         # action = torch_policy(torch_tensor_obs_double)
                         # print("action ", action, type(action))
-                        message = recv_zipped_pickle(socket, protocol=4)
-                        action = message[0]
+                        message1 = recv_zipped_pickle(socket, protocol=4)
+                        message2 = message1[0]
+                        action = 0
+                        if not isinstance(message2, int):                            
+                            try:
+                                # message = np.squeeze(message2)
+                                message = message2
+                                # print(" print type ", type(message))
+                                # print(message.shape)
+                                action = message[0].item()
+                            except Exception as e:
+                                print("Error ", e )
+                        # action = message[0]
                         print("Received request: %s" % action)
                         send_zipped_pickle(socket, multi_obs[_DUMMY_AGENT_ID], protocol=4)                    
                     else:
@@ -189,6 +202,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
                         # print("action ", action, type(action))
 
                 #current_wall_time = print_execution_time(current_wall_time, "After calculating action ")
+                print("action ", action, type(action))
                 next_obs, reward, done, _ = env.step(action)
                 prev_step_time = time.time()
                 if multiagent:
@@ -231,7 +245,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
             if out is not None:
                 rollouts.append(rollout)
                 import generate_env_data
-                print("trying to generate env data at step ", steps)
+                print("trying to generate env data at step ", steps, " num_steps", num_steps, " done ", done)
                 generate_env_data.main(["--env", "env"], rollouts)
                     # print("Finished adding env data")
             print("Episode reward", reward_total)

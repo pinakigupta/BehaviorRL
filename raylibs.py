@@ -361,8 +361,8 @@ def ray_play(env_id=None, config=None, agent=None):
     if agent is None:
        agent=ray_retrieve_agent(config=config)
     num_steps=10000
-    no_render=True
-    out=True
+    no_render=False
+    out=False
     try:   
         rollout(
                 agent=agent,
