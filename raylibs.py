@@ -6,7 +6,8 @@ import time
 import glob
 import ray
 import settings
-from multiprocessing import cpu_count
+from multiprocessing import cpu_count, Process
+from functools import partial
 
 # from ray.tune import Experiment, Trainable, run_experiments, register_env, sample_from
 # from ray.tune.schedulers import PopulationBasedTraining #, AsyncHyperBandScheduler
@@ -361,30 +362,49 @@ def ray_play(env_id=None, config=None, agent=None):
     if agent is None:
        agent=ray_retrieve_agent(config=config)
     num_steps=10000
-    no_render=False
+    no_render=config["no_render"]
     out=False
-    try:   
-        rollout(
-                agent=agent,
-                env_name=env_id,
-                num_steps=num_steps,
-                no_render=no_render,
-                out=out,
-                intent_predict=False
-            )
-    except Exception as e:
-        print(e)
-        # No render
-        try:
+    if True:
+        func = partial(
+                            rollout,
+                            agent=agent,
+                            env_name=env_id,
+                            # num_steps=num_steps,
+                            no_render=no_render,
+                            out=out,
+                            intent_predict=False,
+                            config=config
+                    )
+        if no_render:
+            # pool = Pool(processes=cpu_count-1)
+            func(num_steps = num_steps)
+            # p = Process(target=func, args=(10000,))
+            # p.start()
+            # p.join()
+            # p.map(func, num_steps) 
+        else:
             rollout(
-                    agent=agent,
-                    env_name=env_id,
-                    num_steps=num_steps,
-                    no_render=True,
-                    out=out,
-                    intent_predict=False
-                )
-        except Exception as e:
-            print(e)
-            print("There is no approprite rollout methods. Exiting")
-            exit()
+                        agent=agent,
+                        env_name=env_id,
+                        num_steps=num_steps,
+                        no_render=no_render,
+                        out=out,
+                        intent_predict=False,
+                        config=config
+                    )
+    # except Exception as e:
+    #     print(e)
+    #     # No render
+    #     try:
+    #         rollout(
+    #                 agent=agent,
+    #                 env_name=env_id,
+    #                 num_steps=num_steps,
+    #                 no_render=True,
+    #                 out=out,
+    #                 intent_predict=False
+    #             )
+    #     except Exception as e:
+    #         print(e)
+    #         print("There is no approprite rollout methods. Exiting")
+    #         exit()

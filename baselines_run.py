@@ -155,7 +155,7 @@ def main(mainkwargs):
             retrieved_agent_policy = retrieved_agent.get_policy()
             update_policy(retrieved_agent_policy)
             print("entering ray play")
-            ray_play(env_id=play_env_id, config=config, agent=retrieved_agent)
+            ray_play(env_id=play_env_id, config={**config, **mainkwargs}, agent=retrieved_agent)
         else:
             from baselines.common import tf_util, mpi_util
             from baselines.common.vec_env import VecEnv
@@ -176,6 +176,8 @@ if __name__ == "__main__":
                **{
                    "LOCAL_MODE": False,
                    "DEBUG_MODE": False,
+                   "OFFLINE_MODEL": False,
+                   "no_render": False,
                  },
                  **argdict,
                }

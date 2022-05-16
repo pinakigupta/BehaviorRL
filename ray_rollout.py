@@ -91,7 +91,7 @@ def retrieve_ray_folder_info(target_folder, checkpt=None):
     return restore_folder, local_restore_path, algo
 
 
-def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict=False):
+def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict=False, config=None):
     from ray.rllib.rollout import default_policy_agent_mapping, DefaultMapping
     from ray.rllib.env import MultiAgentEnv
     from ray.rllib.env.base_env import _DUMMY_AGENT_ID
@@ -147,7 +147,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
         current_wall_time = time.time()
         prev_step_time = 0
         prev_action_time = 0
-        USE_OFFLINE_MODEL = True 
+        USE_OFFLINE_MODEL = config["OFFLINE_MODEL"] 
         try:
             while not done and steps < (num_steps):
 
@@ -202,7 +202,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
                         # print("action ", action, type(action))
 
                 #current_wall_time = print_execution_time(current_wall_time, "After calculating action ")
-                print("action ", action, type(action))
+                # print("action ", action, type(action))
                 next_obs, reward, done, _ = env.step(action)
                 prev_step_time = time.time()
                 if multiagent:
