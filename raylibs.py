@@ -131,6 +131,7 @@ def ray_init(LOCAL_MODE=False, **mainkwargs):
     available_cluster_cpus = 0
     available_cluster_gpus = 0
     DEBUG_MODE=mainkwargs['DEBUG_MODE']
+    # LOCAL_MODE=mainkwargs['LOCAL_MODE']
 
     if is_predict_only(**mainkwargs):
         try:
@@ -141,7 +142,7 @@ def ray_init(LOCAL_MODE=False, **mainkwargs):
         LOCAL_MODE = DEBUG_MODE    
         ray.init(
                  local_mode=LOCAL_MODE,
-                 num_cpus=max(1, cpu_count()-1),
+                 num_cpus=1, #max(1, cpu_count()-1),
                  num_gpus=1,
                  logging_level="ERROR"
                  )
@@ -358,9 +359,20 @@ def ray_train(save_in_sub_folder=None,
     subprocess.run(["chmod", "-R", "a+rwx", ray_folder + "/"])
 
 
+import asyncio, functools
+def background(f):
+    def wrapped(*args, **kwargs):
+        return asyncio.get_event_loop().run_in_executor(None, functools.partial(f, *args, **kwargs))
+
+    return wrapped
+
+
+# @background
 def ray_play(env_id=None, config=None, agent=None):
-    if agent is None:
-       agent=ray_retrieve_agent(config=config)
+    ray_init(**config)
+    # if agent is None:
+    agent=ray_retrieve_agent(config=config)
+    print(" agent ", agent)
     num_steps=10000
     no_render=config["no_render"]
     out=False
@@ -375,23 +387,8 @@ def ray_play(env_id=None, config=None, agent=None):
                             intent_predict=False,
                             config=config
                     )
-        if no_render:
-            # pool = Pool(processes=cpu_count-1)
-            func(num_steps = num_steps)
-            # p = Process(target=func, args=(10000,))
-            # p.start()
-            # p.join()
-            # p.map(func, num_steps) 
-        else:
-            rollout(
-                        agent=agent,
-                        env_name=env_id,
-                        num_steps=num_steps,
-                        no_render=no_render,
-                        out=out,
-                        intent_predict=False,
-                        config=config
-                    )
+        func(num_steps = num_steps)
+
     # except Exception as e:
     #     print(e)
     #     # No render

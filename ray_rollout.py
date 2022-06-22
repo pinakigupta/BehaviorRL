@@ -13,28 +13,11 @@ from torch import double
 
 
 import time
-import zmq, zlib, pickle
 import numpy as np
 
 print(" print(pickle.format_version)" , pickle.format_version)
 
-context = zmq.Context()
-socket = context.socket(zmq.REP)
-socket.bind("tcp://*:5555")
 
-def send_zipped_pickle(socket, obj, flags=0, protocol=-1):
-    """pickle an object, and zip the pickle before sending it"""
-    p = pickle.dumps(obj, protocol)
-    # print("pickle dump", p)
-    z = zlib.compress(p)
-    return socket.send(z, flags=flags)
-
-def recv_zipped_pickle(socket, flags=0, protocol=-1):
-    """inverse of send_zipped_pickle"""
-    z = socket.recv(flags)
-    # print("z ", z)
-    p = zlib.decompress(z)
-    return pickle.loads(p)
 
 # obj=np.random.rand(2, 30)
 
@@ -97,8 +80,26 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
     from ray.rllib.env.base_env import _DUMMY_AGENT_ID
     policy_agent_mapping = default_policy_agent_mapping
 
+    USE_OFFLINE_MODEL = config["OFFLINE_MODEL"] 
+    if USE_OFFLINE_MODEL:
+        import zmq, zlib, pickle
+        context = zmq.Context()
+        socket = context.socket(zmq.REP)
+        socket.bind("tcp://*:5555")
 
-    
+        def send_zipped_pickle(socket, obj, flags=0, protocol=-1):
+            """pickle an object, and zip the pickle before sending it"""
+            p = pickle.dumps(obj, protocol)
+            # print("pickle dump", p)
+            z = zlib.compress(p)
+            return socket.send(z, flags=flags)
+
+        def recv_zipped_pickle(socket, flags=0, protocol=-1):
+            """inverse of send_zipped_pickle"""
+            z = socket.recv(flags)
+            # print("z ", z)
+            p = zlib.decompress(z)
+            return pickle.loads(p)
 
     '''if env_name is not None:
         env = gym.make(env_name)
@@ -147,7 +148,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
         current_wall_time = time.time()
         prev_step_time = 0
         prev_action_time = 0
-        USE_OFFLINE_MODEL = config["OFFLINE_MODEL"] 
+        
         try:
             while not done and steps < (num_steps):
 
@@ -237,6 +238,7 @@ def rollout(agent, env_name, num_steps, out=None, no_render=True, intent_predict
                 else:
                     reward_total += reward
                 if not no_render:
+                    print(" env: ", env)
                     env.render()
                 if out is not None:
                     rollout.append([obs, action, next_obs, reward, done])

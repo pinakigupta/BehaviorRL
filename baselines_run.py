@@ -15,6 +15,8 @@ import pprint
 import atexit
 from color import color
 from ray.tune import register_env
+from multiprocessing import Process
+import copy
 
 
 def exit_handler():
@@ -140,7 +142,7 @@ def main(mainkwargs):
         if RUN_WITH_RAY:
             from raylibs import ray_init, purge_ray_dirs
             purge_ray_dirs()
-            ray_init(**mainkwargs)
+            # ray_init(**mainkwargs)
             from ray_rollout import ray_retrieve_agent
             from settings import update_policy  
             from raylibs import ray_play          
@@ -151,11 +153,31 @@ def main(mainkwargs):
             register_env('two-way-v0', lambda config: urban_env.envs.TwoWayEnv(config))
             #play_env = gym.make(play_env_id)
             #config=play_env.config
-            retrieved_agent = ray_retrieve_agent(env_id=play_env_id, config=config)
-            retrieved_agent_policy = retrieved_agent.get_policy()
-            update_policy(retrieved_agent_policy)
+            # retrieved_agent = ray_retrieve_agent(env_id=play_env_id, config=config)
+            # retrieved_agent_policy = retrieved_agent.get_policy()
+            # update_policy(retrieved_agent_policy)
             print("entering ray play")
-            ray_play(env_id=play_env_id, config={**config, **mainkwargs}, agent=retrieved_agent)
+            procs = []
+            # ray_play(env_id=play_env_id, config={**config, **mainkwargs}, agent=retrieved_agent)
+
+            for _ in range(1): # NOT ABLE TO TRULY PARALLELIZE
+                config_ = {**config, **mainkwargs}
+                env_id_ = copy.deepcopy(play_env_id)
+                proc = Process(
+                                target=ray_play,
+                                kwargs={
+                                        "env_id": env_id_,
+                                        "config": config_
+                                        }
+                            )
+                procs.append(proc)
+
+            for proc_ in procs:
+                proc_.start()
+
+            for proc_ in procs:
+                proc_.join()
+
         else:
             from baselines.common import tf_util, mpi_util
             from baselines.common.vec_env import VecEnv
