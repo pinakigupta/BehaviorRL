@@ -5,7 +5,7 @@ Keras-Preprocessing==1.0.9
 matplotlib==3.0.3
 scikit-image==0.14.2
 scikit-learn==0.20.3
-scipy==1.2.1
+scipy==1.10.0
 pandas==0.24.2
 pygame==1.9.4
 joblib==0.13.2
